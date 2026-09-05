@@ -53,15 +53,20 @@ Au démarrage, le conteneur applique automatiquement les migrations Prisma
 Vérifie que ça tourne :
 
 ```bash
-docker compose logs -f app
-docker compose exec app node -e "require('http').get('http://localhost:3000/login',r=>console.log(r.statusCode))"
+docker compose --env-file .env.production logs -f app
+docker compose --env-file .env.production exec app node -e "require('http').get('http://localhost:3000/login',r=>console.log(r.statusCode))"
 # doit afficher 200
 ```
+
+Astuce : ajoute `--env-file .env.production` à **chaque** commande `docker compose`
+lancée dans ce dossier (`logs`, `exec`, `down`…), pas seulement au premier `up` —
+sinon Compose cherche les variables dans un `.env` par défaut inexistant et
+refuse de démarrer les commandes qui en dépendent.
 
 ### Charger les données de démonstration (une seule fois, optionnel)
 
 ```bash
-docker compose exec app node_modules/.bin/tsx prisma/seed.ts
+docker compose --env-file .env.production exec app node node_modules/tsx/dist/cli.mjs prisma/seed.ts
 ```
 
 Voir `web/README.md` pour la liste des comptes créés par le seed.
@@ -90,7 +95,7 @@ Voir `web/README.md` pour la liste des comptes créés par le seed.
 5. Relance pour prendre en compte le token :
    ```bash
    docker compose --env-file .env.production up -d
-   docker compose logs -f cloudflared   # doit afficher "Registered tunnel connection"
+   docker compose --env-file .env.production logs -f cloudflared   # doit afficher "Registered tunnel connection"
    ```
 
 Le site est alors accessible en HTTPS sur `https://coach-nat.nevi-syst.com`,
@@ -115,5 +120,5 @@ Les données PostgreSQL vivent dans le volume Docker `db_data`. Pour un dump
 manuel :
 
 ```bash
-docker compose exec db pg_dump -U coachnat coachnat > backup-$(date +%F).sql
+docker compose --env-file .env.production exec db pg_dump -U coachnat coachnat > backup-$(date +%F).sql
 ```
