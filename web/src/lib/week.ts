@@ -42,3 +42,10 @@ export function weekRangeLabel(offset: number) {
   const last = dates[6];
   return `Semaine du ${first.getDate()} au ${last.getDate()} ${MOIS[last.getMonth()]}`;
 }
+
+export function fmtPeriodeLabel(debut: Date, fin: Date) {
+  if (debut.getTime() === fin.getTime()) return `${fmtDayLabel(debut)} ${debut.getFullYear()}`;
+  const sameMonth = debut.getMonth() === fin.getMonth() && debut.getFullYear() === fin.getFullYear();
+  const from = sameMonth ? String(debut.getDate()).padStart(2, "0") : fmtDayLabel(debut);
+  return `${from} → ${fmtDayLabel(fin)} ${fin.getFullYear()}`;
+}

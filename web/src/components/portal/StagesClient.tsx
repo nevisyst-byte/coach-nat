@@ -70,7 +70,7 @@ export function StagesClient({
   const [stageFormOpen, setStageFormOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ jour: 0, debut: "07:00", fin: "09:00", type: "EAU", groupe: groupesOptions[0] ?? "Tous groupes", coachId: "", bassin: "Bassin 50 m", theme: "Volume aérobie", volume: "4000" });
-  const [sForm, setSForm] = useState({ nom: "", periodeLabel: "", lieu: "", groupesLabel: "", places: "20", budgetLabel: "" });
+  const [sForm, setSForm] = useState({ nom: "", dateDebut: "", dateFin: "", lieu: "", groupesLabel: "", places: "20", budgetLabel: "" });
 
   const volTotal = stage.creneaux.reduce((a, c) => a + c.volume, 0);
   const byDay = JOURS.map((_, i) => stage.creneaux.filter((c) => c.jour === i).sort((a, b) => a.debut.localeCompare(b.debut)));
@@ -431,9 +431,15 @@ export function StagesClient({
               </div>
               <div>
                 <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
-                  Période
+                  Du
                 </div>
-                <input value={sForm.periodeLabel} onChange={(e) => setSForm((f) => ({ ...f, periodeLabel: e.target.value }))} placeholder="12 → 16 avr. 2027" className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
+                <input type="date" value={sForm.dateDebut} onChange={(e) => setSForm((f) => ({ ...f, dateDebut: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
+              </div>
+              <div>
+                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  Au (7 jours max)
+                </div>
+                <input type="date" value={sForm.dateFin} onChange={(e) => setSForm((f) => ({ ...f, dateFin: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
               </div>
               <div>
                 <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>

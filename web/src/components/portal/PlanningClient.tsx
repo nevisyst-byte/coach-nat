@@ -16,9 +16,13 @@ type Creneau = {
   groupe: { nom: string };
   coach: { user: { name: string } } | null;
   libelleCoach: string | null;
+  actifHorsVacances: boolean;
 };
 
 type Option = { id: string; nom: string };
+
+type StageCreneauJour = { id: string; debut: string; fin: string; groupe: string; coachNom: string | null; bassin: string; theme: string };
+type StageJourEntry = { stageId: string; stageNom: string; color: string; creneaux: StageCreneauJour[] };
 
 export function PlanningClient({
   creneaux,
@@ -31,6 +35,8 @@ export function PlanningClient({
   canEdit,
   showVueToggle = false,
   defaultCoachId = "",
+  periodeVacances = null,
+  stagesByDay = {},
 }: {
   creneaux: Creneau[];
   dayLabels: string[];
@@ -42,6 +48,8 @@ export function PlanningClient({
   canEdit: boolean;
   showVueToggle?: boolean;
   defaultCoachId?: string;
+  periodeVacances?: { nom: string; zone: string } | null;
+  stagesByDay?: Record<number, StageJourEntry[]>;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -105,6 +113,15 @@ export function PlanningClient({
     router.refresh();
   }
 
+  async function toggleActifHorsVacances(id: string, current: boolean) {
+    await fetch(`/api/creneaux/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actifHorsVacances: !current }),
+    });
+    router.refresh();
+  }
+
   const byDay = JOURS.map((_, i) => creneaux.filter((c) => c.jour === i).sort((a, b) => a.debut.localeCompare(b.debut)));
 
   return (
@@ -154,6 +171,12 @@ export function PlanningClient({
         )}
       </div>
 
+      {periodeVacances && (
+        <div className="rounded-[11px] px-4 py-3 text-[13px]" style={{ background: "rgba(242,179,61,0.1)", border: "1px solid rgba(242,179,61,0.35)", color: "#F2B33D" }}>
+          🏖 {periodeVacances.nom} (zone {periodeVacances.zone}) — les créneaux réguliers marqués « hors vacances » sont en pause cette semaine ; les stages prévus sont affichés ci-dessous.
+        </div>
+      )}
+
       <div className="overflow-x-auto pb-1.5">
         <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(7,minmax(178px,1fr))", minWidth: 1180 }}>
           {JOURS.map((nom, i) => (
@@ -164,32 +187,67 @@ export function PlanningClient({
                   {dayLabels[i]}
                 </div>
               </div>
-              {byDay[i].map((c) => (
-                <div key={c.id} className="rounded-[11px] p-3.5 group relative" style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${ETAT_COLOR[c.etat]}` }}>
-                  <div className="flex items-center gap-2">
-                    <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: ETAT_COLOR[c.etat] }} />
-                    <span className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: ETAT_COLOR[c.etat] }}>
-                      {ETAT_LABEL[c.etat]}
-                    </span>
+              {byDay[i].map((c) => {
+                const enPause = Boolean(periodeVacances && c.actifHorsVacances);
+                return (
+                  <div key={c.id} className="rounded-[11px] p-3.5 group relative" style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${ETAT_COLOR[c.etat]}`, opacity: enPause ? 0.5 : 1 }}>
+                    <div className="flex items-center gap-2">
+                      <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: ETAT_COLOR[c.etat] }} />
+                      <span className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: ETAT_COLOR[c.etat] }}>
+                        {enPause ? "En pause" : ETAT_LABEL[c.etat]}
+                      </span>
+                      {canEdit && (
+                        <button onClick={() => remove(c.id)} className="ml-auto text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer">
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    <div className="mt-2.5 text-[15px] font-semibold leading-tight">{c.groupe.nom}</div>
+                    <div className="mt-0.5 text-[13px]">{c.libelleCoach ?? c.coach?.user.name ?? "—"}</div>
+                    <div className="mt-2.5 pt-2.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px]" style={{ borderTop: "1px solid var(--border)", color: "#7D91AE" }}>
+                      <span>
+                        {c.debut}–{c.fin}
+                      </span>
+                      <span>·</span>
+                      <span>{c.effectifLabel ?? "—"}</span>
+                      <span>·</span>
+                      <span>{c.bassin}</span>
+                    </div>
                     {canEdit && (
-                      <button onClick={() => remove(c.id)} className="ml-auto text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer">
-                        ✕
+                      <button
+                        onClick={() => toggleActifHorsVacances(c.id, c.actifHorsVacances)}
+                        className="mt-2 text-[11px] cursor-pointer underline"
+                        style={{ color: "var(--ink-muted)" }}
+                        title="Bascule si ce créneau continue ou non pendant les vacances scolaires"
+                      >
+                        {c.actifHorsVacances ? "En pause pendant les vacances" : "Continue pendant les vacances"}
                       </button>
                     )}
                   </div>
-                  <div className="mt-2.5 text-[15px] font-semibold leading-tight">{c.groupe.nom}</div>
-                  <div className="mt-0.5 text-[13px]">{c.libelleCoach ?? c.coach?.user.name ?? "—"}</div>
-                  <div className="mt-2.5 pt-2.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px]" style={{ borderTop: "1px solid var(--border)", color: "#7D91AE" }}>
-                    <span>
-                      {c.debut}–{c.fin}
-                    </span>
-                    <span>·</span>
-                    <span>{c.effectifLabel ?? "—"}</span>
-                    <span>·</span>
-                    <span>{c.bassin}</span>
+                );
+              })}
+              {(stagesByDay[i] ?? []).map((stageEntry) =>
+                stageEntry.creneaux.map((c) => (
+                  <div key={c.id} className="rounded-[11px] p-3.5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${stageEntry.color}` }}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: stageEntry.color }}>
+                        Stage · {stageEntry.stageNom}
+                      </span>
+                    </div>
+                    <div className="mt-2.5 text-[15px] font-semibold leading-tight">{c.groupe}</div>
+                    <div className="mt-0.5 text-[13px]">{c.coachNom ?? "—"}</div>
+                    <div className="mt-2.5 pt-2.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px]" style={{ borderTop: "1px solid var(--border)", color: "#7D91AE" }}>
+                      <span>
+                        {c.debut}–{c.fin}
+                      </span>
+                      <span>·</span>
+                      <span>{c.theme}</span>
+                      <span>·</span>
+                      <span>{c.bassin}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
               {canEdit && (
                 <button
                   onClick={() => openModal(i)}
@@ -199,7 +257,7 @@ export function PlanningClient({
                   + créneau
                 </button>
               )}
-              {byDay[i].length === 0 && !canEdit && (
+              {byDay[i].length === 0 && (stagesByDay[i] ?? []).length === 0 && !canEdit && (
                 <div className="rounded-[11px] p-5 text-center text-[13px]" style={{ border: "1px dashed var(--border)", color: "var(--ink-muted)" }}>
                   —
                 </div>

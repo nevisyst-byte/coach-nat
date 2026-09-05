@@ -3,6 +3,11 @@ import { Card } from "@/components/ui/Card";
 import { PlanningClient } from "@/components/portal/PlanningClient";
 import { fmtDayLabel, weekDates, weekRangeLabel } from "@/lib/week";
 import { getSession } from "@/lib/auth";
+import { semaineEnVacances, type ZoneScolaire } from "@/lib/vacances-scolaires";
+
+function sameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
 
 export default async function PlanningPage({ searchParams }: { searchParams: Promise<{ week?: string; vue?: string }> }) {
   const { week, vue } = await searchParams;
@@ -20,7 +25,11 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
     );
   }
 
-  const [creneaux, groupes, coachs, nageurs] = await Promise.all([
+  const dates = weekDates(weekOffset);
+  const weekStart = dates[0];
+  const weekEnd = dates[6];
+
+  const [creneaux, groupes, coachs, nageurs, settings, stagesSemaine] = await Promise.all([
     prisma.creneau.findMany({
       where: mine ? { coachId: session!.coachId! } : undefined,
       include: { groupe: true, coach: { include: { user: true } } },
@@ -28,13 +37,35 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
     prisma.nageur.findMany({ orderBy: { nom: "asc" } }),
+    prisma.appSettings.findUnique({ where: { id: "singleton" } }),
+    prisma.stage.findMany({
+      where: { dateDebut: { lte: weekEnd }, dateFin: { gte: weekStart } },
+      include: { jours: true, creneaux: { include: { coach: { include: { user: true } } } } },
+    }),
   ]);
+
+  const zone = (settings?.zoneScolaire ?? "B") as ZoneScolaire;
+  const periodeVacances = semaineEnVacances(dates, zone);
+
+  const stagesByDay: Record<number, { stageId: string; stageNom: string; color: string; creneaux: { id: string; debut: string; fin: string; groupe: string; coachNom: string | null; bassin: string; theme: string }[] }[]> = {};
+  for (const stage of stagesSemaine) {
+    for (const j of stage.jours) {
+      if (!j.date) continue;
+      const dayIndex = dates.findIndex((d) => sameDay(d, j.date!));
+      if (dayIndex === -1) continue;
+      const creneauxJour = stage.creneaux
+        .filter((c) => c.jour === j.jour)
+        .map((c) => ({ id: c.id, debut: c.debut, fin: c.fin, groupe: c.groupe, coachNom: c.coach?.user.name ?? null, bassin: c.bassin, theme: c.theme }));
+      if (creneauxJour.length === 0) continue;
+      (stagesByDay[dayIndex] ??= []).push({ stageId: stage.id, stageNom: stage.nom, color: stage.color, creneaux: creneauxJour });
+    }
+  }
 
   return (
     <Card>
       <PlanningClient
         creneaux={creneaux}
-        dayLabels={weekDates(weekOffset).map(fmtDayLabel)}
+        dayLabels={dates.map(fmtDayLabel)}
         weekLabel={weekRangeLabel(weekOffset)}
         weekOffset={weekOffset}
         groupes={groupes.map((g) => ({ id: g.id, nom: g.nom }))}
@@ -43,6 +74,8 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
         canEdit={mine ? true : session?.role === "ADMIN"}
         showVueToggle
         defaultCoachId={mine ? session!.coachId! : ""}
+        periodeVacances={periodeVacances ? { nom: periodeVacances.nom, zone } : null}
+        stagesByDay={stagesByDay}
       />
     </Card>
   );

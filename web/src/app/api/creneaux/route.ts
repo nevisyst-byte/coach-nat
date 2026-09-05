@@ -11,6 +11,7 @@ const bodySchema = z.object({
   coachId: z.string().nullable().optional(),
   bassin: z.string(),
   etat: z.enum(["ASSURE", "REMPLACE", "A_COUVRIR"]).default("ASSURE"),
+  actifHorsVacances: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {

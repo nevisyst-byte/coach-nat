@@ -159,26 +159,33 @@ model NotationTechnique {
 }
 
 model Creneau {
-  id            String          @id @default(cuid())
-  jour          Int
-  debut         String
-  fin           String
-  groupeId      String
-  groupe        Groupe          @relation(fields: [groupeId], references: [id], onDelete: Cascade)
-  coachId       String?
-  coach         Coach?          @relation(fields: [coachId], references: [id], onDelete: SetNull)
-  libelleCoach  String?
-  bassin        String
-  effectifLabel String?
-  etat          EtatEncadrement @default(ASSURE)
-  instances     SeanceInstance[]
-  createdAt     DateTime        @default(now())
+  id                String          @id @default(cuid())
+  jour              Int
+  debut             String
+  fin               String
+  groupeId          String
+  groupe            Groupe          @relation(fields: [groupeId], references: [id], onDelete: Cascade)
+  coachId           String?
+  coach             Coach?          @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  libelleCoach      String?
+  bassin            String
+  effectifLabel     String?
+  etat              EtatEncadrement @default(ASSURE)
+  // Si vrai (par défaut), ce créneau récurrent est automatiquement mis en
+  // pause sur les semaines de vacances scolaires (zone définie dans
+  // AppSettings) — le planning affiche alors les stages de la période à la
+  // place. Mettre à faux pour un créneau qui continue toute l'année.
+  actifHorsVacances Boolean         @default(true)
+  instances         SeanceInstance[]
+  createdAt         DateTime        @default(now())
 }
 
 model Stage {
   id            String        @id @default(cuid())
   nom           String
   periodeLabel  String
+  dateDebut     DateTime?
+  dateFin       DateTime?
   lieu          String
   groupesLabel  String
   coachsLabel   String
@@ -194,11 +201,20 @@ model Stage {
 }
 
 model StageJour {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   stageId   String
-  stage     Stage  @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  stage     Stage    @relation(fields: [stageId], references: [id], onDelete: Cascade)
   jour      Int
   dateLabel String
+  date      DateTime?
+}
+
+// Réglages globaux du club, une seule ligne (id fixe "singleton"). Pour
+// l'instant : la zone de vacances scolaires (A/B/C) utilisée pour mettre en
+// pause les créneaux récurrents et faire apparaître les stages au planning.
+model AppSettings {
+  id           String @id @default("singleton")
+  zoneScolaire String @default("B")
 }
 
 model CreneauStage {

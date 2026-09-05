@@ -292,14 +292,15 @@ async function main() {
 
   // ---- Stages ----
   type StageDef = {
-    nom: string; periodeLabel: string; lieu: string; groupesLabel: string; coachsLabel: string;
+    nom: string; periodeLabel: string; dateDebut: Date; dateFin: Date; lieu: string; groupesLabel: string; coachsLabel: string;
     statut: StatutStage; color: string; inscrits: number; places: number; budgetLabel: string; regleLabel: string;
     dates: string[];
     creneaux: { jour: number; debut: string; fin: string; type: TypeCreneau; groupe: string; coach?: string; bassin: string; theme: string; volume: number }[];
   };
   const stageDefs: StageDef[] = [
     {
-      nom: "Stage Toussaint · Élite", periodeLabel: "19 → 24 oct. 2026", lieu: "CREPS Font-Romeu",
+      nom: "Stage Toussaint · Élite", periodeLabel: "19 → 24 oct. 2026",
+      dateDebut: new Date(2026, 9, 19), dateFin: new Date(2026, 9, 24), lieu: "CREPS Font-Romeu",
       groupesLabel: "Élite · Espoir", coachsLabel: "Marie Lefort, Paul Nadal", statut: StatutStage.CONFIRME, color: "#E8442B",
       inscrits: 19, places: 22, budgetLabel: "8 400 €", regleLabel: "85%",
       dates: ["19 oct.", "20 oct.", "21 oct.", "22 oct.", "23 oct.", "24 oct.", ""],
@@ -319,7 +320,8 @@ async function main() {
       ],
     },
     {
-      nom: "Stage Noël · Avenir", periodeLabel: "28 → 30 déc. 2026", lieu: "Piscine olympique — sur place",
+      nom: "Stage Noël · Avenir", periodeLabel: "28 → 30 déc. 2026",
+      dateDebut: new Date(2026, 11, 28), dateFin: new Date(2026, 11, 30), lieu: "Piscine olympique — sur place",
       groupesLabel: "Avenir", coachsLabel: "Thomas Girard", statut: StatutStage.OUVERT, color: "#1E7BFF",
       inscrits: 16, places: 24, budgetLabel: "2 100 €", regleLabel: "40%",
       dates: ["28 déc.", "29 déc.", "30 déc.", "", "", "", ""],
@@ -331,7 +333,8 @@ async function main() {
       ],
     },
     {
-      nom: "Stage Février · Masters", periodeLabel: "14 → 17 févr. 2027", lieu: "Antibes",
+      nom: "Stage Février · Masters", periodeLabel: "14 → 17 févr. 2027",
+      dateDebut: new Date(2027, 1, 14), dateFin: new Date(2027, 1, 17), lieu: "Antibes",
       groupesLabel: "Master compét.", coachsLabel: "Marie Lefort", statut: StatutStage.EN_PREPARATION, color: "#8C6BFF",
       inscrits: 7, places: 14, budgetLabel: "3 600 €", regleLabel: "0%",
       dates: ["14 févr.", "15 févr.", "16 févr.", "17 févr.", "", "", ""],
@@ -346,13 +349,17 @@ async function main() {
   for (const s of stageDefs) {
     const stage = await prisma.stage.create({
       data: {
-        nom: s.nom, periodeLabel: s.periodeLabel, lieu: s.lieu, groupesLabel: s.groupesLabel,
+        nom: s.nom, periodeLabel: s.periodeLabel, dateDebut: s.dateDebut, dateFin: s.dateFin, lieu: s.lieu, groupesLabel: s.groupesLabel,
         coachsLabel: s.coachsLabel, statut: s.statut, color: s.color, inscrits: s.inscrits,
         places: s.places, budgetLabel: s.budgetLabel, regleLabel: s.regleLabel,
       },
     });
     await prisma.stageJour.createMany({
-      data: s.dates.map((dateLabel, jour) => ({ stageId: stage.id, jour, dateLabel })),
+      data: s.dates.map((dateLabel, jour) => {
+        const date = new Date(s.dateDebut);
+        date.setDate(date.getDate() + jour);
+        return { stageId: stage.id, jour, dateLabel, date: dateLabel ? date : null };
+      }),
     });
     await prisma.creneauStage.createMany({
       data: s.creneaux.map((c) => ({
@@ -373,6 +380,13 @@ async function main() {
       { date: new Date(currentYear, 5, 28), titre: "Tests de cotation FFN", detail: "Tous groupes compétition", color: "#1E7BFF" },
       { date: new Date(currentYear, 6, 5), titre: "Championnats départementaux", detail: "Avenir · Espoir · Élite", color: "#F2B33D" },
     ],
+  });
+
+  // ---- Réglages du club ----
+  await prisma.appSettings.upsert({
+    where: { id: "singleton" },
+    update: {},
+    create: { id: "singleton", zoneScolaire: "B" },
   });
 
   console.log("Seed terminé.");
