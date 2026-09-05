@@ -1,0 +1,22 @@
+<!-- @dsCard group="Spacing" viewport="700x150" name="Densité et cibles tactiles" subtitle="44 px minimum sur mobile, 40 px sur desktop" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin:0; padding:18px 20px; background:var(--bg-base); font-family:var(--font-ui); color:var(--ink); }
+  
+  .t { font:var(--label-xs); letter-spacing:var(--track-label); text-transform:uppercase; color:var(--ink-faint); margin:0 0 9px; }
+  .box { border:1px dashed var(--border-strong); border-radius:var(--r-m); display:flex; align-items:center; justify-content:center; font:var(--body-xs); color:var(--ink-2); margin-bottom:9px; }
+
+</style>
+</head>
+<body>
+
+  <p class="t">Hauteurs de contrôle</p>
+  <div class="box" style="height:34px; width:180px">34 px — bouton size="s"</div>
+  <div class="box" style="height:40px; width:220px">40 px — --control-h (desktop)</div>
+  <div class="box" style="height:44px; width:260px">44 px — --tap-min (mobile, plancher)</div>
+</body>
+</html>

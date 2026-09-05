@@ -1,0 +1,29 @@
+:root {
+  --sp-1: 3px;
+  --sp-2: 6px;
+  --sp-3: 9px;
+  --sp-4: 12px;
+  --sp-5: 14px;
+  --sp-6: 16px;
+  --sp-7: 18px;
+  --sp-8: 20px;
+  --sp-9: 22px;
+  --sp-10: 26px;
+  --sp-12: 32px;
+
+  /* Rythmes composés */
+  --pad-card: 20px;
+  --pad-card-lg: 22px;
+  --pad-cell: 14px 20px;
+  --pad-screen: 26px;
+  --gap-grid: 18px;
+  --gap-list: 10px;
+  --gap-chips: 8px;
+
+  /* Densité */
+  --row-h: 44px;
+  --control-h: 40px;
+  --tap-min: 44px;
+  --nav-w: 252px;
+  --nav-w-rail: 78px;
+}

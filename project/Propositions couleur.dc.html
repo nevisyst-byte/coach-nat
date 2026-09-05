@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin:0; padding:0; background:#0A0D12; }
+  body { font-family:'Barlow', system-ui, sans-serif; color:#EAF1FB; -webkit-font-smoothing:antialiased; }
+  * { box-sizing:border-box; }
+  a { color:#24C8FF; text-decoration:none; }
+  a:hover { color:#7FDCFF; }
+</style>
+</helmet>
+
+<section style="padding:40px 36px 60px; display:flex; flex-direction:column; gap:26px;">
+  <div style="max-width:820px;">
+    <div style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#7A8CA6;">Tour 1 · Directions couleur</div>
+    <h1 style="margin:8px 0 0; font-family:'Barlow Condensed',sans-serif; font-size:40px; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; line-height:1;">4 propositions pour COACH-NAT</h1>
+    <p style="margin:12px 0 0; font-size:15px; color:#9FB1C9; line-height:1.6; text-wrap:pretty;">Même écran (tableau de bord coach) décliné dans quatre palettes. <a href="#1a">1a</a> est la version actuelle. Dis-moi l'identifiant que tu retiens et j'applique la palette à tout le portail, desktop et mobile.</p>
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:24px;">
+    <sc-for list="{{ palettes }}" as="p" hint-placeholder-count="4">
+      <div id="{{ p.id }}" style="width:470px; flex:0 0 auto; display:flex; flex-direction:column; gap:12px;">
+
+        <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; padding:4px 10px; border-radius:6px; background:{{ p.accentSoft }}; color:{{ p.accent }}; border:1px solid {{ p.accent }};">{{ p.id }}</span>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;">{{ p.nom }}</span>
+        </div>
+        <div style="font-size:13px; color:#9FB1C9; line-height:1.55; min-height:38px; text-wrap:pretty;">{{ p.desc }}</div>
+
+        <div style="display:flex; gap:6px;">
+          <sc-for list="{{ p.swatches }}" as="sw" hint-placeholder-count="5">
+            <div style="flex:1; height:26px; border-radius:6px; background:{{ sw.c }}; border:1px solid rgba(255,255,255,0.1);"></div>
+          </sc-for>
+        </div>
+
+        <div style="border-radius:16px; overflow:hidden; border:1px solid {{ p.border }}; background:{{ p.bg }}; display:flex; min-height:398px;">
+
+          <div style="width:132px; flex:0 0 auto; background:{{ p.nav }}; border-right:1px solid {{ p.border }}; padding:14px 10px; display:flex; flex-direction:column; gap:14px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:26px; height:26px; border-radius:8px; background:{{ p.logoBg }}; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; color:{{ p.logoFg }};">FT</div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.04em; color:{{ p.ink }};">COACH<span style="color:{{ p.accent2 }};">-NAT</span></div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:3px;">
+              <sc-for list="{{ p.menu }}" as="m" hint-placeholder-count="5">
+                <div style="display:flex; align-items:center; gap:7px; padding:7px 8px; border-radius:7px; background:{{ m.bg }}; border-left:3px solid {{ m.bar }}; font-size:11px; font-weight:{{ m.fw }}; color:{{ m.fg }};">
+                  <span style="font-size:11px;">{{ m.icon }}</span>{{ m.label }}
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
+            <div style="padding:13px 15px; border-bottom:1px solid {{ p.border }}; background:{{ p.header }};">
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:{{ p.ink }};">Tableau de bord coach</div>
+              <div style="font-size:11px; color:{{ p.muted }}; margin-top:2px;">Marie Lefort · vue personnelle</div>
+            </div>
+
+            <div style="padding:14px 15px; display:flex; flex-direction:column; gap:12px;">
+              <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:9px;">
+                <sc-for list="{{ p.kpis }}" as="k" hint-placeholder-count="3">
+                  <div style="background:{{ p.card }}; border:1px solid {{ p.border }}; border-radius:11px; padding:10px 11px;">
+                    <div style="font-family:'Barlow Condensed',sans-serif; font-size:25px; font-weight:700; line-height:1; color:{{ p.ink }};">{{ k.v }}</div>
+                    <div style="font-size:10px; color:{{ p.muted }}; margin-top:2px;">{{ k.l }}</div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="background:{{ p.card }}; border:1px solid {{ p.border }}; border-radius:12px; padding:13px;">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">
+                  <span style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{{ p.ink }};">Charge par nage</span>
+                  <span style="font-size:10px; color:{{ p.muted }};">4 semaines</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px;">
+                  <div style="position:relative; width:86px; height:86px; flex:0 0 auto;">
+                    <div style="position:absolute; inset:0; border-radius:50%; background:{{ p.donut }};"></div>
+                    <div style="position:absolute; inset:19px; border-radius:50%; background:{{ p.card }}; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; color:{{ p.ink }};">15,8 km</div>
+                  </div>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                    <sc-for list="{{ p.legende }}" as="l" hint-placeholder-count="5">
+                      <div style="display:flex; align-items:center; gap:7px; font-size:11px; color:{{ p.ink }};">
+                        <span style="width:8px; height:8px; border-radius:3px; background:{{ l.color }};"></span>
+                        <span style="flex:1;">{{ l.nom }}</span>
+                        <span style="color:{{ p.muted }}; font-weight:700;">{{ l.pct }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                <sc-for list="{{ p.chips }}" as="ch" hint-placeholder-count="4">
+                  <span style="font-size:11px; font-weight:600; padding:6px 11px; border-radius:8px; background:{{ ch.bg }}; border:1px solid {{ ch.border }}; color:{{ ch.fg }};">{{ ch.label }}</span>
+                </sc-for>
+              </div>
+
+              <div style="display:flex; gap:8px;">
+                <div style="flex:1; text-align:center; font-size:11px; font-weight:700; padding:10px; border-radius:9px; background:{{ p.btnBg }}; color:{{ p.btnFg }};">Planifier la séance</div>
+                <div style="flex:0 0 auto; font-size:11px; font-weight:600; padding:10px 14px; border-radius:9px; border:1px solid {{ p.border2 }}; color:{{ p.ink }};">Modèle</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const DEFS = [
+  {
+    id:'1a', nom:'Bleu / rouge — actuel',
+    desc:'La direction en place : fond marine profond, bleu du logo en action, rouge en accent de rupture.',
+    bg:'#080D18', nav:'#0B1524', header:'rgba(8,13,24,0.9)', card:'#0E1727',
+    ink:'#EAF1FB', muted:'#8FA3C0', border:'rgba(255,255,255,0.09)', border2:'rgba(255,255,255,0.18)',
+    accent:'#24C8FF', accent2:'#E8442B', accentSoft:'rgba(36,200,255,0.14)',
+    logoBg:'linear-gradient(135deg,#1E7BFF,#E8442B)', logoFg:'#fff',
+    btnBg:'linear-gradient(135deg,#1E7BFF,#0F5FD6)', btnFg:'#fff',
+    ring:['#1E7BFF','#24C8FF','#2ECC8F','#F2B33D','#E8442B'],
+    swatches:['#080D18','#1E7BFF','#24C8FF','#E8442B','#2ECC8F']
+  },
+  {
+    id:'1b', nom:'Bassin clair',
+    desc:'Version claire, lisible en plein soleil au bord du bassin. Bleu profond du logo sur fond calcaire, rouge réservé aux alertes.',
+    bg:'#F4F7FB', nav:'#FFFFFF', header:'#FFFFFF', card:'#FFFFFF',
+    ink:'#0F2340', muted:'#4E6A8C', border:'rgba(15,35,64,0.12)', border2:'rgba(15,35,64,0.22)',
+    accent:'#0F5FD6', accent2:'#D4341C', accentSoft:'rgba(15,95,214,0.1)',
+    logoBg:'linear-gradient(135deg,#0F5FD6,#D4341C)', logoFg:'#fff',
+    btnBg:'#0F5FD6', btnFg:'#fff',
+    ring:['#0F5FD6','#3E93E8','#12A47A','#E0A02A','#D4341C'],
+    swatches:['#F4F7FB','#0F2340','#0F5FD6','#D4341C','#12A47A']
+  },
+  {
+    id:'1c', nom:'Chrono nuit',
+    desc:'Contraste maximal type tableau d’affichage de compétition : gris ardoise neutre, une seule couleur vive en signal.',
+    bg:'#0C0E11', nav:'#12151A', header:'#12151A', card:'#161A20',
+    ink:'#F2F5F8', muted:'#8A94A3', border:'rgba(255,255,255,0.1)', border2:'rgba(255,255,255,0.2)',
+    accent:'#FF5C33', accent2:'#FF5C33', accentSoft:'rgba(255,92,51,0.14)',
+    logoBg:'#FF5C33', logoFg:'#0C0E11',
+    btnBg:'#FF5C33', btnFg:'#0C0E11',
+    ring:['#FF5C33','#FF8F6E','#E9EDF2','#7E8899','#3C4453'],
+    swatches:['#0C0E11','#161A20','#FF5C33','#E9EDF2','#7E8899']
+  },
+  {
+    id:'1d', nom:'Grand bain',
+    desc:'Palette aquatique élargie : teal et bleu profond pour les filières d’entraînement, corail du logo en accent unique.',
+    bg:'#061A22', nav:'#082430', header:'rgba(6,26,34,0.9)', card:'#0A2C39',
+    ink:'#E8F6F8', muted:'#84AAB6', border:'rgba(255,255,255,0.1)', border2:'rgba(255,255,255,0.2)',
+    accent:'#3FE0C8', accent2:'#FF6B4A', accentSoft:'rgba(63,224,200,0.14)',
+    logoBg:'linear-gradient(135deg,#3FE0C8,#FF6B4A)', logoFg:'#04141A',
+    btnBg:'linear-gradient(135deg,#12A899,#0B7F79)', btnFg:'#fff',
+    ring:['#12A899','#3FE0C8','#4B9BE8','#F2C14E','#FF6B4A'],
+    swatches:['#061A22','#0A2C39','#3FE0C8','#4B9BE8','#FF6B4A']
+  }
+];
+
+const NAGES = [
+  { nom:'Crawl', pct:46 }, { nom:'4 nages', pct:22 },
+  { nom:'Dos', pct:13 }, { nom:'Brasse', pct:11 }, { nom:'Papillon', pct:8 }
+];
+
+class Component extends DCLogic {
+  renderVals() {
+    const palettes = DEFS.map(p => {
+      let acc = 0;
+      const stops = NAGES.map((n, i) => {
+        const from = acc / 100 * 360; acc += n.pct;
+        return p.ring[i] + ' ' + from.toFixed(1) + 'deg ' + (acc / 100 * 360).toFixed(1) + 'deg';
+      }).join(', ');
+      return {
+        ...p,
+        swatches: p.swatches.map(c => ({ c })),
+        donut: 'conic-gradient(' + stops + ')',
+        legende: NAGES.map((n, i) => ({ nom:n.nom, pct:n.pct + '%', color:p.ring[i] })),
+        menu: [
+          { icon:'◈', label:'Pilotage', on:false },
+          { icon:'◉', label:'Coach', on:true },
+          { icon:'▤', label:'Planning', on:false },
+          { icon:'⛭', label:'Stages', on:false },
+          { icon:'⚑', label:'Nageurs', on:false }
+        ].map(m => ({
+          icon:m.icon, label:m.label,
+          fw: m.on ? 700 : 500,
+          fg: m.on ? p.ink : p.muted,
+          bg: m.on ? p.accentSoft : 'transparent',
+          bar: m.on ? p.accent : 'transparent'
+        })),
+        kpis: [{ v:'5', l:'Créneaux' }, { v:'3', l:'Groupes' }, { v:'14 h', l:'Hebdo' }],
+        chips: [
+          { label:'Volume aérobie', bg:p.accentSoft, border:p.accent, fg:p.ink },
+          { label:'Seuil', bg:'transparent', border:p.border2, fg:p.muted },
+          { label:'VMA', bg:'transparent', border:p.border2, fg:p.muted },
+          { label:'Lactique', bg:'transparent', border:p.border2, fg:p.muted }
+        ]
+      };
+    });
+    return { palettes };
+  }
+}
+
+</script>
+</body>
+</html>

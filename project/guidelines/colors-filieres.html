@@ -1,0 +1,43 @@
+<!-- @dsCard group="Colors" viewport="700x160" name="Filières et pôles" subtitle="La couleur porte le sens métier, jamais le décor" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin:0; padding:18px 20px; background:var(--bg-base); font-family:var(--font-ui); color:var(--ink); }
+  
+  .t { font:var(--label-xs); letter-spacing:var(--track-label); text-transform:uppercase; color:var(--ink-faint); margin:0 0 8px; }
+  .stack { display:flex; height:14px; border-radius:var(--r-s); overflow:hidden; border:1px solid var(--border); margin-bottom:10px; }
+  .leg { display:flex; gap:14px; flex-wrap:wrap; font:var(--body-xs); color:var(--ink-2); margin-bottom:16px; }
+  .k { display:flex; align-items:center; gap:7px; }
+  .sq { width:10px; height:10px; border-radius:3px; }
+
+</style>
+</head>
+<body>
+
+  <p class="t">Filières d'entraînement</p>
+  <div class="stack">
+    <div style="width:30%; background:var(--filiere-aerobie)"></div>
+    <div style="width:22%; background:var(--filiere-seuil)"></div>
+    <div style="width:20%; background:var(--filiere-vma)"></div>
+    <div style="width:16%; background:var(--filiere-lactique)"></div>
+    <div style="width:12%; background:var(--filiere-vitesse)"></div>
+  </div>
+  <div class="leg">
+    <span class="k"><span class="sq" style="background:var(--filiere-aerobie)"></span>Volume aérobie</span>
+    <span class="k"><span class="sq" style="background:var(--filiere-seuil)"></span>Seuil</span>
+    <span class="k"><span class="sq" style="background:var(--filiere-vma)"></span>VMA</span>
+    <span class="k"><span class="sq" style="background:var(--filiere-lactique)"></span>Lactique</span>
+    <span class="k"><span class="sq" style="background:var(--filiere-vitesse)"></span>Vitesse</span>
+  </div>
+  <p class="t">Pôles d'effectif</p>
+  <div class="leg" style="margin-bottom:0">
+    <span class="k"><span class="sq" style="background:var(--pole-formation)"></span>Formation</span>
+    <span class="k"><span class="sq" style="background:var(--pole-competition)"></span>Compétition</span>
+    <span class="k"><span class="sq" style="background:var(--pole-sauvetage)"></span>Sauvetage</span>
+    <span class="k"><span class="sq" style="background:var(--pole-loisir)"></span>Loisir & inclusion</span>
+  </div>
+</body>
+</html>

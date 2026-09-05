@@ -1,0 +1,27 @@
+:root {
+  --r-xs: 6px;
+  --r-s: 8px;
+  --r-m: 10px;
+  --r-l: 12px;
+  --r-xl: 14px;
+  --r-2xl: 16px;
+  --r-3xl: 18px;
+  --r-pill: 999px;
+  --r-round: 50%;
+
+  --bar-h: 9px;
+  --bar-h-s: 7px;
+  --bar-r: 6px;
+  --accent-bar: 4px;
+
+  --shadow-modal: 0 30px 90px rgba(0, 0, 0, 0.6);
+  --shadow-menu: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --shadow-device: 0 40px 120px rgba(0, 0, 0, 0.65);
+
+  --blur-bar: blur(12px);
+  --blur-modal: blur(6px);
+
+  --ease: 0.14s ease;
+  --focus-ring: 2px solid var(--border-focus);
+  --focus-offset: 2px;
+}

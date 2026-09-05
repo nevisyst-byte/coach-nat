@@ -1,0 +1,28 @@
+<!-- @dsCard group="Brand" viewport="700x140" name="Rayons et liserés" subtitle="Du chip au bandeau héros" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin:0; padding:18px 20px; background:var(--bg-base); font-family:var(--font-ui); color:var(--ink); }
+  
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .r { width:78px; height:58px; background:var(--bg-card-raised); border:1px solid var(--border); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; font:var(--label-xs); color:var(--ink-3); }
+  .acc { width:120px; height:58px; background:var(--bg-card); border:1px solid var(--border); border-left:4px solid var(--danger); border-radius:var(--r-l); display:flex; align-items:center; justify-content:center; font:var(--label-xs); color:var(--ink-3); }
+
+</style>
+</head>
+<body>
+
+  <div class="row">
+    <div class="r" style="border-radius:var(--r-xs)">6 · xs</div>
+    <div class="r" style="border-radius:var(--r-s)">8 · s</div>
+    <div class="r" style="border-radius:var(--r-m)">10 · m</div>
+    <div class="r" style="border-radius:var(--r-l)">12 · l</div>
+    <div class="r" style="border-radius:var(--r-2xl)">16 · 2xl</div>
+    <div class="r" style="border-radius:var(--r-3xl)">18 · 3xl</div>
+    <div class="acc">liseré 4 px</div>
+  </div>
+</body>
+</html>

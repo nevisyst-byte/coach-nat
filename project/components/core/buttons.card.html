@@ -1,0 +1,53 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Boutons, chips et badges" subtitle="Actions, choix et états" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  body { margin:0; padding:20px; background:var(--bg-card); font-family:var(--font-ui); color:var(--ink); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .lab { font:var(--label-xs); letter-spacing:var(--track-label); text-transform:uppercase; color:var(--ink-faint); margin:0 0 7px; }
+  .btn { font-family:var(--font-ui); font-weight:700; font-size:13px; min-height:40px; padding:0 18px; border-radius:var(--r-m); border:0; display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
+  .primary { background:var(--grad-primary); color:#fff; }
+  .danger { background:var(--grad-danger); color:#fff; }
+  .secondary { background:var(--veil-3); color:var(--ink); border:1px solid var(--border-strong); }
+  .ghost { background:transparent; color:var(--ink-2); border:1px solid var(--border); }
+  .quiet { background:var(--info-bg); color:var(--blue-ink); border:1px solid rgba(30,123,255,0.4); }
+  .dashed { background:transparent; color:var(--ink-2); border:1px dashed var(--border-strong); }
+  .chip { font-family:var(--font-ui); font-size:13px; font-weight:600; min-height:40px; padding:0 15px; border-radius:var(--r-m); cursor:pointer; background:var(--veil-2); border:1px solid var(--border-strong); color:var(--ink-2); }
+  .chip.on { border-color:var(--cyan); background:rgba(30,123,255,0.2); color:var(--ink); }
+  .badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:var(--track-label); text-transform:uppercase; padding:5px 10px; border-radius:var(--r-xs); }
+  .dot { width:7px; height:7px; border-radius:50%; }
+</style>
+</head>
+<body>
+  <p class="lab">Boutons</p>
+  <div class="row">
+    <button class="btn primary">Planifier la séance</button>
+    <button class="btn danger">＋ Saisir une notation</button>
+    <button class="btn secondary">Enregistrer le modèle</button>
+    <button class="btn ghost">← Tous les nageurs</button>
+    <button class="btn quiet">Gérer les absences</button>
+    <button class="btn dashed">＋ Créer un stage</button>
+  </div>
+
+  <p class="lab">Chips — choix exclusif</p>
+  <div class="row">
+    <button class="chip on">Volume aérobie</button>
+    <button class="chip">Seuil</button>
+    <button class="chip">VMA</button>
+    <button class="chip">Lactique</button>
+    <button class="chip">Vitesse</button>
+  </div>
+
+  <p class="lab">Badges d'état</p>
+  <div class="row">
+    <span class="badge" style="background:var(--ok-bg); color:var(--ok);"><span class="dot" style="background:var(--ok)"></span>Assuré</span>
+    <span class="badge" style="background:var(--warn-bg); color:var(--warn);"><span class="dot" style="background:var(--warn)"></span>Remplacé</span>
+    <span class="badge" style="background:var(--danger-bg); color:var(--danger);"><span class="dot" style="background:var(--danger)"></span>À couvrir</span>
+    <span class="badge" style="background:var(--info-bg); color:var(--blue-ink);">National</span>
+    <span class="badge" style="background:var(--neutral-bg); color:var(--ink-2);">Sans perf</span>
+  </div>
+</body>
+</html>

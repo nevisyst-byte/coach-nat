@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin:0; padding:0; background:#05080F; }
+  body { font-family:'Barlow', system-ui, sans-serif; color:#EAF1FB; -webkit-font-smoothing:antialiased; }
+  * { box-sizing:border-box; }
+  a { color:#24C8FF; text-decoration:none; }
+  a:hover { color:#7FDCFF; }
+  #phone::-webkit-scrollbar { width:0; }
+</style>
+</helmet>
+
+<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 16px; background:radial-gradient(900px 500px at 50% -10%, rgba(30,123,255,0.16), transparent 60%), radial-gradient(700px 400px at 90% 100%, rgba(232,68,43,0.12), transparent 60%), #05080F;">
+
+  <div style="width:392px; max-width:100%; height:844px; max-height:92vh; border-radius:44px; border:1px solid rgba(255,255,255,0.14); background:#080D18; box-shadow:0 40px 120px rgba(0,0,0,0.65); overflow:hidden; display:flex; flex-direction:column; position:relative;">
+
+    <div style="height:48px; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:0 26px; font-size:13px; font-weight:600; letter-spacing:0.02em; background:#080D18;">
+      <span>9:41</span>
+      <span style="display:flex; gap:6px; align-items:center; font-size:11px; color:#A9BBD4;">▮▮▮ ⌁ ▰</span>
+    </div>
+
+    <header style="flex:0 0 auto; padding:6px 20px 14px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,0.08); background-image:linear-gradient(180deg,rgba(8,13,24,0.62),rgba(8,13,24,0.96)), url('assets/water-texture.jpg'); background-size:cover; background-position:center;">
+      <img src="assets/logo-crest.png" alt="COACH FT" style="width:40px; height:40px; object-fit:cover; border-radius:11px; border:1px solid rgba(36,200,255,0.35); background:#05090F;" />
+      <div style="flex:1; min-width:0;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px; letter-spacing:0.03em; line-height:1;">{{ titre }}</div>
+        <div style="font-size:11px; color:#8FA3C0; margin-top:2px;">{{ sousTitre }}</div>
+      </div>
+      <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#1E7BFF,#E8442B); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">ML</div>
+    </header>
+
+    <div id="phone" style="flex:1; overflow-y:auto; padding:16px 16px 26px; display:flex; flex-direction:column; gap:14px;">
+
+      <!-- ACCUEIL -->
+      <sc-if value="{{ isAccueil }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div style="background-image:linear-gradient(150deg,rgba(12,21,36,0.9) 0%,rgba(12,21,36,0.66) 55%,rgba(18,41,75,0.4) 100%), url('assets/water-texture.jpg'); background-size:cover; background-position:center; border:1px solid rgba(36,200,255,0.25); border-radius:18px; padding:18px;">
+            <div style="font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#7FDCFF;">Prochaine séance</div>
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:700; margin-top:6px; letter-spacing:0.02em;">MER 18:00 · ÉLITE</div>
+            <div style="font-size:13px; color:#A9BBD4; margin-top:4px;">Bassin 50 m · Allure 200 · crawl · 3 000 m</div>
+            <div style="display:flex; gap:9px; margin-top:15px;">
+              <button onClick="{{ goPlanning }}" style="flex:1; border:0; background:#1E7BFF; color:#fff; border-radius:11px; min-height:46px; padding:0 12px; font-size:13px; font-weight:700; font-family:'Barlow',sans-serif; cursor:pointer;">Feuille de présence</button>
+              <button onClick="{{ goSeance }}" style="flex:0 0 auto; border:1px solid rgba(255,255,255,0.2); background:transparent; color:#EAF1FB; border-radius:11px; min-height:46px; padding:0 18px; font-size:13px; font-weight:600; font-family:'Barlow',sans-serif; cursor:pointer;">Séance</button>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+              <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:15px; padding:14px;">
+                <div style="font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:700; line-height:1;">{{ s.v }}</div>
+                <div style="font-size:12px; color:#8FA3C0; margin-top:3px;">{{ s.l }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px;">
+              <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:16px; letter-spacing:0.08em; text-transform:uppercase;">Charge par nage</h2>
+              <span style="font-size:11px; color:#8FA3C0;">4 semaines</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div style="position:relative; width:104px; height:104px; flex:0 0 auto;">
+                <div style="position:absolute; inset:0; border-radius:50%; background:{{ donut }};"></div>
+                <div style="position:absolute; inset:22px; border-radius:50%; background:#0E1727; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700;">{{ total }}</div>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; gap:7px;">
+                <sc-for list="{{ parNage }}" as="r" hint-placeholder-count="5">
+                  <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+                    <span style="width:9px; height:9px; border-radius:3px; background:{{ r.color }};"></span>
+                    <span style="flex:1;">{{ r.nom }}</span>
+                    <span style="color:#8FA3C0; font-weight:700;">{{ r.pct }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:16px;">
+            <h2 style="margin:0 0 12px; font-family:'Barlow Condensed',sans-serif; font-size:16px; letter-spacing:0.08em; text-transform:uppercase;">À traiter</h2>
+            <div style="display:flex; flex-direction:column; gap:9px;">
+              <sc-for list="{{ aTraiter }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex; align-items:center; gap:10px; padding:10px 10px 10px 13px; border-radius:12px; background:{{ t.bg }}; border:1px solid {{ t.border }};">
+                  <span style="font-size:15px;">{{ t.icon }}</span>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; font-weight:600;">{{ t.titre }}</div>
+                    <div style="font-size:11px; color:#8FA3C0;">{{ t.detail }}</div>
+                  </div>
+                  <button onClick="{{ t.go }}" style="flex:0 0 auto; border:0; background:rgba(255,255,255,0.1); color:#EAF1FB; border-radius:11px; min-height:44px; min-width:60px; padding:0 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;">{{ t.cta }}</button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- PLANNING -->
+      <sc-if value="{{ isPlanning }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; gap:7px; overflow-x:auto; padding-bottom:2px;">
+            <sc-for list="{{ jours }}" as="j" hint-placeholder-count="7">
+              <button onClick="{{ j.go }}" style="flex:0 0 auto; width:52px; border:1px solid {{ j.border }}; background:{{ j.bg }}; color:{{ j.fg }}; border-radius:13px; padding:10px 0; cursor:pointer; font-family:'Barlow',sans-serif;">
+                <div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase;">{{ j.nom }}</div>
+                <div style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:700; margin-top:2px;">{{ j.date }}</div>
+              </button>
+            </sc-for>
+          </div>
+
+          <sc-for list="{{ creneaux }}" as="c" hint-placeholder-count="2">
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-left:4px solid {{ c.color }}; border-radius:15px; padding:15px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700;">{{ c.h }}</span>
+                <span style="font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:4px 8px; border-radius:6px; background:rgba(255,255,255,0.08); color:{{ c.color }};">{{ c.tag }}</span>
+              </div>
+              <div style="font-size:13px; color:#A9BBD4; margin-top:8px; line-height:1.6;">{{ c.plage }} · {{ c.bassin }}<br />{{ c.groupe }} · {{ c.nageurs }}</div>
+              <div style="display:flex; gap:8px; margin-top:13px;">
+                <button style="flex:1; border:0; background:rgba(30,123,255,0.2); color:#8CC4FF; border-radius:11px; min-height:44px; padding:0 12px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;">Présences</button>
+                <button style="flex:1; border:1px solid rgba(255,255,255,0.16); background:transparent; color:#EAF1FB; border-radius:11px; min-height:44px; padding:0 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;">Absence</button>
+              </div>
+            </div>
+          </sc-for>
+
+          <sc-if value="{{ jourVide }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px dashed rgba(255,255,255,0.14); border-radius:15px; padding:34px; text-align:center; color:#4E627F; font-size:13px;">Aucun créneau ce jour</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- NAGEURS -->
+      <sc-if value="{{ isNageurs }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:11px;">
+          <input value="{{ recherche }}" onChange="{{ setRecherche }}" placeholder="Rechercher…" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; min-height:46px; padding:0 14px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+          <sc-for list="{{ nageurs }}" as="n" hint-placeholder-count="6">
+            <div onClick="{{ n.go }}" style="display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:14px; background:#0E1727; border:1px solid rgba(255,255,255,0.09); cursor:pointer;" style-hover="background:#13203A;">
+              <div style="width:38px; height:38px; border-radius:11px; background:{{ n.avaBg }}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">{{ n.ini }}</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:600;">{{ n.nom }}</div>
+                <div style="font-size:11px; color:#8FA3C0;">{{ n.cat }} · {{ n.spe }}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700;">{{ n.pts }}</div>
+                <div style="font-size:10px; color:#61789B;">pts FFN</div>
+              </div>
+              <span style="font-size:11px; font-weight:700; padding:4px 8px; border-radius:7px; background:{{ n.presBg }}; color:{{ n.presFg }};">{{ n.presence }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- FICHE -->
+      <sc-if value="{{ isFiche }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <button onClick="{{ goNageurs }}" style="align-self:flex-start; border:1px solid rgba(255,255,255,0.14); background:transparent; color:#A9BBD4; border-radius:11px; min-height:44px; padding:0 18px; font-size:13px; cursor:pointer; font-family:'Barlow',sans-serif;">← Nageurs</button>
+
+          <div style="background-image:linear-gradient(120deg,rgba(12,21,36,0.94) 0%,rgba(12,21,36,0.7) 55%,rgba(18,41,75,0.42) 100%), url('assets/water-texture.jpg'); background-size:cover; background-position:center; border:1px solid rgba(255,255,255,0.1); border-radius:18px; padding:18px; display:flex; gap:14px; align-items:center;">
+            <div style="width:54px; height:54px; border-radius:15px; background:linear-gradient(135deg,#1E7BFF,#E8442B); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:21px; font-weight:700;">{{ fiche.ini }}</div>
+            <div style="flex:1; min-width:0;">
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:700; text-transform:uppercase; line-height:1;">{{ fiche.nom }}</div>
+              <div style="font-size:12px; color:#A9BBD4; margin-top:5px;">{{ fiche.age }} ans · {{ fiche.cat }} · {{ fiche.spe }}</div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:9px;">
+            <sc-for list="{{ fiche.rankings }}" as="r" hint-placeholder-count="3">
+              <div style="text-align:center; background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:13px; padding:11px 6px;">
+                <div style="font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#8FA3C0;">{{ r.niveau }}</div>
+                <div style="font-family:'Barlow Condensed',sans-serif; font-size:21px; font-weight:700; margin-top:2px;">{{ r.place }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex; gap:6px;">
+            <sc-for list="{{ ficheTabs }}" as="t" hint-placeholder-count="2">
+              <button onClick="{{ t.go }}" style="flex:1; border:1px solid {{ t.border }}; background:{{ t.bg }}; color:{{ t.fg }}; border-radius:11px; min-height:44px; padding:0 10px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;">{{ t.label }}</button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ ficheTab0 }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex; flex-direction:column; gap:9px;">
+              <sc-for list="{{ fiche.perfs }}" as="p" hint-placeholder-count="5">
+                <div style="display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:13px; background:#0E1727; border:1px solid rgba(255,255,255,0.09);">
+                  <div style="flex:1;">
+                    <div style="font-size:13px; font-weight:600;">{{ p.epreuve }}</div>
+                    <div style="font-size:11px; color:#8FA3C0;">{{ p.pts }} pts · {{ p.rangNat }} nat.</div>
+                  </div>
+                  <div style="font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700;">{{ p.temps }}</div>
+                  <div style="font-size:12px; font-weight:700; color:{{ p.deltaColor }}; min-width:44px; text-align:right;">{{ p.delta }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ ficheTab1 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <button onClick="{{ openNotation }}" style="border:0; background:linear-gradient(135deg,#E8442B,#B92E19); color:#fff; border-radius:12px; min-height:46px; padding:0 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;">＋ Saisir une notation</button>
+              <sc-for list="{{ fiche.technique }}" as="n" hint-placeholder-count="4">
+                <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-left:4px solid {{ n.color }}; border-radius:14px; padding:14px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;">{{ n.nage }}</span>
+                    <span style="font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700; color:{{ n.color }};">{{ n.moyenne }}</span>
+                  </div>
+                  <div style="display:flex; gap:4px; margin-top:11px;">
+                    <sc-for list="{{ n.criteres }}" as="c" hint-placeholder-count="8">
+                      <div title="{{ c.nom }}" style="flex:1; height:26px; border-radius:5px; background:rgba(255,255,255,0.07); display:flex; align-items:flex-end; overflow:hidden;">
+                        <div style="width:100%; height:{{ c.w }}; background:{{ n.color }};"></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="font-size:10px; color:#61789B; margin-top:6px;">Départ · coulée · amplitude · fréquence · coord. · respi. · virage · arrivée</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- SÉANCE -->
+      <sc-if value="{{ isSeance }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <sc-for list="{{ axes }}" as="ax" hint-placeholder-count="3">
+            <div>
+              <div style="font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#61789B; margin-bottom:8px;">{{ ax.titre }}</div>
+              <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                <sc-for list="{{ ax.options }}" as="o" hint-placeholder-count="4">
+                  <button onClick="{{ o.go }}" style="border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:11px; min-height:44px; padding:0 15px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;">{{ o.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+
+          <div>
+            <div style="font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#61789B; margin-bottom:8px;">Volume — {{ volume }}</div>
+            <input type="range" min="1500" max="10000" step="500" value="{{ volumeNum }}" onChange="{{ setVolume }}" style="width:100%; height:44px; accent-color:#1E7BFF;" />
+          </div>
+
+          <div style="background:linear-gradient(180deg,#12294B,#0C1524); border:1px solid rgba(255,255,255,0.12); border-radius:18px; padding:17px;">
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;">Séance générée</div>
+            <div style="font-size:12px; color:#7FDCFF; margin-top:3px; margin-bottom:14px;">{{ resume }}</div>
+            <div style="display:flex; flex-direction:column; gap:9px;">
+              <sc-for list="{{ blocs }}" as="b" hint-placeholder-count="4">
+                <div style="padding:12px 13px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09);">
+                  <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                    <span style="font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">{{ b.phase }}</span>
+                    <span style="font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700;">{{ b.distance }}</span>
+                  </div>
+                  <div style="font-size:13px; font-weight:600; margin-top:4px;">{{ b.contenu }}</div>
+                  <div style="font-size:11px; color:#8FA3C0; margin-top:2px;">{{ b.consigne }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <button style="width:100%; margin-top:15px; border:0; background:#1E7BFF; color:#fff; border-radius:12px; min-height:46px; padding:0 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;">Planifier la séance</button>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <nav style="flex:0 0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:2px; padding:8px 10px 22px; border-top:1px solid rgba(255,255,255,0.09); background:rgba(8,13,24,0.96);">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.go }}" style="border:0; background:transparent; cursor:pointer; padding:8px 2px; display:flex; flex-direction:column; align-items:center; gap:4px; color:{{ t.fg }}; font-family:'Barlow',sans-serif;">
+          <span style="font-size:17px;">{{ t.icon }}</span>
+          <span style="font-size:10px; font-weight:{{ t.fw }}; letter-spacing:0.04em;">{{ t.label }}</span>
+        </button>
+      </sc-for>
+    </nav>
+
+    <!-- MODALE NOTATION -->
+    <sc-if value="{{ notationOuverte }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute; inset:0; background:rgba(4,7,14,0.82); display:flex; align-items:flex-end; z-index:40;">
+        <div style="width:100%; max-height:82%; overflow-y:auto; background:#101A2B; border-top:1px solid rgba(255,255,255,0.14); border-radius:24px 24px 44px 44px; padding:20px 18px 30px;">
+          <div style="width:38px; height:4px; border-radius:3px; background:rgba(255,255,255,0.22); margin:0 auto 16px;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">Notation technique</div>
+              <div style="font-size:12px; color:#8FA3C0;">{{ fiche.nom }} · {{ nageNotation }}</div>
+            </div>
+            <button onClick="{{ closeNotation }}" style="border:1px solid rgba(255,255,255,0.16); background:transparent; color:#EAF1FB; width:44px; height:44px; border-radius:12px; cursor:pointer; font-size:15px;">✕</button>
+          </div>
+          <div style="display:flex; gap:7px; flex-wrap:wrap; margin-bottom:18px;">
+            <sc-for list="{{ nagesNotation }}" as="n" hint-placeholder-count="4">
+              <button onClick="{{ n.go }}" style="border:1px solid {{ n.border }}; background:{{ n.bg }}; color:{{ n.fg }}; border-radius:11px; min-height:44px; padding:0 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;">{{ n.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:13px;">
+            <sc-for list="{{ criteresNotation }}" as="c" hint-placeholder-count="8">
+              <div style="display:flex; flex-direction:column; gap:7px;">
+                <div style="font-size:13px; font-weight:600;">{{ c.nom }}</div>
+                <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:7px;">
+                  <sc-for list="{{ c.notes }}" as="n" hint-placeholder-count="5">
+                    <button onClick="{{ n.go }}" style="height:44px; border-radius:11px; border:1px solid {{ n.border }}; background:{{ n.bg }}; color:{{ n.fg }}; font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; cursor:pointer;">{{ n.v }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <button onClick="{{ closeNotation }}" style="width:100%; margin-top:20px; border:0; background:#1E7BFF; color:#fff; border-radius:12px; min-height:46px; padding:0 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;">Enregistrer</button>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const BLUE = '#1E7BFF', CYAN = '#24C8FF', RED = '#E8442B', GREEN = '#2ECC8F', AMBER = '#F2B33D', VIOLET = '#8C6BFF';
+
+const NAGEURS = [
+  { nom:'Sarah Blanc', ini:'SB', age:16, cat:'Élite', spe:'4 nages', pts:1024, rank:['1er','3e','42e'], presence:'94%' },
+  { nom:'Antoine Rey', ini:'AR', age:17, cat:'Espoir', spe:'Nage libre', pts:968, rank:['2e','7e','118e'], presence:'58%' },
+  { nom:'Nathalie Cord', ini:'NC', age:15, cat:'Avenir', spe:'Dos', pts:842, rank:['4e','14e','260e'], presence:'88%' },
+  { nom:'Léo Marchand', ini:'LM', age:14, cat:'Avenir', spe:'Brasse', pts:790, rank:['6e','21e','391e'], presence:'91%' },
+  { nom:'Inès Fabre', ini:'IF', age:18, cat:'Élite', spe:'Papillon', pts:1002, rank:['1er','4e','61e'], presence:'96%' },
+  { nom:'Karim Dault', ini:'KD', age:34, cat:'Master', spe:'Nage libre', pts:712, rank:['3e','9e','154e'], presence:'72%' }
+];
+const CRITERES = ['Départ','Coulée','Amplitude','Fréquence','Coordination','Respiration','Virage','Arrivée'];
+
+class Component extends DCLogic {
+  state = {
+    tab: 'accueil', jour: 2, nageurIdx: 0, ficheTab: 0, recherche: '',
+    notation: false, nageNotation: 'Papillon', notes: {},
+    variant: 'Nage complète', intensite: 'Allure 200', nage: 'Crawl', volume: 3000
+  };
+
+  chip(on, color) {
+    return on
+      ? { bg: 'rgba(30,123,255,0.2)', border: color || CYAN, fg: '#EAF1FB' }
+      : { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', fg: '#A9BBD4' };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const titres = {
+      accueil: ['Aujourd’hui', 'Marie Lefort · mercredi 4 juin'],
+      planning: ['Mon planning', 'Semaine du 1 au 7 juin'],
+      nageurs: ['Nageurs', '6 nageurs suivis'],
+      fiche: ['Fiche nageur', 'Performances et technique'],
+      seance: ['Créateur de séance', 'Variant · intensité · nage']
+    };
+    const t = titres[s.tab];
+
+    const tabs = [
+      { id:'accueil', icon:'◈', label:'Accueil' },
+      { id:'planning', icon:'▤', label:'Planning' },
+      { id:'nageurs', icon:'⚑', label:'Nageurs' },
+      { id:'seance', icon:'✦', label:'Séance' }
+    ].map(x => {
+      const on = s.tab === x.id || (x.id === 'nageurs' && s.tab === 'fiche');
+      return { ...x, fg: on ? CYAN : '#61789B', fw: on ? 700 : 500, go: () => this.setState({ tab: x.id }) };
+    });
+
+    // Planning
+    const jourData = [
+      [], [{ h:'20:00', plage:'20:00–21:30', tag:'Masters', color:VIOLET, groupe:'Masters', nageurs:'11 nageurs', bassin:'Bassin 25m' }],
+      [{ h:'18:00', plage:'18:00–20:00', tag:'Compét', color:BLUE, groupe:'Compétition Élite', nageurs:'9 nageurs', bassin:'Bassin 50m' }],
+      [], [{ h:'18:00', plage:'18:00–20:00', tag:'Compét', color:BLUE, groupe:'Compétition Espoir', nageurs:'14 nageurs', bassin:'Bassin 50m' }],
+      [{ h:'09:00', plage:'09:00–11:00', tag:'Masters', color:VIOLET, groupe:'Masters', nageurs:'11 nageurs', bassin:'Bassin 25m' }], []
+    ];
+    const jours = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((nom, i) => {
+      const on = s.jour === i; const c = this.chip(on);
+      return { nom, date: String(i + 1).padStart(2, '0'), ...c, go: () => this.setState({ jour: i }) };
+    });
+
+    // Charge par nage (camembert)
+    const rows = [
+      { nom:'Crawl', m:7200, color:BLUE }, { nom:'4 nages', m:3400, color:CYAN },
+      { nom:'Dos', m:2100, color:GREEN }, { nom:'Brasse', m:1800, color:AMBER },
+      { nom:'Papillon', m:1300, color:RED }
+    ];
+    const totalM = rows.reduce((a, r) => a + r.m, 0);
+    let acc = 0;
+    const donut = 'conic-gradient(' + rows.map(r => {
+      const from = acc / totalM * 360; acc += r.m;
+      return r.color + ' ' + from.toFixed(1) + 'deg ' + (acc / totalM * 360).toFixed(1) + 'deg';
+    }).join(', ') + ')';
+
+    // Nageurs
+    const q = s.recherche.toLowerCase();
+    const nageurs = NAGEURS.filter(n => !q || n.nom.toLowerCase().includes(q)).map(n => {
+      const p = parseInt(n.presence);
+      return { ...n,
+        avaBg: p >= 85 ? 'rgba(30,123,255,0.22)' : 'rgba(232,68,43,0.22)',
+        presBg: p >= 85 ? 'rgba(46,204,143,0.14)' : p >= 70 ? 'rgba(242,179,61,0.15)' : 'rgba(232,68,43,0.16)',
+        presFg: p >= 85 ? GREEN : p >= 70 ? AMBER : RED,
+        go: () => this.setState({ tab:'fiche', nageurIdx: NAGEURS.indexOf(n), ficheTab: 0 }) };
+    });
+
+    const n = NAGEURS[s.nageurIdx];
+    const perfs = [
+      { epreuve:'50 NL', temps:'26"41', pts:962, delta:'−0.42', rangNat:'118e' },
+      { epreuve:'100 NL', temps:'57"08', pts:988, delta:'−0.91', rangNat:'74e' },
+      { epreuve:'200 NL', temps:'2\'04"33', pts:1004, delta:'−1.62', rangNat:'61e' },
+      { epreuve:'100 Pap', temps:'1\'03"77', pts:901, delta:'+0.24', rangNat:'204e' },
+      { epreuve:'200 4N', temps:'2\'19"85', pts:944, delta:'−2.10', rangNat:'132e' }
+    ].map(p => ({ ...p, deltaColor: p.delta.startsWith('−') ? GREEN : RED }));
+    const technique = [
+      { nage:'Papillon', color:RED, notes:[3,4,3,4,3,2,3,4] },
+      { nage:'Dos', color:CYAN, notes:[4,4,4,3,4,4,3,4] },
+      { nage:'Brasse', color:AMBER, notes:[3,3,4,3,3,4,4,3] },
+      { nage:'Crawl', color:BLUE, notes:[5,4,5,4,5,4,4,5] }
+    ].map(tn => ({ nage:tn.nage, color:tn.color,
+      moyenne: (tn.notes.reduce((a, b) => a + b, 0) / tn.notes.length).toFixed(1),
+      criteres: CRITERES.map((c, i) => ({ nom:c, w: (tn.notes[i] / 5 * 100) + '%' })) }));
+
+    const fiche = { ...n, perfs, technique,
+      rankings: [
+        { niveau:'Dép.', place: n.rank[0] }, { niveau:'Région', place: n.rank[1] }, { niveau:'National', place: n.rank[2] }
+      ] };
+
+    // Séance
+    const axesDef = [
+      { key:'variant', titre:'Variant', options:['Nage complète','Bras','Jambes','Éducatif'] },
+      { key:'intensite', titre:'Intensité', options:['Allure neutre','Négatif split','Progressif','Allure 400','Allure 200','Vitesse'] },
+      { key:'nage', titre:'Nage', options:['4 nages','Spécialité','Papillon','Dos','Brasse','Crawl'] }
+    ];
+    const axes = axesDef.map(a => ({ titre:a.titre,
+      options: a.options.map(o => { const c = this.chip(s[a.key] === o);
+        return { label:o, ...c, go: () => this.setState({ [a.key]: o }) }; }) }));
+
+    const total = s.volume;
+    const r100 = (m) => Math.max(100, Math.round(m / 100) * 100);
+    const fmtM = (m) => m.toLocaleString('fr-FR') + ' m';
+    const dEch = r100(total * 0.20), dTech = r100(total * 0.16);
+    const dPrincCible = total - dEch - dTech - r100(total * 0.10);
+    const repDist = total >= 8000 ? 400 : total >= 6000 ? 300 : total >= 4000 ? 200 : 100;
+    const nSeries = total >= 7000 ? 3 : total >= 4000 ? 2 : 1;
+    const parSerie = Math.max(2, Math.round(dPrincCible / repDist / nSeries));
+    const dPrinc = nSeries * parSerie * repDist;
+    const dRet = total - dEch - dTech - dPrinc;
+    const departs = { 100:'1\'40', 200:'3\'15', 300:'4\'45', 400:'6\'10' };
+
+    return {
+      titre: t[0], sousTitre: t[1], tabs,
+      isAccueil: s.tab === 'accueil', isPlanning: s.tab === 'planning',
+      isNageurs: s.tab === 'nageurs', isFiche: s.tab === 'fiche', isSeance: s.tab === 'seance',
+
+      stats: [
+        { v:'5', l:'Créneaux / sem.' }, { v:'3', l:'Groupes' },
+        { v:'14 h', l:'Heures hebdo' }, { v:'79%', l:'Présence moy.' }
+      ],
+      donut, total: (totalM / 1000).toFixed(1).replace('.', ',') + ' km',
+      parNage: rows.map(r => ({ nom:r.nom, color:r.color, pct: Math.round(r.m / totalM * 100) + '%' })),
+      aTraiter: [
+        { icon:'✎', titre:'2 feuilles de présence', detail:'Séances du 1er et 3 juin', cta:'Saisir', bg:'rgba(30,123,255,0.10)', border:'rgba(30,123,255,0.3)', go: () => this.setState({ tab:'planning' }) },
+        { icon:'☰', titre:'Notation technique', detail:'4 nageurs Élite · papillon', cta:'Noter', bg:'rgba(232,68,43,0.10)', border:'rgba(232,68,43,0.3)', go: () => this.setState({ tab:'fiche', nageurIdx:0, ficheTab:1, notation:true }) },
+        { icon:'⚠', titre:'Antoine Rey — présence 58%', detail:'Seuil groupe 60%', cta:'Voir', bg:'rgba(242,179,61,0.09)', border:'rgba(242,179,61,0.3)', go: () => this.setState({ tab:'fiche', nageurIdx:1, ficheTab:0 }) }
+      ],
+      goPlanning: () => this.setState({ tab:'planning' }),
+      goSeance: () => this.setState({ tab:'seance' }),
+      goNageurs: () => this.setState({ tab:'nageurs' }),
+
+      jours, creneaux: jourData[s.jour], jourVide: jourData[s.jour].length === 0,
+
+      recherche: s.recherche,
+      setRecherche: (e) => this.setState({ recherche: e.target.value }),
+      nageurs,
+
+      fiche,
+      ficheTabs: ['Cotation FFN','Technique'].map((label, i) => {
+        const c = this.chip(s.ficheTab === i);
+        return { label, ...c, go: () => this.setState({ ficheTab: i }) };
+      }),
+      ficheTab0: s.ficheTab === 0, ficheTab1: s.ficheTab === 1,
+
+      notationOuverte: s.notation, nageNotation: s.nageNotation,
+      openNotation: () => this.setState({ notation:true }),
+      closeNotation: () => this.setState({ notation:false }),
+      nagesNotation: ['Papillon','Dos','Brasse','Crawl'].map(label => {
+        const c = this.chip(s.nageNotation === label);
+        return { label, ...c, go: () => this.setState({ nageNotation: label }) };
+      }),
+      criteresNotation: CRITERES.map(nom => ({ nom,
+        notes: [1,2,3,4,5].map(v => {
+          const on = s.notes[s.nageNotation + '|' + nom] === v;
+          return { v, border: on ? CYAN : 'rgba(255,255,255,0.12)',
+            bg: on ? 'rgba(36,200,255,0.2)' : 'rgba(255,255,255,0.04)',
+            fg: on ? '#EAF1FB' : '#8FA3C0',
+            go: () => this.setState({ notes: { ...s.notes, [s.nageNotation + '|' + nom]: v } }) };
+        }) })),
+
+      axes, volume: fmtM(total), volumeNum: total,
+      setVolume: (e) => this.setState({ volume: parseInt(e.target.value, 10) }),
+      resume: s.variant + ' · ' + s.intensite + ' · ' + s.nage,
+      blocs: [
+        { phase:'Échauff.', distance:fmtM(dEch), contenu:fmtM(r100(dEch * 0.5)) + ' crawl souple + ' + Math.round(r100(dEch * 0.5) / 50) + '×50 éducatifs', consigne:'Amplitude, respiration 3 temps' },
+        { phase:'Technique', distance:fmtM(dTech), contenu:Math.max(4, Math.round(dTech / 50)) + '×50 ' + s.variant.toLowerCase(), consigne:'Focus coulée et fréquence' },
+        { phase:'Principal', distance:fmtM(dPrinc), contenu:nSeries + '×(' + parSerie + '×' + repDist + ' ' + s.nage.toLowerCase() + ') — départ ' + departs[repDist], consigne: nSeries > 1 ? 'Récup 2\' entre séries' : 'Tenue de l’allure' },
+        { phase:'Retour', distance:fmtM(dRet), contenu:fmtM(dRet) + ' souple 2 nages', consigne:'Relâchement' }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

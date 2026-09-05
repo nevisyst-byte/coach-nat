@@ -1,0 +1,87 @@
+:root {
+  /* ---- Fonds (du plus profond au plus élevé) ---- */
+  --bg-abyss: #05090F;
+  --bg-base: #080D18;
+  --bg-nav: #0B1524;
+  --bg-card: #0E1727;
+  --bg-card-raised: #101A2B;
+  --bg-head: #131F33;
+  --bg-hover: #132034;
+
+  /* ---- Voiles sur fond ---- */
+  --veil-1: rgba(255, 255, 255, 0.03);
+  --veil-2: rgba(255, 255, 255, 0.04);
+  --veil-3: rgba(255, 255, 255, 0.05);
+  --veil-4: rgba(255, 255, 255, 0.08);
+  --veil-5: rgba(255, 255, 255, 0.12);
+
+  /* ---- Encres ---- */
+  --ink: #EAF1FB;
+  --ink-on-photo: #D6E2F2;
+  --ink-2: #A9BBD4;
+  --ink-3: #8FA3C0;
+  --ink-4: #7D91AE;
+  --ink-faint: #61789B;
+  --ink-disabled: #4E627F;
+  --ink-placeholder: #5D718F;
+
+  /* ---- Bordures ---- */
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-focus: #24C8FF;
+
+  /* ---- Marque ---- */
+  --blue: #1E7BFF;
+  --blue-deep: #0F5FD6;
+  --blue-ink: #8CC4FF;
+  --cyan: #24C8FF;
+  --cyan-soft: #7FDCFF;
+  --red: #E8442B;
+  --red-deep: #B92E19;
+  --red-soft: #FF9179;
+
+  /* ---- Filières d'entraînement (couleur = sens, jamais décor) ---- */
+  --filiere-aerobie: #1E7BFF;
+  --filiere-seuil: #24C8FF;
+  --filiere-vma: #2ECC8F;
+  --filiere-lactique: #E8442B;
+  --filiere-vitesse: #F2B33D;
+
+  /* ---- Pôles d'effectif ---- */
+  --pole-formation: #F2B33D;
+  --pole-competition: #1E7BFF;
+  --pole-sauvetage: #2ECC8F;
+  --pole-loisir: #8C6BFF;
+
+  /* ---- Sémantique ---- */
+  --ok: #2ECC8F;
+  --ok-bg: rgba(46, 204, 143, 0.14);
+  --warn: #F2B33D;
+  --warn-bg: rgba(242, 179, 61, 0.15);
+  --danger: #E8442B;
+  --danger-bg: rgba(232, 68, 43, 0.16);
+  --info: #8CC4FF;
+  --info-bg: rgba(30, 123, 255, 0.14);
+  --neutral: #A9BBD4;
+  --neutral-bg: rgba(255, 255, 255, 0.06);
+
+  /* ---- Accents secondaires ---- */
+  --violet: #8C6BFF;
+  --slate: #5B7BA6;
+  --pink: #FF8AB4;
+  --or: #F2B33D;
+  --argent: #C8D4E4;
+  --bronze: #D08A5A;
+
+  /* ---- Dégradés d'action ---- */
+  --grad-primary: linear-gradient(135deg, #1E7BFF, #0F5FD6);
+  --grad-danger: linear-gradient(135deg, #E8442B, #B92E19);
+  --grad-brand: linear-gradient(135deg, #1E7BFF, #E8442B);
+  --grad-nav: linear-gradient(180deg, #0B1524, #080D18);
+  --grad-active-row: linear-gradient(90deg, rgba(30,123,255,0.22), rgba(30,123,255,0.02));
+
+  /* ---- Fonds photographiques (voiles à appliquer par-dessus) ---- */
+  --photo-veil-hero: linear-gradient(90deg, rgba(8,13,24,0.97) 0%, rgba(8,13,24,0.93) 58%, rgba(8,13,24,0.30) 100%);
+  --photo-veil-card: linear-gradient(110deg, rgba(12,21,36,0.95) 0%, rgba(12,21,36,0.70) 50%, rgba(18,41,75,0.45) 100%);
+  --photo-veil-bar: linear-gradient(180deg, rgba(11,21,36,0.55), rgba(11,21,36,0.96));
+}

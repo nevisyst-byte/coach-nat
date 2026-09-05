@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin:0; padding:0; background:#080D18; }
+  body { font-family:'Barlow', system-ui, sans-serif; color:#EAF1FB; -webkit-font-smoothing:antialiased; }
+  * { box-sizing:border-box; }
+  a { color:#24C8FF; text-decoration:none; }
+  a:hover { color:#7FDCFF; }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb { background:#22314D; border-radius:8px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::selection { background:rgba(30,123,255,0.4); }
+  button, select, input, textarea, tr { transition:background-color .14s ease, border-color .14s ease, color .14s ease, filter .14s ease; }
+  button:active { transform:translateY(1px); }
+  :focus-visible { outline:2px solid #24C8FF; outline-offset:2px; border-radius:8px; }
+  input::placeholder, textarea::placeholder { color:#5D718F; }
+</style>
+</helmet>
+
+<div style="display:flex; min-height:100vh; background:#080D18; background-image:radial-gradient(1200px 500px at 12% -10%, rgba(30,123,255,0.18), transparent 60%), radial-gradient(900px 420px at 100% 0%, rgba(232,68,43,0.12), transparent 60%);">
+
+  <aside style="width:{{ navW }}; flex:0 0 auto; background:linear-gradient(180deg,#0B1524,#080D18); border-right:1px solid rgba(255,255,255,0.09); position:sticky; top:0; height:100vh; display:flex; flex-direction:column; overflow:hidden;">
+    <div style="padding:{{ navPad }}; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; align-items:center; gap:8px; background-image:linear-gradient(180deg,rgba(11,21,36,0.5),rgba(11,21,36,0.94)), url('assets/water-texture.jpg'); background-size:cover; background-position:center;">
+      <img src="assets/logo-lockup.png" alt="COACH FT" style="display:{{ brandD }}; width:100%; max-width:196px; height:auto; border-radius:12px; border:1px solid rgba(36,200,255,0.25);" />
+      <img src="assets/logo-crest.png" alt="COACH FT" style="display:{{ crestD }}; width:46px; height:46px; border-radius:11px; border:1px solid rgba(36,200,255,0.3);" />
+      <div style="display:{{ brandD }}; font-size:10px; color:#8FA3C0; letter-spacing:0.2em; text-transform:uppercase; white-space:nowrap;">Portail coachs</div>
+    </div>
+
+    <nav style="flex:1; overflow-y:auto; padding:12px 10px 20px;">
+      <sc-for list="{{ navGroups }}" as="grp" hint-placeholder-count="4">
+        <div style="margin-bottom:14px;">
+          <div style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#61789B; padding:6px 10px 6px; display:{{ grp.labelD }};">{{ grp.label }}</div>
+          <div style="display:{{ grp.sepD }}; height:1px; background:rgba(255,255,255,0.08); margin:8px 8px 10px;"></div>
+          <div style="display:flex; flex-direction:column; gap:2px;">
+            <sc-for list="{{ grp.items }}" as="it" hint-placeholder-count="3">
+              <button onClick="{{ it.go }}" title="{{ it.titre }}" style="display:flex; align-items:center; justify-content:{{ it.justify }}; gap:10px; width:100%; text-align:left; border:0; cursor:pointer; padding:9px 10px; border-radius:9px; font-family:'Barlow',sans-serif; font-size:14px; font-weight:{{ it.fw }}; color:{{ it.fg }}; background:{{ it.bg }}; border-left:3px solid {{ it.bar }};" style-hover="background:rgba(255,255,255,0.06); color:#EAF1FB;">
+                <span style="font-size:15px; width:18px; text-align:center; opacity:0.9;">{{ it.icon }}</span>
+                <span style="display:{{ it.labelD }};">{{ it.label }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </nav>
+
+    <div style="padding:12px 14px; border-top:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:{{ navJustify }}; gap:10px;">
+      <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#1E7BFF,#E8442B); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex:0 0 auto;">ML</div>
+      <div style="min-width:0; display:{{ brandD }};">
+        <div style="font-size:13px; font-weight:600; white-space:nowrap;">{{ coach }}</div>
+        <div style="font-size:11px; color:#8FA3C0;">Coach · Accès total</div>
+      </div>
+    </div>
+  </aside>
+
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column;">
+
+    <header style="position:sticky; top:0; z-index:20; backdrop-filter:blur(12px); background:rgba(8,13,24,0.82); border-bottom:1px solid rgba(255,255,255,0.09); padding:16px 26px; display:flex; align-items:center; gap:18px; flex-wrap:wrap;">
+      <button onClick="{{ toggleNav }}" style="border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.04); color:#EAF1FB; width:36px; height:36px; border-radius:9px; cursor:pointer; font-size:16px;" style-hover="background:rgba(255,255,255,0.1);">☰</button>
+      <div style="flex:1; min-width:180px;">
+        <div style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#61789B; margin-bottom:5px;">{{ pole }}</div>
+        <h1 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:28px; letter-spacing:0.02em; text-transform:uppercase; line-height:1;">{{ title }}</h1>
+        <div style="font-size:13px; color:#8FA3C0; margin-top:4px;">{{ subtitle }}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div style="position:relative; min-width:250px;">
+          <div style="display:flex; align-items:center; gap:9px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:0 12px; height:40px;">
+            <span style="font-size:13px; color:#61789B;">⌕</span>
+            <input value="{{ q }}" onChange="{{ setQ }}" placeholder="Rechercher un écran, un nageur…" style="flex:1; min-width:0; background:transparent; border:0; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+          </div>
+          <sc-if value="{{ aResultats }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute; top:46px; left:0; right:0; z-index:40; background:#101A2B; border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:6px; box-shadow:0 24px 60px rgba(0,0,0,0.55); display:flex; flex-direction:column; gap:2px;">
+              <sc-for list="{{ resultats }}" as="r" hint-placeholder-count="4">
+                <button onClick="{{ r.go }}" style="display:flex; align-items:center; gap:11px; text-align:left; border:0; background:transparent; cursor:pointer; padding:9px 10px; border-radius:9px; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.07);">
+                  <span style="font-size:13px; color:{{ r.color }}; width:16px; text-align:center;">{{ r.icon }}</span>
+                  <span style="flex:1; min-width:0;">
+                    <span style="display:block; font-size:14px; font-weight:600; color:#EAF1FB;">{{ r.label }}</span>
+                    <span style="display:block; font-size:11px; color:#8FA3C0;">{{ r.kind }} {{ r.meta }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ rienTrouve }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute; top:46px; left:0; right:0; z-index:40; background:#101A2B; border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:14px; box-shadow:0 24px 60px rgba(0,0,0,0.55); font-size:13px; color:#8FA3C0;">Aucun résultat</div>
+          </sc-if>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:7px 10px;">
+          <span style="font-size:12px; color:#8FA3C0; text-transform:uppercase; letter-spacing:0.1em;">Coach</span>
+          <select value="{{ coach }}" onChange="{{ setCoach }}" style="background:transparent; border:0; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; font-weight:600; outline:none; cursor:pointer;">
+            <sc-for list="{{ coaches }}" as="c" hint-placeholder-count="3">
+              <option value="{{ c.v }}" style="background:#101A2B;">{{ c.v }}</option>
+            </sc-for>
+          </select>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; background:rgba(30,123,255,0.12); border:1px solid rgba(30,123,255,0.4); border-radius:10px; padding:8px 12px; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#8CC4FF;">Saison 25/26</div>
+      </div>
+    </header>
+
+    <div style="padding:26px; display:flex; flex-direction:column; gap:22px;">
+
+      <!-- ===================== BANDEAU PHOTOGRAPHIQUE D'ÉCRAN ===================== -->
+      <div style="position:relative; overflow:hidden; border-radius:18px; border:1px solid rgba(255,255,255,0.1); background-color:#080D18; background-image:{{ heroVeil }}, url('{{ heroImg }}'); background-size:cover; background-position:{{ heroPos }}; padding:28px 30px; display:flex; align-items:flex-end; justify-content:space-between; gap:26px; flex-wrap:wrap; min-height:170px;">
+        <div>
+          <div style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#7FDCFF;">{{ heroKicker }}</div>
+          <h2 style="margin:9px 0 0; max-width:520px; font-family:'Barlow Condensed',sans-serif; font-size:36px; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; line-height:1.02;">{{ heroTitle }}</h2>
+          <p style="margin:10px 0 0; max-width:400px; font-size:14px; color:#D6E2F2; line-height:1.55; text-wrap:pretty;">{{ heroText }}</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button onClick="{{ heroGo1 }}" style="display:{{ heroD1 }}; border:0; background:linear-gradient(135deg,#1E7BFF,#0F5FD6); color:#fff; border-radius:11px; padding:13px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.12);">{{ heroCta1 }}</button>
+          <button onClick="{{ heroGo2 }}" style="display:{{ heroD2 }}; border:1px solid rgba(255,255,255,0.24); background:rgba(255,255,255,0.08); color:#EAF1FB; border-radius:11px; padding:13px 20px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif; backdrop-filter:blur(6px);" style-hover="background:rgba(255,255,255,0.16);">{{ heroCta2 }}</button>
+        </div>
+      </div>
+
+
+      <!-- ===================== TABLEAU DE BORD GÉNÉRAL ===================== -->
+      <sc-if value="{{ isGeneral }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; flex-direction:column; gap:22px;">
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px;">
+            <sc-for list="{{ statsGlobal }}" as="s" hint-placeholder-count="4">
+              <div style="background:linear-gradient(180deg,#101A2B,#0C1524); border:1px solid rgba(255,255,255,0.09); border-radius:14px; padding:18px 20px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <div style="width:36px; height:36px; border-radius:10px; background:rgba(30,123,255,0.14); border:1px solid rgba(30,123,255,0.3); display:flex; align-items:center; justify-content:center; font-size:16px;">{{ s.icon }}</div>
+                  <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; color:{{ s.deltaColor }};">{{ s.delta }}</div>
+                </div>
+                <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:42px; line-height:1; margin-top:14px;">{{ s.value }}</div>
+                <div style="font-size:13px; color:#8FA3C0; margin-top:4px;">{{ s.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:18px;">
+
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px;">
+                <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Charge par coach</h2>
+                <span style="font-size:12px; color:#8FA3C0;">Heures / semaine</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:14px;">
+                <sc-for list="{{ chargeCoachs }}" as="c" hint-placeholder-count="3">
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+                      <span style="font-weight:600;">{{ c.nom }}</span>
+                      <span style="color:#8FA3C0;">{{ c.txt }}</span>
+                    </div>
+                    <div style="height:9px; border-radius:6px; background:rgba(255,255,255,0.07); overflow:hidden;">
+                      <div style="height:100%; width:{{ c.w }}; border-radius:6px; background:{{ c.color }};"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; gap:10px; flex-wrap:wrap;">
+                <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Effectif par pôle</h2>
+                <span style="font-size:12px; color:#8FA3C0;">{{ effectifTotal }} licenciés · {{ effectifPerf }} en filière perf</span>
+              </div>
+
+              <div style="display:flex; height:14px; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); margin-bottom:18px;">
+                <sc-for list="{{ poles }}" as="p" hint-placeholder-count="4">
+                  <div title="{{ p.nom }} · {{ p.n }}" style="width:{{ p.w }}; background:{{ p.color }};"></div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:9px;">
+                <sc-for list="{{ poles }}" as="p" hint-placeholder-count="4">
+                  <div style="border:1px solid {{ p.bordure }}; border-radius:12px; overflow:hidden;">
+                    <button onClick="{{ p.go }}" style="width:100%; display:flex; align-items:center; gap:12px; text-align:left; border:0; background:rgba(255,255,255,0.03); cursor:pointer; padding:12px 14px; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.07);">
+                      <span style="width:9px; height:26px; border-radius:4px; background:{{ p.color }}; flex:0 0 auto;"></span>
+                      <span style="flex:1; min-width:0;">
+                        <span style="display:block; font-size:14px; font-weight:600; color:#EAF1FB;">{{ p.nom }}</span>
+                        <span style="display:block; font-size:11px; color:#8FA3C0;">{{ p.nbCats }}</span>
+                      </span>
+                      <span style="font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:700; color:#EAF1FB;">{{ p.n }}</span>
+                      <span style="font-size:12px; font-weight:700; color:{{ p.color }}; min-width:38px; text-align:right;">{{ p.part }}</span>
+                      <span style="font-size:12px; color:#61789B;">{{ p.chevron }}</span>
+                    </button>
+                    <div style="display:{{ p.detailD }}; flex-direction:column; gap:9px; padding:14px; border-top:1px solid rgba(255,255,255,0.08);">
+                      <sc-for list="{{ p.cats }}" as="c" hint-placeholder-count="4">
+                        <div style="display:flex; align-items:center; gap:11px;">
+                          <span style="flex:0 0 118px; font-size:12px; color:#A9BBD4;">{{ c.nom }}</span>
+                          <span style="flex:1; height:8px; border-radius:5px; background:rgba(255,255,255,0.07); overflow:hidden;">
+                            <span style="display:block; height:100%; width:{{ c.w }}; border-radius:5px; background:{{ c.color }};"></span>
+                          </span>
+                          <span style="flex:0 0 26px; text-align:right; font-size:12px; font-weight:700;">{{ c.n }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:18px;">
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+              <h2 style="margin:0 0 14px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Alertes actives</h2>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <sc-for list="{{ alertes }}" as="a" hint-placeholder-count="3">
+                  <div style="display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; background:{{ a.bg }}; border:1px solid {{ a.border }};">
+                    <span style="font-size:17px;">{{ a.icon }}</span>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-size:14px; font-weight:600;">{{ a.titre }}</div>
+                      <div style="font-size:12px; color:#8FA3C0;">{{ a.detail }}</div>
+                    </div>
+                    <button onClick="{{ a.go }}" style="border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.05); color:#EAF1FB; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif; white-space:nowrap;" style-hover="background:rgba(255,255,255,0.12);">Voir fiche</button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; gap:10px; flex-wrap:wrap;">
+                <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Podium des progressions</h2>
+                <span style="font-size:12px; color:#8FA3C0;">Gain de temps sur le mois</span>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; align-items:end; padding-top:18px;">
+                <sc-for list="{{ podium }}" as="p" hint-placeholder-count="3">
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                    <div style="width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,0.05); border:2px solid {{ p.ring }}; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700;">{{ p.ini }}</div>
+                    <div style="text-align:center;">
+                      <div style="font-size:13px; font-weight:600; line-height:1.25;">{{ p.nom }}</div>
+                      <div style="font-size:11px; color:#8FA3C0; margin-top:2px;">{{ p.epreuve }}</div>
+                    </div>
+                    <div style="font-size:13px; font-weight:700; color:#2ECC8F; background:rgba(46,204,143,0.12); border-radius:7px; padding:3px 9px;">{{ p.gain }}</div>
+                    <button onClick="{{ p.go }}" style="width:100%; height:{{ p.h }}; border:1px solid rgba(255,255,255,0.1); border-top:3px solid {{ p.medaille }}; border-radius:10px 10px 0 0; background:linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.02)); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:4px; padding:12px 8px; font-family:'Barlow',sans-serif;" style-hover="background:linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.04));">
+                      <span style="font-family:'Barlow Condensed',sans-serif; font-size:34px; font-weight:700; line-height:1; color:{{ p.medaille }};">{{ p.place }}</span>
+                      <span style="font-size:11px; color:#8FA3C0;">{{ p.pts }} pts</span>
+                    </button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== TABLEAU DE BORD COACH ===================== -->
+      <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:22px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px;">
+            <sc-for list="{{ statsCoach }}" as="s" hint-placeholder-count="4">
+              <div style="background:linear-gradient(180deg,#101A2B,#0C1524); border:1px solid rgba(255,255,255,0.09); border-radius:14px; padding:18px 20px;">
+                <div style="width:34px; height:34px; border-radius:10px; background:rgba(232,68,43,0.14); border:1px solid rgba(232,68,43,0.3); display:flex; align-items:center; justify-content:center; font-size:15px;">{{ s.icon }}</div>
+                <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:40px; line-height:1; margin-top:14px;">{{ s.value }}</div>
+                <div style="font-size:13px; color:#8FA3C0; margin-top:4px;">{{ s.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+              <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Mes groupes</h2>
+              <button onClick="{{ goAbsences }}" style="border:1px solid rgba(36,200,255,0.4); background:rgba(36,200,255,0.1); color:#7FDCFF; border-radius:9px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(36,200,255,0.2);">Gérer les absences</button>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px;">
+              <sc-for list="{{ mesGroupes }}" as="g" hint-placeholder-count="3">
+                <div style="border:1px solid rgba(255,255,255,0.09); border-left:4px solid {{ g.color }}; border-radius:12px; padding:16px; background:rgba(255,255,255,0.03);">
+                  <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
+                    <div>
+                      <div style="font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700; letter-spacing:0.03em; text-transform:uppercase;">{{ g.nom }}</div>
+                      <div style="font-size:12px; color:#8FA3C0; margin-top:2px;">{{ g.cat }}</div>
+                    </div>
+                    <div style="font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:700;">{{ g.n }}</div>
+                  </div>
+                  <div style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#8FA3C0;"><span>Présence 4 sem.</span><span style="color:#EAF1FB; font-weight:600;">{{ g.presence }}</span></div>
+                    <div style="height:7px; border-radius:5px; background:rgba(255,255,255,0.07);"><div style="height:100%; width:{{ g.presence }}; border-radius:5px; background:{{ g.color }};"></div></div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#8FA3C0;"><span>Objectif en cours</span><span style="color:#EAF1FB; font-weight:600;">{{ g.objectif }}</span></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:22px;">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:20px;">
+              <div>
+                <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Répartition de la charge</h2>
+                <div style="font-size:13px; color:#8FA3C0; margin-top:3px;">Volume nagé de mes groupes · {{ chargeTotale }} au total</div>
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <sc-for list="{{ periodes }}" as="p" hint-placeholder-count="3">
+                  <button onClick="{{ p.go }}" style="border:1px solid {{ p.border }}; background:{{ p.bg }}; color:{{ p.fg }}; border-radius:9px; padding:7px 13px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;">{{ p.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:26px;">
+              <sc-for list="{{ camemberts }}" as="ch" hint-placeholder-count="3">
+                <div>
+                  <div style="font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#61789B; margin-bottom:14px;">{{ ch.titre }}</div>
+                  <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+                    <div style="position:relative; width:132px; height:132px; flex:0 0 auto;">
+                      <div style="position:absolute; inset:0; border-radius:50%; background:{{ ch.donut }};"></div>
+                      <div style="position:absolute; inset:27px; border-radius:50%; background:#0E1727; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <span style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:700; line-height:1;">{{ ch.total }}</span>
+                        <span style="font-size:10px; color:#61789B; letter-spacing:0.1em; text-transform:uppercase;">nagés</span>
+                      </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px; flex:1; min-width:132px;">
+                      <sc-for list="{{ ch.items }}" as="r" hint-placeholder-count="5">
+                        <div style="display:flex; align-items:center; gap:9px; font-size:12px;">
+                          <span style="width:10px; height:10px; border-radius:3px; background:{{ r.color }}; flex:0 0 auto;"></span>
+                          <span style="flex:1; font-weight:600;">{{ r.nom }}</span>
+                          <span style="color:#8FA3C0; white-space:nowrap;">{{ r.valeur }}</span>
+                          <span style="color:#EAF1FB; font-weight:700; min-width:34px; text-align:right;">{{ r.pct }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px;">
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+              <h2 style="margin:0 0 14px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Prochaines séances</h2>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <sc-for list="{{ prochainesSeances }}" as="s" hint-placeholder-count="3">
+                  <div style="display:flex; align-items:center; gap:14px; padding:12px 14px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
+                    <div style="text-align:center; min-width:52px;">
+                      <div style="font-family:'Barlow Condensed',sans-serif; font-size:13px; letter-spacing:0.1em; color:#8FA3C0; text-transform:uppercase;">{{ s.jour }}</div>
+                      <div style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700;">{{ s.h }}</div>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-size:14px; font-weight:600;">{{ s.titre }}</div>
+                      <div style="font-size:12px; color:#8FA3C0;">{{ s.detail }}</div>
+                    </div>
+                    <button onClick="{{ s.go }}" style="border:1px solid rgba(255,255,255,0.18); background:transparent; color:#EAF1FB; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.1);">Ouvrir</button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+              <h2 style="margin:0 0 14px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">À traiter</h2>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <sc-for list="{{ aTraiter }}" as="t" hint-placeholder-count="3">
+                  <div style="display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; background:{{ t.bg }}; border:1px solid {{ t.border }};">
+                    <span style="font-size:17px;">{{ t.icon }}</span>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-size:14px; font-weight:600;">{{ t.titre }}</div>
+                      <div style="font-size:12px; color:#8FA3C0;">{{ t.detail }}</div>
+                    </div>
+                    <button onClick="{{ t.go }}" style="border:0; background:#1E7BFF; color:#fff; border-radius:8px; padding:7px 13px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif; white-space:nowrap;" style-hover="background:#3B8DFF;">{{ t.cta }}</button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== PLANNING (global / mon planning) ===================== -->
+      <sc-if value="{{ isPlanning }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:6px;">
+              <button onClick="{{ prevWeek }}" style="border:0; background:transparent; color:#EAF1FB; cursor:pointer; font-size:15px; padding:4px 10px;">‹</button>
+              <span style="font-size:13px; font-weight:600; letter-spacing:0.04em;">{{ semaine }}</span>
+              <button onClick="{{ nextWeek }}" style="border:0; background:transparent; color:#EAF1FB; cursor:pointer; font-size:15px; padding:4px 10px;">›</button>
+            </div>
+            <div style="display:flex; gap:14px; flex-wrap:wrap; flex:1;">
+              <sc-for list="{{ legendeEtat }}" as="l" hint-placeholder-count="3">
+                <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#A9BBD4;"><span style="width:8px; height:8px; border-radius:50%; background:{{ l.color }};"></span>{{ l.nom }}</div>
+              </sc-for>
+            </div>
+            <button onClick="{{ goSeance }}" style="border:0; background:linear-gradient(135deg,#1E7BFF,#0F5FD6); color:#fff; border-radius:10px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.12);">+ Ajouter un créneau</button>
+          </div>
+
+          <div style="overflow-x:auto; padding-bottom:6px;">
+            <div style="display:grid; grid-template-columns:repeat(7,minmax(178px,1fr)); gap:12px; min-width:1180px;">
+              <sc-for list="{{ semaineJours }}" as="j" hint-placeholder-count="7">
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                  <div style="background:#131F33; border:1px solid rgba(255,255,255,0.09); border-radius:11px; padding:10px; text-align:center;">
+                    <div style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;">{{ j.nom }}</div>
+                    <div style="font-size:11px; color:#8FA3C0;">{{ j.date }}</div>
+                  </div>
+                  <sc-for list="{{ j.creneaux }}" as="c" hint-placeholder-count="1">
+                    <div onClick="{{ c.go }}" style="cursor:pointer; background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-left:4px solid {{ c.etatFg }}; border-radius:11px; padding:14px;" style-hover="background:#132034;">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="width:7px; height:7px; border-radius:50%; background:{{ c.etatFg }}; flex:0 0 auto;"></span>
+                        <span style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:{{ c.etatFg }};">{{ c.etat }}</span>
+                      </div>
+                      <div style="margin-top:10px; font-size:15px; font-weight:600; line-height:1.3;">{{ c.groupe }}</div>
+                      <div style="margin-top:3px; font-size:13px; color:#EAF1FB;">{{ c.coach }}</div>
+                      <div style="margin-top:11px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.07); display:flex; flex-wrap:wrap; column-gap:8px; row-gap:3px; font-size:11px; color:#7D91AE;">
+                        <span>{{ c.plage }}</span><span>·</span><span>{{ c.nageurs }}</span><span>·</span><span>{{ c.bassin }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ j.vide }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1px dashed rgba(255,255,255,0.12); border-radius:11px; padding:22px; text-align:center; color:#4E627F; font-size:13px;">—</div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== STAGES ===================== -->
+      <sc-if value="{{ isStages }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px;">
+              <div>
+                <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:20px; letter-spacing:0.05em; text-transform:uppercase;">{{ stageNom }} — planning de la semaine</h2>
+                <div style="font-size:13px; color:#8FA3C0; margin-top:3px;">{{ stagePeriode }} · {{ stageLieu }} · {{ stageJoursActifs }} jours · {{ stageNbCreneaux }} créneaux · {{ stageVolume }}</div>
+              </div>
+              <button onClick="{{ openCreneau }}" style="border:0; background:linear-gradient(135deg,#1E7BFF,#0F5FD6); color:#fff; border-radius:10px; padding:11px 17px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.12);">＋ Ajouter un créneau</button>
+            </div>
+
+            <div style="overflow-x:auto; padding-bottom:6px;">
+              <div style="display:grid; grid-template-columns:repeat(7,minmax(186px,1fr)); gap:12px; min-width:1240px;">
+                <sc-for list="{{ semaineStage }}" as="j" hint-placeholder-count="7">
+                  <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="background:{{ j.bgEntete }}; border:1px solid rgba(255,255,255,0.09); border-radius:11px; padding:10px; text-align:center;">
+                      <div style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:{{ j.fgEntete }};">{{ j.nom }}</div>
+                      <div style="font-size:11px; color:#8FA3C0;">{{ j.date }}</div>
+                    </div>
+                    <sc-for list="{{ j.creneaux }}" as="c" hint-placeholder-count="2">
+                      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.09); border-left:4px solid {{ c.color }}; border-radius:11px; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                          <span style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700;">{{ c.debut }}</span>
+                          <span style="font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:3px 7px; border-radius:6px; background:rgba(255,255,255,0.08); color:{{ c.color }};">{{ c.type }}</span>
+                        </div>
+                        <div style="margin-top:8px; display:flex; flex-direction:column; gap:4px; font-size:12px; color:#A9BBD4;">
+                          <div>{{ c.plage }}</div>
+                          <div style="color:#EAF1FB; font-weight:600;">{{ c.groupe }}</div>
+                          <div>{{ c.coach }}</div>
+                          <div>{{ c.bassin }} · {{ c.vol }}</div>
+                          <div style="color:#7FDCFF;">{{ c.theme }}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; margin-top:10px;">
+                          <button onClick="{{ c.goPresences }}" style="flex:1; border:1px solid rgba(30,123,255,0.35); background:rgba(30,123,255,0.12); color:#8CC4FF; border-radius:8px; padding:7px 4px; font-size:11px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(30,123,255,0.24);">Présences</button>
+                          <button onClick="{{ c.goEvaluer }}" style="flex:1; border:1px solid rgba(232,68,43,0.35); background:rgba(232,68,43,0.12); color:#FF9179; border-radius:8px; padding:7px 4px; font-size:11px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(232,68,43,0.24);">Évaluer</button>
+                        </div>
+                        <button onClick="{{ c.supprimer }}" style="margin-top:6px; width:100%; border:1px solid rgba(255,255,255,0.12); background:transparent; color:#8FA3C0; border-radius:8px; padding:6px; font-size:11px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(232,68,43,0.12); color:#FF9179;">Supprimer</button>
+                      </div>
+                    </sc-for>
+                    <button onClick="{{ j.ajouter }}" style="border:1px dashed rgba(255,255,255,0.14); background:transparent; color:#4E627F; border-radius:11px; padding:13px; font-size:12px; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.04); color:#A9BBD4;">＋ créneau</button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:16px;">
+            <sc-for list="{{ stages }}" as="st" hint-placeholder-count="4">
+              <div onClick="{{ st.go }}" style="cursor:pointer; background:#0E1727; border:1px solid {{ st.bordure }}; border-left:4px solid {{ st.color }}; border-radius:16px; padding:20px;" style-hover="background:#132034;">
+                <div style="display:flex; justify-content:space-between; align-items:start; gap:12px;">
+                  <div style="min-width:0;">
+                    <h3 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:21px; font-weight:700; letter-spacing:0.03em; text-transform:uppercase;">{{ st.nom }}</h3>
+                    <div style="font-size:13px; color:#A9BBD4; margin-top:4px;">{{ st.periode }} · {{ st.lieu }}</div>
+                  </div>
+                  <span style="flex:0 0 auto; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 10px; border-radius:7px; background:{{ st.statutBg }}; color:{{ st.statutFg }};">{{ st.statut }}</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:12px; margin-top:18px;">
+                  <div>
+                    <div style="font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">Groupes</div>
+                    <div style="font-size:13px; font-weight:600; margin-top:3px;">{{ st.groupes }}</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">Volume</div>
+                    <div style="font-size:13px; font-weight:600; margin-top:3px;">{{ st.volume }} · {{ st.nbCreneaux }}</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">Budget</div>
+                    <div style="font-size:13px; font-weight:600; margin-top:3px;">{{ st.budget }} · réglé {{ st.regle }}</div>
+                  </div>
+                </div>
+
+                <div style="margin-top:18px;">
+                  <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+                    <span style="color:#A9BBD4;">Inscriptions</span>
+                    <span style="font-weight:600;">{{ st.inscrits }} / {{ st.places }} places · {{ st.remplissage }}</span>
+                  </div>
+                  <div style="height:9px; border-radius:6px; background:rgba(255,255,255,0.07); overflow:hidden;">
+                    <div style="height:100%; width:{{ st.remplissage }}; border-radius:6px; background:{{ st.color }};"></div>
+                  </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:18px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.08); flex-wrap:wrap;">
+                  <div style="font-size:12px; color:#8FA3C0;">Encadrement · {{ st.coachs }}</div>
+                  <button onClick="{{ st.goPointer }}" style="border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.05); color:#EAF1FB; border-radius:9px; padding:8px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif; white-space:nowrap;" style-hover="background:rgba(255,255,255,0.12);">Pointer les présences</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <button onClick="{{ openStageForm }}" style="align-self:flex-start; border:1px dashed rgba(255,255,255,0.2); background:transparent; color:#A9BBD4; border-radius:10px; padding:12px 20px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.05); color:#EAF1FB;">＋ Créer un stage</button>
+        </div>
+      </sc-if>
+
+      <!-- ===================== PRÉSENCES ===================== -->
+      <sc-if value="{{ isPresences }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:9px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:8px 12px;">
+              <span style="font-size:11px; color:#8FA3C0; text-transform:uppercase; letter-spacing:0.1em;">Séance</span>
+              <select value="{{ seance }}" onChange="{{ setSeance }}" style="background:transparent; border:0; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; font-weight:600; outline:none; cursor:pointer;">
+                <sc-for list="{{ seances }}" as="sc" hint-placeholder-count="3"><option value="{{ sc.v }}" style="background:#101A2B;">{{ sc.v }}</option></sc-for>
+              </select>
+            </div>
+            <div style="display:flex; gap:14px; flex-wrap:wrap; flex:1;">
+              <sc-for list="{{ legendeEtats }}" as="l" hint-placeholder-count="4">
+                <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#A9BBD4;"><span style="width:10px; height:10px; border-radius:3px; background:{{ l.color }};"></span>{{ l.label }}</div>
+              </sc-for>
+            </div>
+            <button style="border:0; background:linear-gradient(135deg,#1E7BFF,#0F5FD6); color:#fff; border-radius:10px; padding:11px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.12);">Valider la feuille</button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px;">
+            <sc-for list="{{ resumePointage }}" as="r" hint-placeholder-count="4">
+              <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:14px; padding:16px 18px;">
+                <div style="font-family:'Barlow Condensed',sans-serif; font-size:34px; font-weight:700; line-height:1; color:{{ r.color }};">{{ r.v }}</div>
+                <div style="font-size:12px; color:#8FA3C0; margin-top:3px;">{{ r.l }}</div>
+              </div>
+            </sc-for>
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:14px; padding:16px 18px; display:flex; flex-direction:column; justify-content:center;">
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:7px;">
+                <span style="color:#8FA3C0;">Taux de présence</span>
+                <span style="font-weight:700; color:{{ tauxColor }};">{{ tauxPresence }}</span>
+              </div>
+              <div style="height:9px; border-radius:6px; background:rgba(255,255,255,0.07); overflow:hidden;">
+                <div style="height:100%; width:{{ tauxBarre }}; border-radius:6px; background:{{ tauxColor }};"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(400px,1fr)); gap:18px; align-items:start;">
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+              <h2 style="margin:0 0 16px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Nageurs</h2>
+              <div style="display:flex; flex-direction:column; gap:9px;">
+                <sc-for list="{{ rosterLignes }}" as="p" hint-placeholder-count="6">
+                  <div style="display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); flex-wrap:wrap;">
+                    <div style="width:34px; height:34px; border-radius:9px; background:{{ p.avaBg }}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">{{ p.ini }}</div>
+                    <div style="flex:1; min-width:110px;">
+                      <div style="font-size:14px; font-weight:600;">{{ p.nom }}</div>
+                      <div style="font-size:11px; color:#8FA3C0;">{{ p.sousTitre }}</div>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                      <sc-for list="{{ p.etats }}" as="e" hint-placeholder-count="4">
+                        <button onClick="{{ e.go }}" title="{{ e.label }}" style="width:38px; height:38px; border-radius:10px; border:1px solid {{ e.border }}; background:{{ e.bg }}; color:{{ e.fg }}; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; cursor:pointer;" style-hover="filter:brightness(1.3);">{{ e.code }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+              <h2 style="margin:0 0 16px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Encadrement</h2>
+              <div style="display:flex; flex-direction:column; gap:9px;">
+                <sc-for list="{{ staffLignes }}" as="p" hint-placeholder-count="3">
+                  <div style="display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); flex-wrap:wrap;">
+                    <div style="width:34px; height:34px; border-radius:9px; background:{{ p.avaBg }}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">{{ p.ini }}</div>
+                    <div style="flex:1; min-width:110px;">
+                      <div style="font-size:14px; font-weight:600;">{{ p.nom }}</div>
+                      <div style="font-size:11px; color:#8FA3C0;">{{ p.sousTitre }}</div>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                      <sc-for list="{{ p.etats }}" as="e" hint-placeholder-count="4">
+                        <button onClick="{{ e.go }}" title="{{ e.label }}" style="width:38px; height:38px; border-radius:10px; border:1px solid {{ e.border }}; background:{{ e.bg }}; color:{{ e.fg }}; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; cursor:pointer;" style-hover="filter:brightness(1.3);">{{ e.code }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== CALENDRIER ===================== -->
+      <sc-if value="{{ isCalendrier }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:18px;">
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+              <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Juin 2026</h2>
+              <span style="font-size:12px; color:#8FA3C0;">Séances · compétitions · congés</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px; font-size:11px; color:#61789B; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; text-align:center;">
+              <div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px;">
+              <sc-for list="{{ moisJours }}" as="d" hint-placeholder-count="30">
+                <div style="aspect-ratio:1; border-radius:9px; border:1px solid {{ d.border }}; background:{{ d.bg }}; padding:6px; display:flex; flex-direction:column; justify-content:space-between;">
+                  <span style="font-size:12px; font-weight:600; color:{{ d.fg }};">{{ d.n }}</span>
+                  <div style="display:flex; gap:3px;">
+                    <sc-for list="{{ d.dots }}" as="dot" hint-placeholder-count="0">
+                      <span style="width:5px; height:5px; border-radius:50%; background:{{ dot.color }};"></span>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+            <h2 style="margin:0 0 14px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Échéances de la saison</h2>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <sc-for list="{{ echeances }}" as="e" hint-placeholder-count="4">
+                <div style="display:flex; gap:14px; align-items:center; padding:13px 14px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-left:4px solid {{ e.color }};">
+                  <div style="text-align:center; min-width:46px;">
+                    <div style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; line-height:1;">{{ e.j }}</div>
+                    <div style="font-size:11px; color:#8FA3C0; text-transform:uppercase;">{{ e.m }}</div>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="font-size:14px; font-weight:600;">{{ e.titre }}</div>
+                    <div style="font-size:12px; color:#8FA3C0;">{{ e.detail }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== NAGEURS ===================== -->
+      <sc-if value="{{ isNageurs }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; overflow:hidden;">
+          <div style="padding:18px 20px; border-bottom:1px solid rgba(255,255,255,0.09); display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <input value="{{ recherche }}" onChange="{{ setRecherche }}" placeholder="Rechercher un nageur…" style="flex:1; min-width:200px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:10px 14px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <sc-for list="{{ filtres }}" as="f" hint-placeholder-count="4">
+                <button onClick="{{ f.go }}" style="border:1px solid {{ f.border }}; background:{{ f.bg }}; color:{{ f.fg }}; border-radius:9px; padding:8px 13px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;">{{ f.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{ nageursVide }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:56px 24px; text-align:center;">
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:#A9BBD4;">Aucun nageur trouvé</div>
+              <div style="font-size:13px; color:#8FA3C0; margin-top:6px;">Essaie un autre nom, ou retire le filtre de groupe.</div>
+              <button onClick="{{ resetFiltres }}" style="margin-top:18px; border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.05); color:#EAF1FB; border-radius:10px; padding:11px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.12);">Réinitialiser la recherche</button>
+            </div>
+          </sc-if>
+          <div style="overflow-x:auto; display:{{ nageursTableD }};">
+            <table style="width:100%; border-collapse:collapse; min-width:860px;">
+              <thead>
+                <tr style="background:rgba(255,255,255,0.03);">
+                  <th style="text-align:left; padding:12px 20px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; font-weight:600;">Nageur</th>
+                  <th style="text-align:left; padding:12px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; font-weight:600;">Catégorie</th>
+                  <th style="text-align:left; padding:12px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; font-weight:600;">Groupe</th>
+                  <th style="text-align:right; padding:12px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; font-weight:600;">Pts FFN</th>
+                  <th style="text-align:right; padding:12px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; font-weight:600;">Dép / Rég / Nat</th>
+                  <th style="text-align:right; padding:12px 20px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; font-weight:600;">Présence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ nageursListe }}" as="n" hint-placeholder-count="6">
+                  <tr onClick="{{ n.go }}" style="border-top:1px solid rgba(255,255,255,0.07); cursor:pointer;" style-hover="background:rgba(255,255,255,0.04);">
+                    <td style="padding:14px 20px;">
+                      <div style="display:flex; align-items:center; gap:11px;">
+                        <div style="width:34px; height:34px; border-radius:9px; background:{{ n.avaBg }}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">{{ n.ini }}</div>
+                        <div>
+                          <div style="font-size:14px; font-weight:600;">{{ n.nom }}</div>
+                          <div style="font-size:12px; color:#8FA3C0;">{{ n.age }} ans · {{ n.spe }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style="padding:14px 12px; font-size:13px; color:#A9BBD4;">{{ n.cat }}</td>
+                    <td style="padding:14px 12px; font-size:13px; color:#A9BBD4;">{{ n.groupe }}</td>
+                    <td style="padding:14px 12px; text-align:right; font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700;">{{ n.pts }}</td>
+                    <td style="padding:14px 12px; text-align:right; font-size:13px; color:#A9BBD4;">{{ n.rank }}</td>
+                    <td style="padding:14px 20px; text-align:right;"><span style="font-size:12px; font-weight:700; padding:4px 9px; border-radius:7px; background:{{ n.presBg }}; color:{{ n.presFg }};">{{ n.presence }}</span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== FICHE NAGEUR ===================== -->
+      <sc-if value="{{ isFiche }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <button onClick="{{ goNageurs }}" style="align-self:flex-start; border:1px solid rgba(255,255,255,0.14); background:transparent; color:#A9BBD4; border-radius:9px; padding:7px 13px; font-size:13px; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.07); color:#EAF1FB;">← Tous les nageurs</button>
+
+          <div style="background-image:linear-gradient(110deg,rgba(12,21,36,0.95) 0%,rgba(12,21,36,0.7) 50%,rgba(18,41,75,0.45) 100%), url('assets/water-texture.jpg'); background-size:cover; background-position:center; border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:22px; display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+            <div style="width:66px; height:66px; border-radius:16px; background:linear-gradient(135deg,#1E7BFF,#E8442B); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:700;">{{ fiche.ini }}</div>
+            <div style="flex:1; min-width:200px;">
+              <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:32px; letter-spacing:0.02em; text-transform:uppercase; line-height:1;">{{ fiche.nom }}</h2>
+              <div style="font-size:13px; color:#A9BBD4; margin-top:6px;">{{ fiche.age }} ans · {{ fiche.cat }} · {{ fiche.groupe }} · Spécialité {{ fiche.spe }}</div>
+            </div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <sc-for list="{{ fiche.rankings }}" as="r" hint-placeholder-count="3">
+                <div style="text-align:center; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:12px 18px; min-width:96px;">
+                  <div style="font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#8FA3C0;">{{ r.niveau }}</div>
+                  <div style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:700; margin-top:3px;">{{ r.place }}</div>
+                  <div style="font-size:11px; color:#61789B;">{{ r.total }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <sc-for list="{{ ficheTabs }}" as="t" hint-placeholder-count="3">
+              <button onClick="{{ t.go }}" style="border:1px solid {{ t.border }}; background:{{ t.bg }}; color:{{ t.fg }}; border-radius:10px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;">{{ t.label }}</button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ ficheTab0 }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; overflow:hidden;">
+              <div style="padding:18px 20px; border-bottom:1px solid rgba(255,255,255,0.09); display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
+                <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Meilleures performances · cotation FFN</h2>
+                <span style="font-size:12px; color:#8FA3C0;">Table de cotation FFN 2025-2026 · bassin 50m</span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; min-width:820px;">
+                  <thead><tr style="background:rgba(255,255,255,0.03);">
+                    <th style="text-align:left; padding:11px 20px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">Épreuve</th>
+                    <th style="text-align:right; padding:11px 12px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">MPP</th>
+                    <th style="text-align:right; padding:11px 12px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">Points</th>
+                    <th style="text-align:left; padding:11px 12px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">Niveau</th>
+                    <th style="text-align:right; padding:11px 12px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">Δ saison</th>
+                    <th style="text-align:right; padding:11px 20px; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">Rang Nat.</th>
+                  </tr></thead>
+                  <tbody>
+                    <sc-for list="{{ fiche.perfs }}" as="p" hint-placeholder-count="5">
+                      <tr style="border-top:1px solid rgba(255,255,255,0.07);">
+                        <td style="padding:13px 20px; font-size:14px; font-weight:600;">{{ p.epreuve }}</td>
+                        <td style="padding:13px 12px; text-align:right; font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:700;">{{ p.temps }}</td>
+                        <td style="padding:13px 12px; text-align:right; font-size:14px; font-weight:600; color:#7FDCFF;">{{ p.pts }}</td>
+                        <td style="padding:13px 12px;"><span style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:4px 9px; border-radius:6px; background:{{ p.nivBg }}; color:{{ p.nivFg }};">{{ p.niveau }}</span></td>
+                        <td style="padding:13px 12px; text-align:right; font-size:13px; font-weight:700; color:{{ p.deltaColor }};">{{ p.delta }}</td>
+                        <td style="padding:13px 20px; text-align:right; font-size:13px; color:#A9BBD4;">{{ p.rangNat }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ ficheTab1 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; flex-direction:column; gap:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <div style="font-size:13px; color:#8FA3C0;">Dernière évaluation : {{ fiche.dateNotation }} · échelle 1 à 5 par critère</div>
+                <button onClick="{{ openNotation }}" style="border:0; background:linear-gradient(135deg,#E8442B,#B92E19); color:#fff; border-radius:10px; padding:11px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.12);">＋ Saisir une notation technique</button>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px;">
+                <sc-for list="{{ fiche.technique }}" as="n" hint-placeholder-count="4">
+                  <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-top:3px solid {{ n.color }}; border-radius:14px; padding:18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                      <h3 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">{{ n.nage }}</h3>
+                      <span style="font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:700; color:{{ n.color }};">{{ n.moyenne }}</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:9px;">
+                      <sc-for list="{{ n.criteres }}" as="c" hint-placeholder-count="5">
+                        <div>
+                          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span style="color:#A9BBD4;">{{ c.nom }}</span><span style="font-weight:700;">{{ c.note }}</span></div>
+                          <div style="height:6px; border-radius:4px; background:rgba(255,255,255,0.07);"><div style="height:100%; width:{{ c.w }}; border-radius:4px; background:{{ n.color }};"></div></div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ ficheTab2 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px;">
+              <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+                <h2 style="margin:0 0 14px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Assiduité · 8 dernières semaines</h2>
+                <div style="display:flex; align-items:flex-end; gap:8px; height:150px;">
+                  <sc-for list="{{ fiche.assiduite }}" as="a" hint-placeholder-count="8">
+                    <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:7px; height:100%;">
+                      <div style="width:100%; height:{{ a.h }}; border-radius:6px 6px 0 0; background:{{ a.color }};"></div>
+                      <span style="font-size:10px; color:#61789B;">{{ a.sem }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+                <h2 style="margin:0 0 14px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Absences déclarées</h2>
+                <div style="display:flex; flex-direction:column; gap:9px;">
+                  <sc-for list="{{ fiche.absences }}" as="a" hint-placeholder-count="4">
+                    <div style="display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
+                      <div style="font-size:13px; font-weight:600; min-width:74px;">{{ a.date }}</div>
+                      <div style="flex:1; font-size:13px; color:#A9BBD4;">{{ a.motif }}</div>
+                      <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:4px 9px; border-radius:6px; background:{{ a.bg }}; color:{{ a.fg }};">{{ a.statut }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===================== CRÉATEUR DE SÉANCE ===================== -->
+      <sc-if value="{{ isSeance }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:18px; align-items:start;">
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:22px;">
+            <sc-for list="{{ axes }}" as="ax" hint-placeholder-count="3">
+              <div>
+                <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+                  <h3 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:17px; letter-spacing:0.1em; text-transform:uppercase;">{{ ax.titre }}</h3>
+                  <span style="font-size:11px; color:#61789B;">{{ ax.aide }}</span>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                  <sc-for list="{{ ax.options }}" as="o" hint-placeholder-count="5">
+                    <button onClick="{{ o.go }}" style="border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:9px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.2);">{{ o.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div>
+                <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Groupe</div>
+                <select value="{{ seanceGroupe }}" onChange="{{ setSeanceGroupe }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;">
+                  <sc-for list="{{ groupesNoms }}" as="g" hint-placeholder-count="4"><option value="{{ g.v }}" style="background:#101A2B;">{{ g.v }}</option></sc-for>
+                </select>
+              </div>
+              <div>
+                <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Volume cible</div>
+                <select value="{{ seanceVolume }}" onChange="{{ setSeanceVolume }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;">
+                  <sc-for list="{{ volumes }}" as="v" hint-placeholder-count="4"><option value="{{ v.v }}" style="background:#101A2B;">{{ v.v }}</option></sc-for>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:linear-gradient(180deg,#122341,#0C1524); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; flex-wrap:wrap; gap:8px;">
+              <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:22px; letter-spacing:0.05em; text-transform:uppercase;">Séance générée</h2>
+              <span style="font-size:12px; color:#8FA3C0;">{{ seanceVolume }} · {{ seanceGroupe }}</span>
+            </div>
+            <div style="font-size:13px; color:#7FDCFF; margin-bottom:18px;">{{ seanceResume }}</div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <sc-for list="{{ seanceBlocs }}" as="b" hint-placeholder-count="4">
+                <div style="display:flex; gap:14px; padding:13px 15px; border-radius:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09);">
+                  <div style="min-width:64px;">
+                    <div style="font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B;">{{ b.phase }}</div>
+                    <div style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:700;">{{ b.distance }}</div>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="font-size:14px; font-weight:600;">{{ b.contenu }}</div>
+                    <div style="font-size:12px; color:#8FA3C0; margin-top:3px;">{{ b.consigne }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
+              <button style="flex:1; min-width:130px; border:0; background:linear-gradient(135deg,#1E7BFF,#0F5FD6); color:#fff; border-radius:10px; padding:12px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.12);">Planifier la séance</button>
+              <button style="flex:1; min-width:130px; border:1px solid rgba(255,255,255,0.16); background:transparent; color:#EAF1FB; border-radius:10px; padding:12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.08);">Enregistrer le modèle</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== THÉMATIQUES ===================== -->
+      <sc-if value="{{ isThematique }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:22px;">
+            <h2 style="margin:0 0 4px; font-family:'Barlow Condensed',sans-serif; font-size:20px; letter-spacing:0.06em; text-transform:uppercase;">Nouvelle thématique d'entraînement</h2>
+            <p style="margin:0 0 18px; font-size:13px; color:#8FA3C0; max-width:660px;">Une thématique combine un variant, une intensité et une nage, puis génère automatiquement le cycle de séances qui mène le groupe à son objectif.</p>
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:9px;">Thématique dominante</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+              <sc-for list="{{ themes }}" as="th" hint-placeholder-count="5">
+                <button onClick="{{ th.go }}" style="border:1px solid {{ th.border }}; background:{{ th.bg }}; color:{{ th.fg }}; border-radius:9px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.2);">{{ th.label }}</button>
+              </sc-for>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; margin-bottom:20px;">
+              <div>
+                <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:9px;">Type de variant</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <sc-for list="{{ variantOptions }}" as="o" hint-placeholder-count="4">
+                    <button onClick="{{ o.go }}" style="border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:9px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.2);">{{ o.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:9px;">Type de nage</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <sc-for list="{{ nageOptions }}" as="o" hint-placeholder-count="6">
+                    <button onClick="{{ o.go }}" style="border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:9px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.2);">{{ o.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; align-items:end;">
+              <div>
+                <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Objectif du groupe</div>
+                <input value="{{ themeObjectif }}" onChange="{{ setThemeObjectif }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+              </div>
+              <div>
+                <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Groupe</div>
+                <select value="{{ themeGroupe }}" onChange="{{ setThemeGroupe }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;">
+                  <sc-for list="{{ groupesNoms }}" as="g" hint-placeholder-count="4"><option value="{{ g.v }}" style="background:#101A2B;">{{ g.v }}</option></sc-for>
+                </select>
+              </div>
+              <div>
+                <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Durée du cycle</div>
+                <select value="{{ themeCycle }}" onChange="{{ setThemeCycle }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;">
+                  <sc-for list="{{ cycles }}" as="c" hint-placeholder-count="3"><option value="{{ c.v }}" style="background:#101A2B;">{{ c.v }}</option></sc-for>
+                </select>
+              </div>
+              <button onClick="{{ genererCycle }}" style="border:0; background:linear-gradient(135deg,#E8442B,#B92E19); color:#fff; border-radius:10px; padding:12px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif; height:42px;" style-hover="filter:brightness(1.12);">Générer le cycle</button>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:18px;">
+
+            <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:4px; flex-wrap:wrap; gap:8px;">
+                <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Répartition des filières par semaine</h2>
+                <span style="font-size:12px; color:#8FA3C0;">% du volume · hauteur = volume total</span>
+              </div>
+              <div style="display:flex; align-items:flex-end; gap:16px; height:230px; padding-top:18px;">
+                <sc-for list="{{ chargeSemaines }}" as="w" hint-placeholder-count="4">
+                  <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:8px; height:100%;">
+                    <div style="font-size:11px; color:#8FA3C0;">{{ w.volume }}</div>
+                    <div style="width:100%; max-width:70px; height:{{ w.hauteur }}; display:flex; flex-direction:column; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1);">
+                      <sc-for list="{{ w.segments }}" as="sg" hint-placeholder-count="5">
+                        <div title="{{ sg.nom }} {{ sg.pct }}" style="height:{{ sg.h }}; background:{{ sg.color }};"></div>
+                      </sc-for>
+                    </div>
+                    <div style="text-align:center;">
+                      <div style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700;">{{ w.semaine }}</div>
+                      <div style="font-size:10px; color:#61789B;">{{ w.titre }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);">
+                <sc-for list="{{ themeLegende }}" as="l" hint-placeholder-count="5">
+                  <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#A9BBD4;"><span style="width:10px; height:10px; border-radius:3px; background:{{ l.color }};"></span>{{ l.nom }}</div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:18px;">
+              <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+                <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+                  <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Volume par filière</h2>
+                  <span style="font-size:12px; color:#8FA3C0;">Cumul du cycle</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                  <sc-for list="{{ volumeThemes }}" as="v" hint-placeholder-count="5">
+                    <div>
+                      <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                        <span style="font-weight:600;">{{ v.nom }}</span>
+                        <span style="color:#8FA3C0;">{{ v.metres }} · {{ v.pct }}</span>
+                      </div>
+                      <div style="height:9px; border-radius:6px; background:rgba(255,255,255,0.07); overflow:hidden;">
+                        <div style="height:100%; width:{{ v.w }}; max-width:100%; border-radius:6px; background:{{ v.color }};"></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+                <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+                  <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Intensité cible</h2>
+                  <span style="font-size:12px; color:#8FA3C0;">% FC max moyenne</span>
+                </div>
+                <div style="display:flex; align-items:flex-end; gap:10px; height:120px;">
+                  <sc-for list="{{ courbeCharge }}" as="c" hint-placeholder-count="4">
+                    <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:6px; height:100%;">
+                      <span style="font-size:11px; font-weight:700; color:{{ c.color }};">{{ c.val }}</span>
+                      <div style="width:100%; height:{{ c.h }}; border-radius:6px 6px 0 0; background:{{ c.color }};"></div>
+                      <span style="font-size:11px; color:#61789B;">{{ c.semaine }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px;">
+            <sc-for list="{{ cycleSeances }}" as="s" hint-placeholder-count="4">
+              <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-left:4px solid {{ s.color }}; border-radius:14px; padding:18px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#61789B;">{{ s.semaine }}</span>
+                  <span style="font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; background:rgba(255,255,255,0.07); color:{{ s.color }};">{{ s.charge }}</span>
+                </div>
+                <h3 style="margin:10px 0 6px; font-family:'Barlow Condensed',sans-serif; font-size:20px; letter-spacing:0.03em; text-transform:uppercase;">{{ s.titre }}</h3>
+                <div style="font-size:13px; color:#A9BBD4; line-height:1.5;">{{ s.detail }}</div>
+                <div style="margin-top:14px; display:flex; gap:6px; flex-wrap:wrap;">
+                  <sc-for list="{{ s.tags }}" as="t" hint-placeholder-count="3">
+                    <span style="font-size:11px; padding:4px 9px; border-radius:6px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#A9BBD4;">{{ t.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== ABSENCES / CONGÉS ===================== -->
+      <sc-if value="{{ isAbsences }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:18px; align-items:start;">
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+            <h2 style="margin:0 0 14px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Congés & indisponibilités coach</h2>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <sc-for list="{{ congesCoach }}" as="c" hint-placeholder-count="3">
+                <div style="display:flex; align-items:center; gap:12px; padding:13px 15px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-left:4px solid {{ c.color }};">
+                  <div style="flex:1;">
+                    <div style="font-size:14px; font-weight:600;">{{ c.periode }}</div>
+                    <div style="font-size:12px; color:#8FA3C0;">{{ c.motif }} · {{ c.impact }}</div>
+                  </div>
+                  <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:5px 10px; border-radius:7px; background:{{ c.bg }}; color:{{ c.fg }};">{{ c.statut }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <button style="margin-top:16px; width:100%; border:1px dashed rgba(255,255,255,0.2); background:transparent; color:#A9BBD4; border-radius:10px; padding:12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.05); color:#EAF1FB;">＋ Déclarer une indisponibilité</button>
+          </div>
+
+          <div style="background:#0E1727; border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:20px;">
+            <h2 style="margin:0 0 14px; font-family:'Barlow Condensed',sans-serif; font-size:19px; letter-spacing:0.06em; text-transform:uppercase;">Absences nageurs — mes groupes</h2>
+            <div style="display:flex; flex-direction:column; gap:9px;">
+              <sc-for list="{{ absencesNageurs }}" as="a" hint-placeholder-count="5">
+                <div style="display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
+                  <div style="width:32px; height:32px; border-radius:9px; background:{{ a.avaBg }}; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">{{ a.ini }}</div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:14px; font-weight:600;">{{ a.nom }}</div>
+                    <div style="font-size:12px; color:#8FA3C0;">{{ a.date }} · {{ a.motif }}</div>
+                  </div>
+                  <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:5px 10px; border-radius:7px; background:{{ a.bg }}; color:{{ a.fg }};">{{ a.statut }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+
+  <!-- ===================== MODALE CRÉNEAU DE STAGE ===================== -->
+  <sc-if value="{{ creneauOuvert }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeCreneau }}" style="position:fixed; inset:0; background:rgba(4,7,14,0.78); backdrop-filter:blur(6px); z-index:100; display:flex; align-items:center; justify-content:center; padding:22px;">
+      <div onClick="{{ stopProp }}" style="width:100%; max-width:620px; max-height:88vh; overflow-y:auto; background:#101A2B; border:1px solid rgba(255,255,255,0.14); border-radius:18px; box-shadow:0 30px 90px rgba(0,0,0,0.6);">
+        <div style="padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:22px; letter-spacing:0.05em; text-transform:uppercase;">Nouveau créneau</h2>
+            <div style="font-size:13px; color:#8FA3C0; margin-top:3px;">{{ stageNom }} · plusieurs créneaux possibles le même jour</div>
+          </div>
+          <button onClick="{{ closeCreneau }}" style="border:1px solid rgba(255,255,255,0.16); background:transparent; color:#EAF1FB; width:34px; height:34px; border-radius:9px; cursor:pointer; font-size:15px;" style-hover="background:rgba(255,255,255,0.1);">✕</button>
+        </div>
+
+        <div style="padding:22px 24px; display:flex; flex-direction:column; gap:20px;">
+          <div>
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:9px;">Jour</div>
+            <div style="display:flex; gap:7px; flex-wrap:wrap;">
+              <sc-for list="{{ formJours }}" as="j" hint-placeholder-count="7">
+                <button onClick="{{ j.go }}" style="border:1px solid {{ j.border }}; background:{{ j.bg }}; color:{{ j.fg }}; border-radius:10px; padding:9px 13px; cursor:pointer; font-family:'Barlow',sans-serif; text-align:center;">
+                  <div style="font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;">{{ j.nom }}</div>
+                  <div style="font-size:10px; color:#8FA3C0; margin-top:1px;">{{ j.date }}</div>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:9px;">Type de créneau</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <sc-for list="{{ formTypes }}" as="t" hint-placeholder-count="4">
+                <button onClick="{{ t.go }}" style="border:1px solid {{ t.border }}; background:{{ t.bg }}; color:{{ t.fg }}; border-radius:9px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;">{{ t.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px;">
+            <div>
+              <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Début</div>
+              <input type="time" value="{{ form.debut }}" onChange="{{ setFDebut }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+            </div>
+            <div>
+              <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Fin</div>
+              <input type="time" value="{{ form.fin }}" onChange="{{ setFFin }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+            </div>
+            <div>
+              <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Volume (m)</div>
+              <input type="number" step="500" value="{{ form.volume }}" onChange="{{ setFVolume }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px;">
+            <div>
+              <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Groupe</div>
+              <select value="{{ form.groupe }}" onChange="{{ setFGroupe }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;">
+                <sc-for list="{{ groupesStage }}" as="g" hint-placeholder-count="6"><option value="{{ g.v }}" style="background:#101A2B;">{{ g.v }}</option></sc-for>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Coach</div>
+              <select value="{{ form.coach }}" onChange="{{ setFCoach }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;">
+                <sc-for list="{{ coachsStage }}" as="c" hint-placeholder-count="4"><option value="{{ c.v }}" style="background:#101A2B;">{{ c.v }}</option></sc-for>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Lieu / bassin</div>
+              <input value="{{ form.bassin }}" onChange="{{ setFLieu }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+            </div>
+            <div>
+              <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Thématique</div>
+              <select value="{{ form.theme }}" onChange="{{ setFTheme }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;">
+                <sc-for list="{{ themesStage }}" as="th" hint-placeholder-count="7"><option value="{{ th.v }}" style="background:#101A2B;">{{ th.v }}</option></sc-for>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:16px 24px 22px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+          <button onClick="{{ closeCreneau }}" style="border:1px solid rgba(255,255,255,0.16); background:transparent; color:#EAF1FB; border-radius:10px; padding:11px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.08);">Annuler</button>
+          <button onClick="{{ ajouterCreneau }}" style="border:0; background:linear-gradient(135deg,#1E7BFF,#0F5FD6); color:#fff; border-radius:10px; padding:11px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.12);">Ajouter au planning</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== MODALE CRÉATION DE STAGE ===================== -->
+  <sc-if value="{{ stageFormOuvert }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeStageForm }}" style="position:fixed; inset:0; background:rgba(4,7,14,0.78); backdrop-filter:blur(6px); z-index:100; display:flex; align-items:center; justify-content:center; padding:22px;">
+      <div onClick="{{ stopProp }}" style="width:100%; max-width:560px; max-height:88vh; overflow-y:auto; background:#101A2B; border:1px solid rgba(255,255,255,0.14); border-radius:18px; box-shadow:0 30px 90px rgba(0,0,0,0.6);">
+        <div style="padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:22px; letter-spacing:0.05em; text-transform:uppercase;">Créer un stage</h2>
+          <button onClick="{{ closeStageForm }}" style="border:1px solid rgba(255,255,255,0.16); background:transparent; color:#EAF1FB; width:34px; height:34px; border-radius:9px; cursor:pointer; font-size:15px;" style-hover="background:rgba(255,255,255,0.1);">✕</button>
+        </div>
+        <div style="padding:22px 24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px;">
+          <div style="grid-column:1 / -1;">
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Nom du stage</div>
+            <input value="{{ sForm.nom }}" onChange="{{ setSNom }}" placeholder="Stage Printemps · Élite" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+          </div>
+          <div>
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Période</div>
+            <input value="{{ sForm.periode }}" onChange="{{ setSPeriode }}" placeholder="12 → 16 avr. 2027" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+          </div>
+          <div>
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Lieu</div>
+            <input value="{{ sForm.lieu }}" onChange="{{ setSLieu }}" placeholder="CREPS, piscine…" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+          </div>
+          <div>
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Groupes</div>
+            <select value="{{ sForm.groupes }}" onChange="{{ setSGroupes }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;">
+              <sc-for list="{{ groupesStage }}" as="g" hint-placeholder-count="6"><option value="{{ g.v }}" style="background:#101A2B;">{{ g.v }}</option></sc-for>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Places</div>
+            <input type="number" value="{{ sForm.places }}" onChange="{{ setSPlaces }}" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+          </div>
+          <div>
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:7px;">Budget</div>
+            <input value="{{ sForm.budget }}" onChange="{{ setSBudget }}" placeholder="3 200 €" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:9px; padding:10px 12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none;" />
+          </div>
+        </div>
+        <div style="padding:4px 24px 22px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+          <button onClick="{{ closeStageForm }}" style="border:1px solid rgba(255,255,255,0.16); background:transparent; color:#EAF1FB; border-radius:10px; padding:11px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.08);">Annuler</button>
+          <button onClick="{{ creerStage }}" style="border:0; background:linear-gradient(135deg,#E8442B,#B92E19); color:#fff; border-radius:10px; padding:11px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.12);">Créer le stage</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== MODALE NOTATION TECHNIQUE ===================== -->
+  <sc-if value="{{ notationOuverte }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeNotation }}" style="position:fixed; inset:0; background:rgba(4,7,14,0.78); backdrop-filter:blur(6px); z-index:100; display:flex; align-items:center; justify-content:center; padding:22px;">
+      <div onClick="{{ stop }}" style="width:100%; max-width:640px; max-height:88vh; overflow-y:auto; background:#101A2B; border:1px solid rgba(255,255,255,0.14); border-radius:18px; box-shadow:0 30px 90px rgba(0,0,0,0.6);">
+        <div style="padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#101A2B; border-radius:18px 18px 0 0;">
+          <div>
+            <h2 style="margin:0; font-family:'Barlow Condensed',sans-serif; font-size:22px; letter-spacing:0.05em; text-transform:uppercase;">Notation technique</h2>
+            <div style="font-size:13px; color:#8FA3C0; margin-top:3px;">{{ fiche.nom }} · séance du 4 juin</div>
+          </div>
+          <button onClick="{{ closeNotation }}" style="border:1px solid rgba(255,255,255,0.16); background:transparent; color:#EAF1FB; width:34px; height:34px; border-radius:9px; cursor:pointer; font-size:15px;" style-hover="background:rgba(255,255,255,0.1);">✕</button>
+        </div>
+
+        <div style="padding:22px 24px;">
+          <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:9px;">Nage évaluée</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;">
+            <sc-for list="{{ nagesNotation }}" as="n" hint-placeholder-count="4">
+              <button onClick="{{ n.go }}" style="border:1px solid {{ n.border }}; background:{{ n.bg }}; color:{{ n.fg }}; border-radius:9px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;">{{ n.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <sc-for list="{{ criteresNotation }}" as="c" hint-placeholder-count="6">
+              <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:130px; font-size:14px; font-weight:600;">{{ c.nom }}</div>
+                <div style="display:flex; gap:6px;">
+                  <sc-for list="{{ c.notes }}" as="n" hint-placeholder-count="5">
+                    <button onClick="{{ n.go }}" style="width:40px; height:40px; border-radius:10px; border:1px solid {{ n.border }}; background:{{ n.bg }}; color:{{ n.fg }}; font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; cursor:pointer;" style-hover="filter:brightness(1.25);">{{ n.v }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin-top:22px;">
+            <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#61789B; margin-bottom:8px;">Observation</div>
+            <textarea value="{{ observation }}" onChange="{{ setObservation }}" rows="3" placeholder="Point de vigilance, éducatif à prescrire…" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:12px; color:#EAF1FB; font-family:'Barlow',sans-serif; font-size:14px; outline:none; resize:vertical;"></textarea>
+          </div>
+        </div>
+
+        <div style="padding:16px 24px 22px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+          <button onClick="{{ closeNotation }}" style="border:1px solid rgba(255,255,255,0.16); background:transparent; color:#EAF1FB; border-radius:10px; padding:11px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="background:rgba(255,255,255,0.08);">Annuler</button>
+          <button onClick="{{ saveNotation }}" style="border:0; background:linear-gradient(135deg,#1E7BFF,#0F5FD6); color:#fff; border-radius:10px; padding:11px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;" style-hover="filter:brightness(1.12);">Enregistrer la notation</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const BLUE = '#1E7BFF', CYAN = '#24C8FF', RED = '#E8442B', GREEN = '#2ECC8F', AMBER = '#F2B33D', VIOLET = '#8C6BFF';
+
+const NAGEURS = [
+  { nom:'Sarah Blanc', ini:'SB', age:16, cat:'Élite', groupe:'Compétition Élite', spe:'4 nages', pts:1024, rank:'1 / 3 / 42', presence:'94%' },
+  { nom:'Antoine Rey', ini:'AR', age:17, cat:'Espoir', groupe:'Compétition Espoir', spe:'Nage libre', pts:968, rank:'2 / 7 / 118', presence:'58%' },
+  { nom:'Nathalie Cord', ini:'NC', age:15, cat:'Avenir', groupe:'Compétition Avenir', spe:'Dos', pts:842, rank:'4 / 14 / 260', presence:'88%' },
+  { nom:'Léo Marchand', ini:'LM', age:14, cat:'Avenir', groupe:'Compétition Avenir', spe:'Brasse', pts:790, rank:'6 / 21 / 391', presence:'91%' },
+  { nom:'Inès Fabre', ini:'IF', age:18, cat:'Élite', groupe:'Compétition Élite', spe:'Papillon', pts:1002, rank:'1 / 4 / 61', presence:'96%' },
+  { nom:'Karim Dault', ini:'KD', age:34, cat:'Master', groupe:'Masters', spe:'Nage libre', pts:712, rank:'3 / 9 / 154', presence:'72%' },
+  { nom:'Chloé Perrin', ini:'CP', age:12, cat:'EN3', groupe:'École Natation 3', spe:'Crawl', pts:0, rank:'— / — / —', presence:'85%' },
+  { nom:'Tom Vasseur', ini:'TV', age:13, cat:'Ado', groupe:'Ado', spe:'Découverte', pts:0, rank:'— / — / —', presence:'79%' }
+];
+
+const CRITERES = ['Départ / plongeon','Coulée','Amplitude','Fréquence','Coordination','Respiration','Virage','Arrivée / touche'];
+
+class Component extends DCLogic {
+  state = {
+    screen: 'general',
+    navOpen: true,
+    coach: 'Marie Lefort',
+    week: 0,
+    recherche: '',
+    filtre: 'Tous',
+    nageurIdx: 0,
+    ficheTab: 0,
+    notation: false,
+    nageNotation: 'Papillon',
+    notes: {},
+    observation: '',
+    variant: 'Nage complète',
+    intensite: 'Allure 400',
+    nage: '4 nages',
+    seanceGroupe: 'Compétition Élite',
+    seanceVolume: '3 000 m',
+    themeObjectif: 'Tenir l’allure 200 sur la fin de course',
+    themeGroupe: 'Compétition Élite',
+    themeCycle: '4 semaines',
+    theme: 'Volume aérobie',
+    periode: '4 semaines',
+    q: '',
+    poleOuvert: 'Compétition',
+    seance: 'Mer 4 juin · 18:00 · Élite',
+    pointage: {},
+    stageIdx: 0,
+    creneauOuvert: false,
+    stageFormOuvert: false,
+    formCreneau: { jour: 0, debut: '07:00', fin: '09:00', type: 'Eau', groupe: 'Élite', coach: 'Marie Lefort', bassin: 'Bassin 50 m', theme: 'Volume aérobie', volume: '4000' },
+    formStage: { nom: '', periode: '', lieu: '', groupes: 'Élite', places: '20', budget: '' },
+    stages: [
+      { nom:'Stage Toussaint · Élite', periode:'19 → 24 oct. 2026', lieu:'CREPS Font-Romeu', groupes:'Élite · Espoir',
+        coachs:'Marie Lefort, Paul Nadal', statut:'Confirmé', color:'#E8442B',
+        inscrits:19, places:22, budget:'8 400 €', regle:'85%',
+        dates:['19 oct.','20 oct.','21 oct.','22 oct.','23 oct.','24 oct.',''],
+        creneaux:[
+          { id:'a1', jour:0, debut:'07:00', fin:'09:00', type:'Eau', groupe:'Élite', coach:'Marie Lefort', bassin:'Bassin 50 m', theme:'Volume aérobie', volume:5000 },
+          { id:'a2', jour:0, debut:'10:00', fin:'11:00', type:'Physique', groupe:'Élite', coach:'Paul Nadal', bassin:'Salle', theme:'Technique', volume:0 },
+          { id:'a3', jour:0, debut:'17:00', fin:'19:00', type:'Eau', groupe:'Espoir', coach:'Paul Nadal', bassin:'Bassin 50 m', theme:'Seuil', volume:4000 },
+          { id:'a4', jour:1, debut:'07:00', fin:'09:00', type:'Eau', groupe:'Tous groupes', coach:'Marie Lefort', bassin:'Bassin 50 m', theme:'VMA', volume:4500 },
+          { id:'a5', jour:1, debut:'17:00', fin:'18:30', type:'Eau', groupe:'Élite', coach:'Marie Lefort', bassin:'Bassin 25 m', theme:'Technique', volume:3000 },
+          { id:'a6', jour:2, debut:'09:00', fin:'11:00', type:'Eau', groupe:'Tous groupes', coach:'Paul Nadal', bassin:'Bassin 50 m', theme:'Lactique', volume:3500 },
+          { id:'a7', jour:2, debut:'15:00', fin:'16:00', type:'Vidéo', groupe:'Élite', coach:'Marie Lefort', bassin:'Salle vidéo', theme:'Technique', volume:0 },
+          { id:'a8', jour:3, debut:'07:00', fin:'09:00', type:'Eau', groupe:'Élite', coach:'Marie Lefort', bassin:'Bassin 50 m', theme:'Volume aérobie', volume:5000 },
+          { id:'a9', jour:3, debut:'17:00', fin:'19:00', type:'Eau', groupe:'Espoir', coach:'Paul Nadal', bassin:'Bassin 50 m', theme:'Seuil', volume:4000 },
+          { id:'a10', jour:4, debut:'08:00', fin:'09:30', type:'Récup', groupe:'Tous groupes', coach:'Paul Nadal', bassin:'Bassin 25 m', theme:'Récupération', volume:1500 },
+          { id:'a11', jour:4, debut:'17:00', fin:'19:00', type:'Eau', groupe:'Tous groupes', coach:'Marie Lefort', bassin:'Bassin 50 m', theme:'Vitesse', volume:3000 },
+          { id:'a12', jour:5, debut:'09:00', fin:'11:00', type:'Eau', groupe:'Tous groupes', coach:'Marie Lefort', bassin:'Bassin 50 m', theme:'Vitesse', volume:3500 }
+        ] },
+      { nom:'Stage Noël · Avenir', periode:'28 → 30 déc. 2026', lieu:'Piscine olympique — sur place', groupes:'Avenir',
+        coachs:'Thomas Girard', statut:'Ouvert aux inscriptions', color:'#1E7BFF',
+        inscrits:16, places:24, budget:'2 100 €', regle:'40%',
+        dates:['28 déc.','29 déc.','30 déc.','','','',''],
+        creneaux:[
+          { id:'b1', jour:0, debut:'10:00', fin:'12:00', type:'Eau', groupe:'Avenir', coach:'Thomas Girard', bassin:'Bassin 50 m', theme:'Technique', volume:3000 },
+          { id:'b2', jour:0, debut:'14:00', fin:'15:00', type:'Physique', groupe:'Avenir', coach:'Thomas Girard', bassin:'Salle', theme:'Technique', volume:0 },
+          { id:'b3', jour:1, debut:'10:00', fin:'12:00', type:'Eau', groupe:'Avenir', coach:'Thomas Girard', bassin:'Bassin 50 m', theme:'Volume aérobie', volume:3500 },
+          { id:'b4', jour:2, debut:'10:00', fin:'12:00', type:'Eau', groupe:'Avenir', coach:'Thomas Girard', bassin:'Bassin 50 m', theme:'Vitesse', volume:2500 }
+        ] },
+      { nom:'Stage Février · Masters', periode:'14 → 17 févr. 2027', lieu:'Antibes', groupes:'Master compét.',
+        coachs:'Marie Lefort', statut:'En préparation', color:'#8C6BFF',
+        inscrits:7, places:14, budget:'3 600 €', regle:'0%',
+        dates:['14 févr.','15 févr.','16 févr.','17 févr.','','',''],
+        creneaux:[
+          { id:'c1', jour:0, debut:'09:00', fin:'11:00', type:'Eau', groupe:'Masters', coach:'Marie Lefort', bassin:'Bassin 50 m', theme:'Volume aérobie', volume:3000 },
+          { id:'c2', jour:1, debut:'09:00', fin:'11:00', type:'Eau', groupe:'Masters', coach:'Marie Lefort', bassin:'Bassin 50 m', theme:'Seuil', volume:3000 },
+          { id:'c3', jour:2, debut:'09:00', fin:'10:30', type:'Récup', groupe:'Masters', coach:'Marie Lefort', bassin:'Bassin 25 m', theme:'Récupération', volume:1500 }
+        ] }
+    ],
+    cycleGenere: 0
+  };
+
+  go = (screen) => () => this.setState({ screen });
+
+  chip(active, color) {
+    return active
+      ? { bg: 'rgba(30,123,255,0.18)', border: color || BLUE, fg: '#EAF1FB' }
+      : { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', fg: '#A9BBD4' };
+  }
+
+  hero() {
+    // Un bandeau photographique par écran. Voile toujours assez opaque côté texte
+    // pour garder le contraste (encre --ink-on-photo #D6E2F2).
+    const VEIL_L = 'linear-gradient(90deg,rgba(8,13,24,0.97) 0%,rgba(8,13,24,0.92) 52%,rgba(8,13,24,0.28) 100%)';
+    const VEIL_C = 'linear-gradient(100deg,rgba(8,13,24,0.96) 0%,rgba(8,13,24,0.86) 46%,rgba(18,41,75,0.40) 100%)';
+    const H = {
+      'general': ['assets/swimmer.jpg', 'right center', VEIL_L,
+        'Saison 2025 / 2026 · semaine 23', 'Le club en un coup d’œil',
+        '312 licenciés, 6 coachs, 38 créneaux hebdomadaires. Deux créneaux restent à couvrir cette semaine.',
+        ['Créer une séance', 'seance'], ['Absences & congés', 'absences']],
+      'coach': ['assets/coach-poolside.jpg', 'center 35%', VEIL_L,
+        this.state.coach + ' · vue personnelle', 'Ta semaine au bord du bassin',
+        '3 groupes encadrés, 5 créneaux, 14 heures. Deux feuilles de présence attendent ta saisie.',
+        ['Mon planning', 'mon-planning'], ['Saisir les présences', 'presences']],
+      'planning-global': ['assets/pool-lanes.jpg', 'center 42%', VEIL_C,
+        'Vue responsable · tous coachs', 'Qui couvre quoi, cette semaine',
+        'Le code couleur suit l’état d’encadrement : assuré, remplacé, à couvrir.',
+        ['Ajouter un créneau', 'stages'], ['Congés coachs', 'absences']],
+      'mon-planning': ['assets/pool-lanes.jpg', 'center 42%', VEIL_C,
+        this.state.coach + ' · mes créneaux', 'Mon planning de la semaine',
+        'Ouvre un créneau pour pointer les présences ou charger la séance prévue.',
+        ['Créer une séance', 'seance'], ['Mes présences', 'presences']],
+      'stages': ['assets/pool-lanes.jpg', 'center 55%', VEIL_C,
+        'Sessions hors saison', 'Stages et cycles intensifs',
+        'Plusieurs créneaux par jour, encadrement et budget suivis session par session.',
+        ['Pointer les présences', 'presences'], null],
+      'presences': ['assets/coach-poolside.jpg', 'center 40%', VEIL_L,
+        'Feuille de séance', 'Pointage nageurs et encadrement',
+        'Quatre états par personne : présent, retard, absent, excusé. Le taux se recalcule à chaque clic.',
+        ['Voir le planning', 'mon-planning'], null],
+      'calendrier': ['assets/pool-lanes.jpg', 'center 30%', VEIL_C,
+        'Vue saison', 'Compétitions, stages et congés',
+        'Les échéances de la saison et les jours où l’encadrement est incomplet.',
+        ['Stages', 'stages'], ['Congés', 'absences']],
+      'absences': ['assets/coach-poolside.jpg', 'center 45%', VEIL_L,
+        'Indisponibilités', 'Congés coachs et absences nageurs',
+        'Chaque congé validé signale les créneaux à recouvrir sur le planning global.',
+        ['Planning global', 'planning-global'], null],
+      'nageurs': ['assets/swimmer.jpg', 'center 35%', VEIL_L,
+        'Effectif suivi', 'Tous les nageurs, toutes les cotations',
+        'Points FFN, rangs départemental, régional et national, et assiduité sur quatre semaines.',
+        ['Créer une séance', 'seance'], null],
+      'fiche': ['assets/flip-turn.jpg', 'center 45%', VEIL_L,
+        'Suivi individuel', 'Fiche nageur',
+        'Meilleures performances, notation technique par nage et assiduité.',
+        ['Saisir une notation', 'fiche-notation'], ['Tous les nageurs', 'nageurs']],
+      'seance': ['assets/flip-turn.jpg', 'center 45%', VEIL_C,
+        'Variant · intensité · nage', 'Construire une séance',
+        'Trois axes à combiner, un volume cible jusqu’à 10 km, et la séance se rédige toute seule.',
+        ['Thématiques', 'thematique'], null],
+      'thematique': ['assets/flip-turn.jpg', 'center 30%', VEIL_C,
+        'Cycle d’entraînement', 'Une thématique, un cycle entier',
+        'Volume aérobie, seuil, VMA, lactique, vitesse : choisis la dominante, le cycle se génère.',
+        ['Créateur de séance', 'seance'], null]
+    };
+    const h = H[this.state.screen] || H['general'];
+    const act = (a) => {
+      if (!a) return { label: '', d: 'none', go: () => {} };
+      if (a[1] === 'fiche-notation') return { label: a[0], d: 'inline-flex', go: () => this.setState({ ficheTab: 1, notation: true }) };
+      return { label: a[0], d: 'inline-flex', go: this.go(a[1]) };
+    };
+    const a1 = act(h[6]), a2 = act(h[7]);
+    return {
+      heroImg: h[0], heroPos: h[1], heroVeil: h[2],
+      heroKicker: h[3], heroTitle: h[4], heroText: h[5],
+      heroCta1: a1.label, heroD1: a1.d, heroGo1: a1.go,
+      heroCta2: a2.label, heroD2: a2.d, heroGo2: a2.go
+    };
+  }
+
+  effectifs() {
+    const s = this.state;
+    // 13 catégories regroupées en 4 pôles lisibles ; le détail s'ouvre au clic
+    const POLES = [
+      { nom:'Formation', color:AMBER, cats:[
+        { nom:'EN1', n:38 }, { nom:'EN2', n:41 }, { nom:'EN3', n:34 }, { nom:'Ado', n:27 }
+      ]},
+      { nom:'Compétition', color:BLUE, cats:[
+        { nom:'Avenir', n:24 }, { nom:'Espoir', n:18 }, { nom:'Élite', n:9 }, { nom:'Master compét.', n:11 }
+      ]},
+      { nom:'Sauvetage', color:GREEN, cats:[
+        { nom:'Sauv. natation', n:22 }, { nom:'Sauv. sportif', n:16 }
+      ]},
+      { nom:'Loisir & inclusion', color:VIOLET, cats:[
+        { nom:'Adultes', n:31 }, { nom:'Découverte aqua.', n:29 }, { nom:'Sport Handi', n:12 }
+      ]}
+    ];
+    const totaux = POLES.map(p => p.cats.reduce((a, c) => a + c.n, 0));
+    const total = totaux.reduce((a, b) => a + b, 0);
+    const maxCat = Math.max(...POLES.flatMap(p => p.cats.map(c => c.n)));
+    const perf = POLES[1].cats.reduce((a, c) => a + c.n, 0) + 16;
+
+    return {
+      effectifTotal: total,
+      effectifPerf: perf,
+      effectifFormation: totaux[0] + totaux[2] + totaux[3] - 16,
+      poles: POLES.map((p, i) => {
+        const ouvert = s.poleOuvert === p.nom;
+        return {
+          nom: p.nom, color: p.color, n: totaux[i],
+          part: Math.round(totaux[i] / total * 100) + '%',
+          w: Math.round(totaux[i] / total * 100) + '%',
+          nbCats: p.cats.length + ' catégories',
+          chevron: ouvert ? '▾' : '▸',
+          detailD: ouvert ? 'flex' : 'none',
+          bordure: ouvert ? p.color : 'rgba(255,255,255,0.09)',
+          go: () => this.setState({ poleOuvert: ouvert ? null : p.nom }),
+          cats: p.cats.slice().sort((a, b) => b.n - a.n).map(c => ({
+            nom: c.nom, n: c.n, w: Math.round(c.n / maxCat * 100) + '%', color: p.color
+          }))
+        };
+      })
+    };
+  }
+
+  stagesEtPresences() {
+    const s = this.state;
+
+    const statutStyle = {
+      'Confirmé': ['rgba(46,204,143,0.14)', GREEN],
+      'Ouvert aux inscriptions': ['rgba(30,123,255,0.14)', '#8CC4FF'],
+      'En préparation': ['rgba(242,179,61,0.15)', AMBER]
+    };
+    const stages = s.stages.map((st, i) => {
+      const nbCreneaux = st.creneaux.length;
+      const volume = st.creneaux.reduce((a, c) => a + c.volume, 0);
+      return {
+        ...st,
+        statutBg: statutStyle[st.statut][0], statutFg: statutStyle[st.statut][1],
+        remplissage: Math.round(st.inscrits / st.places * 100) + '%',
+        volume: (volume / 1000).toFixed(1).replace('.', ',') + ' km',
+        nbCreneaux: nbCreneaux + (nbCreneaux > 1 ? ' créneaux' : ' créneau'),
+        actif: i === s.stageIdx,
+        bordure: i === s.stageIdx ? CYAN : 'rgba(255,255,255,0.09)',
+        go: () => this.setState({ stageIdx: i }),
+        goPointer: () => this.setState({ screen: 'presences' })
+      };
+    });
+
+    // ---- Planning semaine du stage sélectionné ----
+    const stage = s.stages[s.stageIdx];
+    const JOURS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+    const semaineStage = JOURS.map((nom, ji) => {
+      const list = stage.creneaux
+        .filter(c => c.jour === ji)
+        .sort((a, b) => a.debut.localeCompare(b.debut));
+      return {
+        nom, date: stage.dates[ji], horsStage: !stage.dates[ji],
+        vide: list.length === 0,
+        bgEntete: stage.dates[ji] ? '#131F33' : 'rgba(255,255,255,0.02)',
+        fgEntete: stage.dates[ji] ? '#EAF1FB' : '#4E627F',
+        creneaux: list.map(c => ({
+          ...c,
+          plage: c.debut + ' – ' + c.fin,
+          vol: (c.volume / 1000).toFixed(1).replace('.', ',') + ' km',
+          color: c.type === 'Eau' ? BLUE : c.type === 'Physique' ? AMBER : c.type === 'Vidéo' ? VIOLET : GREEN,
+          goPresences: () => this.setState({ screen:'presences', seance: stage.nom + ' · ' + nom + ' ' + c.debut + ' · ' + c.groupe }),
+          goEvaluer: () => this.setState({ screen:'fiche', ficheTab:1, notation:true }),
+          supprimer: () => this.setState({
+            stages: s.stages.map((st, i) => i !== s.stageIdx ? st
+              : { ...st, creneaux: st.creneaux.filter(x => x.id !== c.id) })
+          })
+        })),
+        ajouter: () => this.setState({ formCreneau: { ...this.state.formCreneau, jour: ji }, creneauOuvert: true })
+      };
+    });
+    const volTotal = stage.creneaux.reduce((a, c) => a + c.volume, 0);
+
+    const f = s.formCreneau;
+    const setF = (k) => (e) => this.setState({ formCreneau: { ...this.state.formCreneau, [k]: e.target.value } });
+
+    return {
+      stages,
+      stageNom: stage.nom, stagePeriode: stage.periode, stageLieu: stage.lieu,
+      semaineStage,
+      stageVolume: (volTotal / 1000).toFixed(1).replace('.', ',') + ' km',
+      stageNbCreneaux: stage.creneaux.length,
+      stageJoursActifs: stage.dates.filter(Boolean).length,
+
+      creneauOuvert: s.creneauOuvert,
+      openCreneau: () => this.setState({ creneauOuvert: true }),
+      closeCreneau: () => this.setState({ creneauOuvert: false }),
+      stopProp: (e) => e.stopPropagation(),
+      form: f,
+      formJours: JOURS.map((nom, i) => {
+        const on = f.jour === i; const c = this.chip(on);
+        return { nom, date: stage.dates[i] || '—', ...c, go: () => this.setState({ formCreneau: { ...this.state.formCreneau, jour: i } }) };
+      }),
+      formTypes: ['Eau','Physique','Vidéo','Récup'].map(label => {
+        const c = this.chip(f.type === label);
+        return { label, ...c, go: () => this.setState({ formCreneau: { ...this.state.formCreneau, type: label } }) };
+      }),
+      setFDebut: setF('debut'), setFFin: setF('fin'), setFGroupe: setF('groupe'),
+      setFCoach: setF('coach'), setFLieu: setF('bassin'), setFVolume: setF('volume'),
+      setFTheme: setF('theme'),
+      groupesStage: ['Élite','Espoir','Avenir','Masters','Sauv. sportif','Tous groupes'].map(v => ({ v })),
+      coachsStage: ['Marie Lefort','Thomas Girard','Léa Morel','Paul Nadal'].map(v => ({ v })),
+      themesStage: ['Volume aérobie','Seuil','VMA','Lactique','Vitesse','Technique','Récupération'].map(v => ({ v })),
+      ajouterCreneau: () => {
+        const vol = parseInt(f.volume, 10) || 0;
+        this.setState({
+          creneauOuvert: false,
+          stages: s.stages.map((st, i) => i !== s.stageIdx ? st : {
+            ...st,
+            creneaux: st.creneaux.concat([{
+              id: 'c' + Date.now(), jour: f.jour, debut: f.debut, fin: f.fin,
+              type: f.type, groupe: f.groupe, coach: f.coach, bassin: f.bassin,
+              theme: f.theme, volume: vol
+            }])
+          })
+        });
+      },
+
+      stageFormOuvert: s.stageFormOuvert,
+      openStageForm: () => this.setState({ stageFormOuvert: true }),
+      closeStageForm: () => this.setState({ stageFormOuvert: false }),
+      sForm: s.formStage,
+      setSNom: (e) => this.setState({ formStage: { ...this.state.formStage, nom: e.target.value } }),
+      setSPeriode: (e) => this.setState({ formStage: { ...this.state.formStage, periode: e.target.value } }),
+      setSLieu: (e) => this.setState({ formStage: { ...this.state.formStage, lieu: e.target.value } }),
+      setSGroupes: (e) => this.setState({ formStage: { ...this.state.formStage, groupes: e.target.value } }),
+      setSPlaces: (e) => this.setState({ formStage: { ...this.state.formStage, places: e.target.value } }),
+      setSBudget: (e) => this.setState({ formStage: { ...this.state.formStage, budget: e.target.value } }),
+      creerStage: () => {
+        const fs = s.formStage;
+        this.setState({
+          stageFormOuvert: false,
+          stageIdx: s.stages.length,
+          stages: s.stages.concat([{
+            nom: fs.nom || 'Nouveau stage', periode: fs.periode, lieu: fs.lieu,
+            groupes: fs.groupes, coachs: '—', statut: 'En préparation', color: CYAN,
+            inscrits: 0, places: parseInt(fs.places, 10) || 20,
+            budget: fs.budget, regle: '0%',
+            dates: ['J1','J2','J3','J4','J5','',''], creneaux: []
+          }])
+        });
+      },
+
+      ...this.pointage()
+    };
+  }
+
+  pointage() {
+    const s = this.state;
+
+    // ---- Pointage ----
+    const JOURS_C = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+    const SEANCES = ['Mer 4 juin · 18:00 · Élite', 'Ven 6 juin · 18:00 · Espoir'].concat(
+      s.stages.reduce((acc, st) => acc.concat(
+        st.creneaux.slice().sort((a, b) => a.jour - b.jour || a.debut.localeCompare(b.debut))
+          .map(c => st.nom + ' · ' + JOURS_C[c.jour] + ' ' + c.debut + ' · ' + c.groupe)
+      ), []));
+    const ROSTER = [
+      { nom:'Sarah Blanc', ini:'SB', cat:'Élite' },
+      { nom:'Inès Fabre', ini:'IF', cat:'Élite' },
+      { nom:'Antoine Rey', ini:'AR', cat:'Espoir' },
+      { nom:'Nathalie Cord', ini:'NC', cat:'Avenir' },
+      { nom:'Léo Marchand', ini:'LM', cat:'Avenir' },
+      { nom:'Karim Dault', ini:'KD', cat:'Master' }
+    ];
+    const STAFF = [
+      { nom:'Marie Lefort', ini:'ML', role:'Coach principal' },
+      { nom:'Paul Nadal', ini:'PN', role:'Coach adjoint' },
+      { nom:'Léa Morel', ini:'LM', role:'Sauvetage' }
+    ];
+    const ETATS = [
+      { code:'P', label:'Présent', color:GREEN, bg:'rgba(46,204,143,0.16)' },
+      { code:'R', label:'Retard', color:AMBER, bg:'rgba(242,179,61,0.16)' },
+      { code:'A', label:'Absent', color:RED, bg:'rgba(232,68,43,0.16)' },
+      { code:'E', label:'Excusé', color:'#8CC4FF', bg:'rgba(30,123,255,0.16)' }
+    ];
+    const DEFAUTS = { 'Antoine Rey':'A', 'Karim Dault':'E', 'Léo Marchand':'R', 'Paul Nadal':'E' };
+
+    const etatDe = (nom) => this.state.pointage[this.state.seance + '|' + nom] || DEFAUTS[nom] || 'P';
+    const ligne = (p, sousTitre) => {
+      const cur = etatDe(p.nom);
+      const e = ETATS.find(x => x.code === cur);
+      return {
+        nom: p.nom, ini: p.ini, sousTitre,
+        avaBg: cur === 'P' ? 'rgba(30,123,255,0.22)' : e.bg,
+        etats: ETATS.map(x => {
+          const on = x.code === cur;
+          return { code:x.code, label:x.label,
+            border: on ? x.color : 'rgba(255,255,255,0.12)',
+            bg: on ? x.bg : 'rgba(255,255,255,0.04)',
+            fg: on ? x.color : '#8FA3C0',
+            go: () => this.setState({ pointage: { ...this.state.pointage, [this.state.seance + '|' + p.nom]: x.code } }) };
+        })
+      };
+    };
+
+    const rosterLignes = ROSTER.map(p => ligne(p, p.cat));
+    const staffLignes = STAFF.map(p => ligne(p, p.role));
+    const compte = (list) => {
+      const c = { P:0, R:0, A:0, E:0 };
+      list.forEach(p => { c[etatDe(p.nom)]++; });
+      return c;
+    };
+    const cN = compte(ROSTER);
+    const tauxN = Math.round((cN.P + cN.R) / ROSTER.length * 100);
+
+    return {
+      seances: SEANCES.map(v => ({ v })), seance: s.seance,
+      setSeance: (e) => this.setState({ seance: e.target.value }),
+      legendeEtats: ETATS.map(e => ({ label:e.label, color:e.color })),
+      rosterLignes, staffLignes,
+      resumePointage: [
+        { v: cN.P, l:'Présents', color:GREEN },
+        { v: cN.R, l:'Retards', color:AMBER },
+        { v: cN.A, l:'Absents', color:RED },
+        { v: cN.E, l:'Excusés', color:'#8CC4FF' }
+      ],
+      tauxPresence: tauxN + '%',
+      tauxBarre: tauxN + '%',
+      tauxColor: tauxN >= 85 ? GREEN : tauxN >= 70 ? AMBER : RED
+    };
+  }
+
+  chargeAnalytique() {
+    const s = this.state;
+    const periodes = [
+      { label: '4 semaines', k: 1 },
+      { label: '8 semaines', k: 2 },
+      { label: 'Saison', k: 9 }
+    ];
+    const per = periodes.find(p => p.label === s.periode) || periodes[0];
+    const fmt = (m) => m >= 1000 ? (m / 1000).toFixed(1).replace('.', ',') + ' km' : m + ' m';
+
+    const mk = (rows) => {
+      const total = rows.reduce((a, r) => a + r.m, 0);
+      let a = 0;
+      const stops = rows.map(r => {
+        const from = a / total * 360; a += r.m;
+        return r.color + ' ' + from.toFixed(1) + 'deg ' + (a / total * 360).toFixed(1) + 'deg';
+      }).join(', ');
+      return {
+        total: fmt(total * per.k),
+        donut: 'conic-gradient(' + stops + ')',
+        items: rows.map(r => ({
+          nom: r.nom, color: r.color,
+          valeur: fmt(r.m * per.k),
+          pct: Math.round(r.m / total * 100) + '%'
+        }))
+      };
+    };
+
+    const parNage = mk([
+      { nom:'Crawl', m:7200, color:BLUE },
+      { nom:'4 nages', m:3400, color:CYAN },
+      { nom:'Dos', m:2100, color:GREEN },
+      { nom:'Brasse', m:1800, color:AMBER },
+      { nom:'Papillon', m:1300, color:RED }
+    ]);
+    const parIntensite = mk([
+      { nom:'Allure neutre', m:5600, color:'#5B7BA6' },
+      { nom:'Progressif', m:2900, color:CYAN },
+      { nom:'Allure 400', m:2600, color:BLUE },
+      { nom:'Allure 200', m:2100, color:AMBER },
+      { nom:'Négatif split', m:1700, color:GREEN },
+      { nom:'Vitesse', m:900, color:RED }
+    ]);
+
+    const parVariant = mk([
+      { nom:'Nage complète', m:9400, color:BLUE },
+      { nom:'Éducatif', m:2900, color:CYAN },
+      { nom:'Jambes', m:2100, color:AMBER },
+      { nom:'Bras', m:1400, color:RED }
+    ]);
+
+    return {
+      periodes: periodes.map(p => {
+        const c = this.chip(s.periode === p.label);
+        return { label: p.label, ...c, go: () => this.setState({ periode: p.label }) };
+      }),
+      chargeTotale: parVariant.total,
+      camemberts: [
+        { titre:'Par nage', ...parNage },
+        { titre:'Par intensité', ...parIntensite },
+        { titre:'Par variant', ...parVariant }
+      ]
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const nav = [
+      { label:'Pilotage', items:[
+        { id:'general', icon:'◈', label:'Tableau de bord général' },
+        { id:'coach', icon:'◉', label:'Tableau de bord coach' }
+      ]},
+      { label:'Planning', items:[
+        { id:'planning-global', icon:'▦', label:'Planning global' },
+        { id:'mon-planning', icon:'▤', label:'Mon planning' },
+        { id:'stages', icon:'⛭', label:'Stages' },
+        { id:'presences', icon:'✓', label:'Présences' },
+        { id:'calendrier', icon:'▣', label:'Calendrier' },
+        { id:'absences', icon:'✈', label:'Absences & congés' }
+      ]},
+      { label:'Nageurs', items:[
+        { id:'nageurs', icon:'⚑', label:'Nageurs' },
+        { id:'fiche', icon:'☰', label:'Fiche nageur' }
+      ]},
+      { label:'Entraînement', items:[
+        { id:'seance', icon:'✦', label:'Créateur de séance' },
+        { id:'thematique', icon:'⟳', label:'Thématiques' }
+      ]}
+    ];
+    const ouvert = s.navOpen;
+    const navGroups = nav.map(g => ({
+      label: g.label,
+      labelD: ouvert ? 'block' : 'none',
+      sepD: ouvert ? 'none' : 'block',
+      items: g.items.map(it => {
+        const on = s.screen === it.id;
+        return { ...it, go: this.go(it.id), fw: on ? 700 : 500,
+          titre: it.label,
+          labelD: ouvert ? 'inline' : 'none',
+          justify: ouvert ? 'flex-start' : 'center',
+          fg: on ? '#EAF1FB' : '#A9BBD4',
+          bg: on ? 'linear-gradient(90deg,rgba(30,123,255,0.22),rgba(30,123,255,0.02))' : 'transparent',
+          bar: on ? CYAN : 'transparent' };
+      })
+    }));
+
+    // ---- Recherche globale ----
+    const cibles = [
+      { label:'Tableau de bord général', kind:'Écran', screen:'general' },
+      { label:'Tableau de bord coach', kind:'Écran', screen:'coach' },
+      { label:'Planning global', kind:'Écran', screen:'planning-global' },
+      { label:'Mon planning', kind:'Écran', screen:'mon-planning' },
+      { label:'Stages', kind:'Écran', screen:'stages' },
+      { label:'Présences', kind:'Écran', screen:'presences' },
+      { label:'Calendrier', kind:'Écran', screen:'calendrier' },
+      { label:'Absences & congés', kind:'Écran', screen:'absences' },
+      { label:'Créateur de séance', kind:'Écran', screen:'seance' },
+      { label:'Thématiques d’entraînement', kind:'Écran', screen:'thematique' }
+    ];
+    const qg = s.q.trim().toLowerCase();
+    const resultats = qg.length < 1 ? [] : []
+      .concat(cibles.filter(c => c.label.toLowerCase().includes(qg)).map(c => ({
+        label: c.label, kind: c.kind, meta: '', icon: '◈', color: CYAN,
+        go: () => this.setState({ screen: c.screen, q: '' })
+      })))
+      .concat(NAGEURS.filter(n => n.nom.toLowerCase().includes(qg)).map(n => ({
+        label: n.nom, kind: 'Nageur', meta: n.cat + ' · ' + n.pts + ' pts', icon: '⚑', color: RED,
+        go: () => this.setState({ screen:'fiche', nageurIdx: NAGEURS.indexOf(n), ficheTab:0, q:'' })
+      })))
+      .slice(0, 7);
+
+    const titres = {
+      'general': ['Tableau de bord général', 'Vue club · tous groupes, tous coachs'],
+      'coach': ['Tableau de bord coach', s.coach + ' · vue personnelle'],
+      'planning-global': ['Planning global', 'Vue RH de tous les créneaux · code couleur par état d’encadrement'],
+      'mon-planning': ['Mon planning', s.coach + ' · créneaux et feuilles de présence'],
+      'stages': ['Stages', 'Sessions hors saison · effectif, encadrement et budget'],
+      'presences': ['Présences', 'Pointage nageurs et coachs par séance'],
+      'calendrier': ['Calendrier', 'Séances, compétitions et congés de la saison'],
+      'absences': ['Absences & congés', 'Indisponibilités coach et absences nageurs'],
+      'nageurs': ['Nageurs', 'Effectif suivi · cotation FFN et rankings'],
+      'fiche': ['Fiche nageur', 'Performances, technique et assiduité'],
+      'seance': ['Créateur de séance', 'Variant · intensité · nage'],
+      'thematique': ['Thématiques d’entraînement', 'Un objectif → un cycle de séances généré']
+    };
+    const t = titres[s.screen] || ['', ''];
+    const POLE_DE = {
+      'general':'Pilotage', 'coach':'Pilotage',
+      'planning-global':'Planning', 'mon-planning':'Planning', 'stages':'Planning',
+      'presences':'Planning', 'calendrier':'Planning', 'absences':'Planning',
+      'nageurs':'Nageurs', 'fiche':'Nageurs',
+      'seance':'Entraînement', 'thematique':'Entraînement'
+    };
+
+    // ---- Planning ----
+    const mine = s.screen === 'mon-planning';
+    const semaines = ['Semaine du 1 au 7 juin', 'Semaine du 8 au 14 juin', 'Semaine du 15 au 21 juin'];
+    const week = ((s.week % 3) + 3) % 3;
+    const dates = [['01','02','03','04','05','06','07'],['08','09','10','11','12','13','14'],['15','16','17','18','19','20','21']][week];
+    const noms = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+    const base = [
+      [{ h:'17:00', plage:'17:00–18:00', groupe:'École Natation 3', coach:'Thomas Girard', nageurs:'12 nageurs', bassin:'Bassin 25 m', etat:'Assuré' },
+       { h:'18:00', plage:'18:00–20:00', groupe:'Compétition Espoir', coach:'Marie Lefort', nageurs:'14 nageurs', bassin:'Bassin 50 m', etat:'Assuré' }],
+      [{ h:'20:00', plage:'20:00–21:30', groupe:'Masters', coach:'Marie Lefort (rempl.)', nageurs:'9 nageurs', bassin:'Bassin 25 m', etat:'Remplacé' }],
+      [{ h:'18:00', plage:'18:00–20:00', groupe:'Compétition Élite', coach:'Marie Lefort', nageurs:'14 nageurs', bassin:'Bassin 50 m', etat:'Assuré' }],
+      [{ h:'18:00', plage:'18:00–19:00', groupe:'Sauvetage sportif', coach:'Léa Morel', nageurs:'8 nageurs', bassin:'Bassin 25 m', etat:'À couvrir' }],
+      [{ h:'18:00', plage:'18:00–20:00', groupe:'Compétition Espoir', coach:'Marie Lefort', nageurs:'14 nageurs', bassin:'Bassin 50 m', etat:'Assuré' }],
+      [{ h:'09:00', plage:'09:00–11:00', groupe:'École Natation 1-2', coach:'Thomas Girard', nageurs:'16 nageurs', bassin:'Bassin 25 m', etat:'Assuré' }],
+      []
+    ];
+    const etatStyle = { 'Assuré': ['rgba(46,204,143,0.14)', GREEN], 'Remplacé': ['rgba(242,179,61,0.15)', AMBER], 'À couvrir': ['rgba(232,68,43,0.16)', RED] };
+    const semaineJours = noms.map((n, i) => {
+      let cr = base[i];
+      if (mine) cr = cr.filter(c => c.coach.indexOf(s.coach.split(' ')[0]) === 0);
+      return { nom:n, date: dates[i] + ' juin', vide: cr.length === 0,
+        creneaux: cr.map(c => ({ ...c, go: this.go('coach'),
+          etatBg: etatStyle[c.etat][0], etatFg: etatStyle[c.etat][1] })) };
+    });
+
+    // ---- Nageurs ----
+    const q = s.recherche.toLowerCase();
+    const filtres = ['Tous','Compétition','École Natation','Masters','Sauvetage'].map(f => {
+      const on = s.filtre === f; const c = this.chip(on);
+      return { label:f, ...c, go: () => this.setState({ filtre:f }) };
+    });
+    const nageursListe = NAGEURS
+      .filter(n => !q || n.nom.toLowerCase().includes(q))
+      .filter(n => s.filtre === 'Tous'
+        || (s.filtre === 'Compétition' && n.groupe.startsWith('Compétition'))
+        || (s.filtre === 'École Natation' && n.groupe.startsWith('École'))
+        || (s.filtre === 'Masters' && n.groupe === 'Masters')
+        || (s.filtre === 'Sauvetage' && n.groupe.startsWith('Sauv')))
+      .map((n) => {
+        const p = parseInt(n.presence);
+        const idx = NAGEURS.indexOf(n);
+        return { ...n,
+          avaBg: p >= 85 ? 'rgba(30,123,255,0.22)' : 'rgba(232,68,43,0.22)',
+          presBg: p >= 85 ? 'rgba(46,204,143,0.14)' : p >= 70 ? 'rgba(242,179,61,0.15)' : 'rgba(232,68,43,0.16)',
+          presFg: p >= 85 ? GREEN : p >= 70 ? AMBER : RED,
+          go: () => this.setState({ screen:'fiche', nageurIdx: idx, ficheTab: 0 }) };
+      });
+
+    // ---- Fiche ----
+    const n = NAGEURS[s.nageurIdx];
+    const perfs = [
+      { epreuve:'50 NL', temps:'26"41', pts:'962', niveau:'Régional', nivBg:'rgba(30,123,255,0.16)', nivFg:'#7FDCFF', delta:'−0.42', rangNat:'118e' },
+      { epreuve:'100 NL', temps:'57"08', pts:'988', niveau:'National', nivBg:'rgba(232,68,43,0.16)', nivFg:'#FF9179', delta:'−0.91', rangNat:'74e' },
+      { epreuve:'200 NL', temps:'2\'04"33', pts:'1004', niveau:'National', nivBg:'rgba(232,68,43,0.16)', nivFg:'#FF9179', delta:'−1.62', rangNat:'61e' },
+      { epreuve:'100 Pap', temps:'1\'03"77', pts:'901', niveau:'Régional', nivBg:'rgba(30,123,255,0.16)', nivFg:'#7FDCFF', delta:'+0.24', rangNat:'204e' },
+      { epreuve:'200 4N', temps:'2\'19"85', pts:'944', niveau:'Régional', nivBg:'rgba(30,123,255,0.16)', nivFg:'#7FDCFF', delta:'−2.10', rangNat:'132e' }
+    ].map(p => ({ ...p, deltaColor: p.delta.startsWith('−') ? GREEN : RED }));
+
+    const techBase = [
+      { nage:'Papillon', color:RED, notes:[3,4,3,4,3,2,3,4] },
+      { nage:'Dos', color:CYAN, notes:[4,4,4,3,4,4,3,4] },
+      { nage:'Brasse', color:AMBER, notes:[3,3,4,3,3,4,4,3] },
+      { nage:'Crawl', color:BLUE, notes:[5,4,5,4,5,4,4,5] }
+    ];
+    const technique = techBase.map(tn => ({
+      nage: tn.nage, color: tn.color,
+      moyenne: (tn.notes.reduce((a, b) => a + b, 0) / tn.notes.length).toFixed(1),
+      criteres: CRITERES.map((c, i) => ({ nom:c, note: tn.notes[i] + '/5', w: (tn.notes[i] / 5 * 100) + '%' }))
+    }));
+
+    const assiduite = ['S18','S19','S20','S21','S22','S23','S24','S25'].map((sem, i) => {
+      const v = [90, 75, 100, 60, 80, 55, 85, 95][i];
+      return { sem, h: v + '%', color: v >= 80 ? GREEN : v >= 65 ? AMBER : RED };
+    });
+
+    const fiche = {
+      ...n,
+      rankings: [
+        { niveau:'Département', place: n.rank.split(' / ')[0] + 'er', total:'sur 214' },
+        { niveau:'Région', place: n.rank.split(' / ')[1] + 'e', total:'sur 1 380' },
+        { niveau:'National', place: n.rank.split(' / ')[2] + 'e', total:'sur 9 640' }
+      ],
+      perfs, technique, assiduite,
+      dateNotation: '28 mai 2026',
+      absences: [
+        { date:'02 juin', motif:'Maladie — justifiée', statut:'Validée', bg:'rgba(46,204,143,0.14)', fg:GREEN },
+        { date:'26 mai', motif:'Non déclarée', statut:'À traiter', bg:'rgba(232,68,43,0.16)', fg:RED },
+        { date:'19 mai', motif:'Épaule — reprise progressive', statut:'Blessure', bg:'rgba(242,179,61,0.15)', fg:AMBER },
+        { date:'12 mai', motif:'Scolaire', statut:'Validée', bg:'rgba(46,204,143,0.14)', fg:GREEN }
+      ]
+    };
+
+    const ficheTabs = ['Cotation FFN','Notation technique','Assiduité'].map((label, i) => {
+      const c = this.chip(s.ficheTab === i);
+      return { label, ...c, go: () => this.setState({ ficheTab:i }) };
+    });
+
+    // ---- Créateur de séance ----
+    const axesDef = [
+      { key:'variant', titre:'Variant', aide:'Support technique', options:['Nage complète','Bras','Jambes','Éducatif'] },
+      { key:'intensite', titre:'Intensité', aide:'Allure de travail', options:['Allure neutre','Négatif split','Progressif','Allure 400','Allure 200','Vitesse'] },
+      { key:'nage', titre:'Nages', aide:'Support de nage', options:['4 nages','Spécialité','Papillon','Dos','Brasse','Crawl'] }
+    ];
+    const axes = axesDef.map(a => ({ titre:a.titre, aide:a.aide,
+      options: a.options.map(o => {
+        const on = s[a.key] === o; const c = this.chip(on);
+        return { label:o, ...c, go: () => this.setState({ [a.key]: o }) };
+      }) }));
+
+    const totalSeance = parseInt(s.seanceVolume.replace(/\s/g, ''), 10);
+    const r100 = (m) => Math.max(100, Math.round(m / 100) * 100);
+    const fmtM = (m) => m >= 1000 ? m.toLocaleString('fr-FR') + ' m' : m + ' m';
+    const dEch = r100(totalSeance * 0.20);
+    const dTech = r100(totalSeance * 0.16);
+    const dPrincCible = totalSeance - dEch - dTech - r100(totalSeance * 0.10);
+    // le bloc principal se découpe en séries dont la longueur grandit avec le volume
+    const repDist = totalSeance >= 8000 ? 400 : totalSeance >= 6000 ? 300 : totalSeance >= 4000 ? 200 : 100;
+    const nSeries = totalSeance >= 7000 ? 3 : totalSeance >= 4000 ? 2 : 1;
+    const parSerie = Math.max(2, Math.round(dPrincCible / repDist / nSeries));
+    // la distance affichée est celle réellement nagée ; le reliquat part au retour au calme
+    const dPrinc = nSeries * parSerie * repDist;
+    const dRet = totalSeance - dEch - dTech - dPrinc;
+    const departs = { 100: '1\'40', 200: '3\'15', 300: '4\'45', 400: '6\'10' };
+    const nEduc = Math.max(4, Math.round(dTech / 50));
+    const seanceResume = s.variant + ' · ' + s.intensite + ' · ' + s.nage + ' · ' + fmtM(totalSeance);
+    const seanceBlocs = [
+      { phase:'Échauff.', distance:fmtM(dEch), contenu:fmtM(r100(dEch * 0.5)) + ' crawl souple + ' + Math.round(r100(dEch * 0.5) / 50) + '×50 éducatifs ' + s.nage.toLowerCase(), consigne:'Amplitude, respiration 3 temps' },
+      { phase:'Technique', distance:fmtM(dTech), contenu:nEduc + '×50 ' + s.variant.toLowerCase() + ' — départ 1\'00', consigne:'Focus coulée et fréquence' },
+      { phase:'Principal', distance:fmtM(dPrinc), contenu:nSeries + '×(' + parSerie + '×' + repDist + ' ' + s.nage.toLowerCase() + ') à ' + s.intensite.toLowerCase() + ' — départ ' + departs[repDist], consigne: nSeries > 1 ? 'Récup 2\' entre les séries · dernière série en accélération' : 'Tenue de l’allure, 2 derniers en accélération' },
+      { phase:'Retour', distance:fmtM(dRet), contenu:fmtM(dRet) + ' souple 2 nages alternées', consigne:'Fréquence basse, relâchement' }
+    ];
+
+    // ---- Thématique ----
+    const THEMES = [
+      { nom:'Volume aérobie', color:BLUE, charge:'Charge 1', detail:'3 séances · dominante endurance, 4 500 m', consigne:'Allure neutre, fréquence basse' },
+      { nom:'Seuil', color:CYAN, charge:'Charge 2', detail:'3 séances · travail au seuil, 4 000 m', consigne:'Séries longues, récup courte' },
+      { nom:'VMA', color:GREEN, charge:'Charge 3', detail:'3 séances · intermittent court, 3 200 m', consigne:'30"/30" et 50 m départ 1\'00' },
+      { nom:'Lactique', color:RED, charge:'Charge 3', detail:'2 séances · tolérance lactique, 2 800 m', consigne:'Répétitions maximales, récup longue' },
+      { nom:'Vitesse', color:AMBER, charge:'Affûtage', detail:'2 séances · volume réduit, qualité maximale', consigne:'Départs, coulées, 15 m lancés' }
+    ];
+    const themes = THEMES.map(th => {
+      const on = s.theme === th.nom; const c = this.chip(on, th.color);
+      return { label: th.nom, ...c, border: on ? th.color : c.border, go: () => this.setState({ theme: th.nom }) };
+    });
+    const themeIdx = Math.max(0, THEMES.findIndex(th => th.nom === s.theme));
+    const cycleLen = parseInt(s.themeCycle);
+    const cycleSeances = Array.from({ length: cycleLen }, (_, i) => {
+      const th = THEMES[(themeIdx + i) % THEMES.length];
+      return {
+        semaine: 'Semaine ' + (i + 1),
+        charge: th.charge,
+        color: th.color,
+        titre: th.nom,
+        detail: s.variant + ' en ' + s.nage.toLowerCase() + ' — ' + th.detail + ' · ' + th.consigne,
+        tags: [{ label: s.variant }, { label: s.intensite }, { label: s.nage }]
+      };
+    });
+
+    // Répartition (%) des 5 filières par semaine, orientée par la thématique dominante
+    const MIX = {
+      'Volume aérobie': [60, 22, 8, 4, 6],
+      'Seuil':          [30, 45, 13, 6, 6],
+      'VMA':            [24, 22, 38, 8, 8],
+      'Lactique':       [22, 18, 14, 36, 10],
+      'Vitesse':        [26, 12, 14, 12, 36]
+    };
+    const VOL_SEM = [4500, 4000, 3200, 2800, 2200];
+    const chargeSemaines = cycleSeances.map((cs, i) => {
+      const mix = MIX[cs.titre];
+      const vol = VOL_SEM[(themeIdx + i) % VOL_SEM.length];
+      return {
+        semaine: 'S' + (i + 1),
+        titre: cs.titre,
+        volume: (vol / 1000).toFixed(1).replace('.', ',') + ' km',
+        hauteur: Math.round(vol / 4500 * 100) + '%',
+        segments: THEMES.map((th, k) => ({ color: th.color, h: mix[k] + '%', nom: th.nom, pct: mix[k] + '%' }))
+      };
+    });
+    const themeLegende = THEMES.map(th => ({ nom: th.nom, color: th.color }));
+    const totalVol = chargeSemaines.reduce((a, c, i) => a + VOL_SEM[(themeIdx + i) % VOL_SEM.length], 0);
+    const volumeThemes = THEMES.map((th, k) => {
+      const m = chargeSemaines.reduce((a, c, i) => a + (VOL_SEM[(themeIdx + i) % VOL_SEM.length] * MIX[c.titre][k] / 100), 0);
+      return { nom: th.nom, color: th.color, metres: Math.round(m / 50) * 50 + ' m',
+        w: Math.round(m / (totalVol || 1) * 100 * 2.2) + '%', pct: Math.round(m / (totalVol || 1) * 100) + '%' };
+    });
+    const courbeCharge = cycleSeances.map((cs, i) => {
+      const inten = { 'Volume aérobie': 45, 'Seuil': 68, 'VMA': 84, 'Lactique': 95, 'Vitesse': 72 }[cs.titre];
+      return { semaine: 'S' + (i + 1), h: inten + '%', color: cs.color, val: inten, titre: cs.titre };
+    });
+
+    return {
+      navW: s.navOpen ? '252px' : '78px',
+      brandD: s.navOpen ? 'block' : 'none',
+      crestD: s.navOpen ? 'none' : 'block',
+      navPad: s.navOpen ? '18px 16px 14px' : '18px 10px 14px',
+      navJustify: s.navOpen ? 'flex-start' : 'center',
+      q: s.q,
+      setQ: (e) => this.setState({ q: e.target.value }),
+      clearQ: () => this.setState({ q: '' }),
+      resultats,
+      aResultats: resultats.length > 0,
+      rienTrouve: s.q.trim().length > 0 && resultats.length === 0,
+      navGroups, coach: s.coach,
+      coaches: ['Marie Lefort','Thomas Girard','Léa Morel'].map(v => ({ v })),
+      title: t[0], subtitle: t[1], pole: POLE_DE[s.screen] || '',
+      ...this.hero(),
+      toggleNav: () => this.setState({ navOpen: !s.navOpen }),
+      setCoach: (e) => this.setState({ coach: e.target.value }),
+
+      isGeneral: s.screen === 'general',
+      isCoach: s.screen === 'coach',
+      isPlanning: s.screen === 'planning-global' || s.screen === 'mon-planning',
+      isCalendrier: s.screen === 'calendrier',
+      isNageurs: s.screen === 'nageurs',
+      isFiche: s.screen === 'fiche',
+      isSeance: s.screen === 'seance',
+      isThematique: s.screen === 'thematique',
+      isAbsences: s.screen === 'absences',
+      isStages: s.screen === 'stages',
+      isPresences: s.screen === 'presences',
+      ...this.stagesEtPresences(),
+
+      statsGlobal: [
+        { icon:'⚑', value:'312', label:'Licenciés suivis', delta:'+14 vs N-1', deltaColor:GREEN },
+        { icon:'◉', value:'6', label:'Coachs actifs', delta:'1 en congé', deltaColor:AMBER },
+        { icon:'▦', value:'38', label:'Créneaux / semaine', delta:'2 à couvrir', deltaColor:RED },
+        { icon:'✓', value:'82%', label:'Présence moy. club', delta:'+3 pts', deltaColor:GREEN }
+      ],
+      chargeCoachs: [
+        { nom:'Marie Lefort', txt:'14 h · 5 créneaux', w:'88%', color:BLUE },
+        { nom:'Thomas Girard', txt:'11 h · 6 créneaux', w:'69%', color:CYAN },
+        { nom:'Léa Morel', txt:'9 h · 4 créneaux', w:'56%', color:GREEN },
+        { nom:'Paul Nadal', txt:'16 h · 7 créneaux', w:'100%', color:RED }
+      ],
+      ...this.effectifs(),
+      alertes: [
+        { icon:'⚠', titre:'Antoine Rey — blessure signalée', detail:'Épaule · reprise progressive', bg:'rgba(232,68,43,0.10)', border:'rgba(232,68,43,0.35)', go: () => this.setState({ screen:'fiche', nageurIdx:1, ficheTab:2 }) },
+        { icon:'▼', titre:'Antoine Rey — présence faible', detail:'58% sur 4 semaines (seuil 60%)', bg:'rgba(242,179,61,0.09)', border:'rgba(242,179,61,0.3)', go: () => this.setState({ screen:'fiche', nageurIdx:1, ficheTab:2 }) },
+        { icon:'▦', titre:'Jeudi 18:00 — créneau à couvrir', detail:'Sauvetage · Léa Morel en congé', bg:'rgba(255,255,255,0.03)', border:'rgba(255,255,255,0.1)', go: this.go('planning-global') }
+      ],
+      podium: [
+        { place:2, nom:'Antoine Rey', ini:'AR', epreuve:'200 m NL', pts:968, gain:'−9.9s',
+          h:'118px', color:'#A9BBD4', ring:'rgba(169,187,212,0.4)', medaille:'#C8D4E4',
+          go: () => this.setState({ screen:'fiche', nageurIdx:1, ficheTab:0 }) },
+        { place:1, nom:'Sarah Blanc', ini:'SB', epreuve:'200 m 4 nages', pts:1024, gain:'−10.9s',
+          h:'158px', color:'#F2B33D', ring:'rgba(242,179,61,0.55)', medaille:'#F2B33D',
+          go: () => this.setState({ screen:'fiche', nageurIdx:0, ficheTab:0 }) },
+        { place:3, nom:'Nathalie Cord', ini:'NC', epreuve:'100 m dos', pts:842, gain:'−5.3s',
+          h:'88px', color:'#D08A5A', ring:'rgba(208,138,90,0.4)', medaille:'#D08A5A',
+          go: () => this.setState({ screen:'fiche', nageurIdx:2, ficheTab:0 }) }
+      ],
+
+      statsCoach: [
+        { icon:'▦', value:'5', label:'Créneaux / semaine' },
+        { icon:'⚑', value:'3', label:'Groupes encadrés' },
+        { icon:'✈', value:'1', label:'Absence déclarée' },
+        { icon:'◷', value:'14 h', label:'Heures hebdo' }
+      ],
+      mesGroupes: [
+        { nom:'Compétition Élite', cat:'Élite · 9 nageurs', n:9, presence:'94%', objectif:'Allure 200', color:RED },
+        { nom:'Compétition Espoir', cat:'Espoir · 14 nageurs', n:14, presence:'78%', objectif:'Seuil aérobie', color:BLUE },
+        { nom:'Masters', cat:'Master compét. · 11 nageurs', n:11, presence:'66%', objectif:'Technique brasse', color:VIOLET }
+      ],
+      prochainesSeances: [
+        { jour:'Mer', h:'18:00', titre:'Compétition Élite · Bassin 50m', detail:'Allure 200 · crawl · 3 000 m', go: this.go('mon-planning') },
+        { jour:'Ven', h:'18:00', titre:'Compétition Espoir · Bassin 50m', detail:'Progressif · 4 nages · 3 500 m', go: this.go('mon-planning') },
+        { jour:'Sam', h:'09:00', titre:'Masters · Bassin 25m', detail:'Éducatif brasse · 2 200 m', go: this.go('mon-planning') }
+      ],
+      aTraiter: [
+        { icon:'✎', titre:'2 feuilles de présence non saisies', detail:'Séances du 1er et 3 juin', cta:'Saisir', bg:'rgba(30,123,255,0.10)', border:'rgba(30,123,255,0.3)', go: this.go('mon-planning') },
+        { icon:'☰', titre:'Notation technique à faire', detail:'4 nageurs Élite · papillon', cta:'Noter', bg:'rgba(232,68,43,0.10)', border:'rgba(232,68,43,0.3)', go: () => this.setState({ screen:'fiche', nageurIdx:0, ficheTab:1, notation:true }) },
+        { icon:'⟳', titre:'Cycle Élite à renouveler', detail:'Fin du cycle allure 200 le 14 juin', cta:'Générer', bg:'rgba(255,255,255,0.03)', border:'rgba(255,255,255,0.1)', go: this.go('thematique') }
+      ],
+      ...this.chargeAnalytique(),
+      goAbsences: this.go('absences'),
+      goSeance: this.go('seance'),
+      goNageurs: this.go('nageurs'),
+
+      semaine: semaines[week],
+      prevWeek: () => this.setState({ week: s.week - 1 }),
+      nextWeek: () => this.setState({ week: s.week + 1 }),
+      legendeEtat: [
+        { nom:'Assuré', color:GREEN }, { nom:'Remplacé', color:AMBER }, { nom:'À couvrir', color:RED }
+      ],
+      semaineJours,
+
+      moisJours: Array.from({ length: 30 }, (_, i) => {
+        const d = i + 1;
+        const dots = [];
+        if ([1,3,5,6].includes(d % 7)) dots.push({ color: BLUE });
+        if (d % 7 === 6) dots.push({ color: AMBER });
+        if ([13,14].includes(d)) dots.push({ color: RED });
+        if (d >= 22 && d <= 26) dots.push({ color: GREEN });
+        const today = d === 4;
+        return { n:d, dots,
+          bg: today ? 'rgba(30,123,255,0.22)' : 'rgba(255,255,255,0.03)',
+          border: today ? CYAN : 'rgba(255,255,255,0.08)',
+          fg: today ? '#EAF1FB' : '#A9BBD4' };
+      }),
+      echeances: [
+        { j:'13', m:'juin', titre:'Interclubs régionaux', detail:'Élite + Espoir · bassin 50 m', color:RED },
+        { j:'22', m:'juin', titre:'Congés Léa Morel', detail:'5 créneaux Sauvetage à couvrir', color:GREEN },
+        { j:'28', m:'juin', titre:'Tests de cotation FFN', detail:'Tous groupes compétition', color:BLUE },
+        { j:'05', m:'juil', titre:'Championnats départementaux', detail:'Avenir · Espoir · Élite', color:AMBER }
+      ],
+
+      recherche: s.recherche,
+      setRecherche: (e) => this.setState({ recherche: e.target.value }),
+      filtres, nageursListe,
+      nageursVide: nageursListe.length === 0,
+      nageursTableD: nageursListe.length === 0 ? 'none' : 'block',
+      resetFiltres: () => this.setState({ recherche: '', filtre: 'Tous' }),
+
+      fiche, ficheTabs,
+      ficheTab0: s.ficheTab === 0, ficheTab1: s.ficheTab === 1, ficheTab2: s.ficheTab === 2,
+
+      notationOuverte: s.notation,
+      openNotation: () => this.setState({ notation:true }),
+      closeNotation: () => this.setState({ notation:false }),
+      saveNotation: () => this.setState({ notation:false }),
+      stop: (e) => e.stopPropagation(),
+      nagesNotation: ['Papillon','Dos','Brasse','Crawl'].map(label => {
+        const c = this.chip(s.nageNotation === label);
+        return { label, ...c, go: () => this.setState({ nageNotation: label }) };
+      }),
+      criteresNotation: CRITERES.map(nom => ({
+        nom,
+        notes: [1,2,3,4,5].map(v => {
+          const on = s.notes[s.nageNotation + '|' + nom] === v;
+          return { v, border: on ? CYAN : 'rgba(255,255,255,0.12)',
+            bg: on ? 'rgba(36,200,255,0.2)' : 'rgba(255,255,255,0.04)',
+            fg: on ? '#EAF1FB' : '#8FA3C0',
+            go: () => this.setState({ notes: { ...s.notes, [s.nageNotation + '|' + nom]: v } }) };
+        })
+      })),
+      observation: s.observation,
+      setObservation: (e) => this.setState({ observation: e.target.value }),
+
+      axes, seanceResume, seanceBlocs,
+      seanceGroupe: s.seanceGroupe, seanceVolume: s.seanceVolume,
+      setSeanceGroupe: (e) => this.setState({ seanceGroupe: e.target.value }),
+      setSeanceVolume: (e) => this.setState({ seanceVolume: e.target.value }),
+      groupesNoms: ['Compétition Élite','Compétition Espoir','Compétition Avenir','Masters','École Natation 3','Ado','Sauvetage sportif','Adultes','Sport Handi'].map(v => ({ v })),
+      volumes: ['1 500 m','2 000 m','2 500 m','3 000 m','3 500 m','4 000 m','5 000 m','6 000 m','7 000 m','8 000 m','9 000 m','10 000 m'].map(v => ({ v })),
+
+      themeObjectif: s.themeObjectif, themeGroupe: s.themeGroupe, themeCycle: s.themeCycle,
+      setThemeObjectif: (e) => this.setState({ themeObjectif: e.target.value }),
+      setThemeGroupe: (e) => this.setState({ themeGroupe: e.target.value }),
+      setThemeCycle: (e) => this.setState({ themeCycle: e.target.value }),
+      cycles: ['3 semaines','4 semaines','6 semaines'].map(v => ({ v })),
+      themes, themeLegende, chargeSemaines, volumeThemes, courbeCharge,
+      variantOptions: axes[0].options, nageOptions: axes[2].options,
+      genererCycle: () => this.setState({ cycleGenere: s.cycleGenere + 1 }),
+      cycleSeances,
+
+      congesCoach: [
+        { periode:'22 → 26 juin', motif:'Congés annuels', impact:'5 créneaux à couvrir', statut:'Validé', bg:'rgba(46,204,143,0.14)', fg:GREEN, color:GREEN },
+        { periode:'09 juillet', motif:'Formation MNS', impact:'2 créneaux à couvrir', statut:'En attente', bg:'rgba(242,179,61,0.15)', fg:AMBER, color:AMBER },
+        { periode:'02 juin', motif:'Récupération', impact:'Remplacé par Thomas', statut:'Validé', bg:'rgba(46,204,143,0.14)', fg:GREEN, color:BLUE }
+      ],
+      absencesNageurs: [
+        { ini:'AR', nom:'Antoine Rey', date:'26 mai', motif:'Non déclarée', statut:'À traiter', avaBg:'rgba(232,68,43,0.22)', bg:'rgba(232,68,43,0.16)', fg:RED },
+        { ini:'KD', nom:'Karim Dault', date:'02 juin', motif:'Déplacement pro', statut:'Validée', avaBg:'rgba(30,123,255,0.22)', bg:'rgba(46,204,143,0.14)', fg:GREEN },
+        { ini:'NC', nom:'Nathalie Cord', date:'03 juin', motif:'Maladie', statut:'Validée', avaBg:'rgba(30,123,255,0.22)', bg:'rgba(46,204,143,0.14)', fg:GREEN },
+        { ini:'TV', nom:'Tom Vasseur', date:'04 juin', motif:'Non déclarée', statut:'À traiter', avaBg:'rgba(232,68,43,0.22)', bg:'rgba(232,68,43,0.16)', fg:RED },
+        { ini:'LM', nom:'Léo Marchand', date:'05 juin', motif:'Scolaire', statut:'Validée', avaBg:'rgba(30,123,255,0.22)', bg:'rgba(46,204,143,0.14)', fg:GREEN }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!-- @dsCard group="Components" viewport="700x330" name="Indicateurs et graphiques" subtitle="Chiffres, barres, camemberts, notation" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  body { margin:0; padding:20px; background:var(--bg-card); font-family:var(--font-ui); color:var(--ink); }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .stat { background:linear-gradient(180deg,var(--bg-card-raised),#0C1524); border:1px solid var(--border); border-radius:var(--r-xl); padding:14px 16px; }
+  .metric { font:var(--metric-l); }
+  .sub { font:var(--body-xs); color:var(--ink-3); margin-top:3px; }
+  .lab { font:var(--label-xs); letter-spacing:var(--track-label); text-transform:uppercase; color:var(--ink-faint); margin:0 0 9px; }
+  .bar { height:var(--bar-h); border-radius:var(--bar-r); background:rgba(255,255,255,0.07); overflow:hidden; }
+  .fill { height:100%; border-radius:var(--bar-r); }
+  .brow { margin-bottom:11px; }
+  .bhead { display:flex; justify-content:space-between; font:var(--body-xs); margin-bottom:5px; }
+  .donut { position:relative; width:112px; height:112px; }
+  .donut i { position:absolute; inset:0; border-radius:50%; background:conic-gradient(var(--blue) 0deg 166deg, var(--cyan) 166deg 245deg, var(--ok) 245deg 292deg, var(--warn) 292deg 332deg, var(--danger) 332deg 360deg); }
+  .donut b { position:absolute; inset:24px; border-radius:50%; background:var(--bg-card); display:flex; align-items:center; justify-content:center; font:var(--metric-s); }
+  .notes { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; }
+  .note { height:44px; border-radius:var(--r-l); border:1px solid var(--border-strong); background:var(--veil-2); color:var(--ink-3); font:var(--metric-s); }
+  .note.on { border-color:var(--cyan); background:rgba(36,200,255,0.2); color:var(--ink); }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div>
+      <p class="lab">Indicateurs</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+        <div class="stat"><div class="metric">312</div><div class="sub">Licenciés suivis</div></div>
+        <div class="stat"><div class="metric">82%</div><div class="sub">Présence moyenne</div></div>
+      </div>
+      <p class="lab">Barres de proportion</p>
+      <div class="brow"><div class="bhead"><span style="font-weight:600">Marie Lefort</span><span style="color:var(--ink-3)">14 h</span></div><div class="bar"><div class="fill" style="width:88%; background:var(--blue)"></div></div></div>
+      <div class="brow"><div class="bhead"><span style="font-weight:600">Paul Nadal</span><span style="color:var(--ink-3)">16 h</span></div><div class="bar"><div class="fill" style="width:100%; background:var(--danger)"></div></div></div>
+      <div class="brow"><div class="bhead"><span style="font-weight:600">Léa Morel</span><span style="color:var(--ink-3)">9 h</span></div><div class="bar"><div class="fill" style="width:56%; background:var(--ok)"></div></div></div>
+    </div>
+    <div>
+      <p class="lab">Répartition</p>
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+        <div class="donut"><i></i><b>15,8 km</b></div>
+        <div style="display:flex; flex-direction:column; gap:6px; font:var(--body-xs);">
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--blue);margin-right:7px"></span>Crawl <b style="float:right">46%</b></span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--cyan);margin-right:7px"></span>4 nages <b style="float:right">22%</b></span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--ok);margin-right:7px"></span>Dos <b style="float:right">13%</b></span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--warn);margin-right:7px"></span>Brasse <b style="float:right">11%</b></span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--danger);margin-right:7px"></span>Papillon <b style="float:right">8%</b></span>
+        </div>
+      </div>
+      <p class="lab">Notation technique — amplitude</p>
+      <div class="notes">
+        <button class="note">1</button><button class="note">2</button>
+        <button class="note">3</button><button class="note on">4</button><button class="note">5</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

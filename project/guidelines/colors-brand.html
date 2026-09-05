@@ -1,0 +1,37 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Couleurs de marque" subtitle="Bleu et rouge du logo COACH FT" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin:0; padding:18px 20px; background:var(--bg-base); font-family:var(--font-ui); color:var(--ink); }
+  
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .c { border-radius:var(--r-m); height:64px; display:flex; flex-direction:column; justify-content:flex-end; padding:8px; }
+  .n { font:var(--label-xs); letter-spacing:0.06em; }
+  .h { font:var(--label-xs); opacity:.75; }
+  .g { display:flex; gap:8px; margin-top:10px; }
+  .gr { flex:1; height:34px; border-radius:var(--r-s); display:flex; align-items:center; justify-content:center; font:var(--label-xs); letter-spacing:var(--track-label); text-transform:uppercase; color:#fff; }
+
+</style>
+</head>
+<body>
+
+  <div class="grid">
+    <div class="c" style="background:var(--blue)"><span class="n">blue</span><span class="h">#1E7BFF</span></div>
+    <div class="c" style="background:var(--blue-deep)"><span class="n">blue-deep</span><span class="h">#0F5FD6</span></div>
+    <div class="c" style="background:var(--cyan); color:#05090F"><span class="n">cyan</span><span class="h">#24C8FF</span></div>
+    <div class="c" style="background:var(--cyan-soft); color:#05090F"><span class="n">cyan-soft</span><span class="h">#7FDCFF</span></div>
+    <div class="c" style="background:var(--red)"><span class="n">red</span><span class="h">#E8442B</span></div>
+    <div class="c" style="background:var(--red-deep)"><span class="n">red-deep</span><span class="h">#B92E19</span></div>
+    <div class="c" style="background:var(--red-soft); color:#05090F"><span class="n">red-soft</span><span class="h">#FF9179</span></div>
+    <div class="c" style="background:var(--blue-ink); color:#05090F"><span class="n">blue-ink</span><span class="h">#8CC4FF</span></div>
+  </div>
+  <div class="g">
+    <div class="gr" style="background:var(--grad-primary)">grad-primary</div>
+    <div class="gr" style="background:var(--grad-danger)">grad-danger</div>
+    <div class="gr" style="background:var(--grad-brand)">grad-brand</div>
+  </div>
+</body>
+</html>

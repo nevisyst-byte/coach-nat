@@ -1,0 +1,34 @@
+<!-- @dsCard group="Spacing" viewport="700x140" name="Échelle d'espacement" subtitle="Pas de 3 px, de sp-1 à sp-12" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin:0; padding:18px 20px; background:var(--bg-base); font-family:var(--font-ui); color:var(--ink); }
+  
+  .row { display:flex; align-items:flex-end; gap:10px; }
+  .b { background:var(--blue); border-radius:3px; width:26px; }
+  .n { font:var(--label-xs); color:var(--ink-3); text-align:center; margin-top:5px; }
+  .t { font:var(--label-xs); letter-spacing:var(--track-label); text-transform:uppercase; color:var(--ink-faint); margin:0 0 12px; }
+
+</style>
+</head>
+<body>
+
+  <p class="t">--sp-1 → --sp-12</p>
+  <div class="row">
+    <div><div class="b" style="height:3px"></div><div class="n">3</div></div>
+    <div><div class="b" style="height:6px"></div><div class="n">6</div></div>
+    <div><div class="b" style="height:9px"></div><div class="n">9</div></div>
+    <div><div class="b" style="height:12px"></div><div class="n">12</div></div>
+    <div><div class="b" style="height:14px"></div><div class="n">14</div></div>
+    <div><div class="b" style="height:16px"></div><div class="n">16</div></div>
+    <div><div class="b" style="height:18px"></div><div class="n">18</div></div>
+    <div><div class="b" style="height:20px"></div><div class="n">20</div></div>
+    <div><div class="b" style="height:22px"></div><div class="n">22</div></div>
+    <div><div class="b" style="height:26px"></div><div class="n">26</div></div>
+    <div><div class="b" style="height:32px"></div><div class="n">32</div></div>
+  </div>
+</body>
+</html>

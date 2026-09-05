@@ -1,0 +1,34 @@
+:root {
+  --font-display: "Barlow Condensed", "Barlow", system-ui, sans-serif;
+  --font-ui: "Barlow", system-ui, -apple-system, sans-serif;
+
+  /* Display — condensé, majuscules, interlettrage ouvert */
+  --display-hero: 700 38px/1 var(--font-display);
+  --display-1: 700 32px/1 var(--font-display);
+  --display-2: 700 28px/1 var(--font-display);
+  --display-3: 700 22px/1 var(--font-display);
+  --display-4: 700 19px/1 var(--font-display);
+  --display-5: 700 17px/1 var(--font-display);
+
+  /* Chiffres — la métrique se lit avant son libellé */
+  --metric-xl: 700 42px/1 var(--font-display);
+  --metric-l: 700 34px/1 var(--font-display);
+  --metric-m: 700 24px/1 var(--font-display);
+  --metric-s: 700 19px/1 var(--font-display);
+
+  /* Texte courant */
+  --body-l: 500 15px/1.5 var(--font-ui);
+  --body: 400 14px/1.55 var(--font-ui);
+  --body-strong: 600 14px/1.4 var(--font-ui);
+  --body-s: 400 13px/1.5 var(--font-ui);
+  --body-xs: 400 12px/1.45 var(--font-ui);
+
+  /* Étiquettes — toujours majuscules + interlettrage */
+  --label: 600 11px/1.2 var(--font-ui);
+  --label-xs: 600 10px/1.2 var(--font-ui);
+
+  --track-display: 0.02em;
+  --track-title: 0.06em;
+  --track-label: 0.12em;
+  --track-label-wide: 0.18em;
+}

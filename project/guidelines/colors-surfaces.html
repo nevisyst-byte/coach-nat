@@ -1,0 +1,38 @@
+<!-- @dsCard group="Colors" viewport="700x170" name="Fonds et encres" subtitle="Six niveaux de fond, six niveaux d'encre" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin:0; padding:18px 20px; background:var(--bg-base); font-family:var(--font-ui); color:var(--ink); }
+  
+  .row { display:flex; gap:8px; }
+  .sw { flex:1; border-radius:var(--r-m); border:1px solid var(--border); height:52px; display:flex; align-items:flex-end; padding:6px; font:var(--label-xs); letter-spacing:0.06em; color:var(--ink-3); }
+  .inks { display:flex; gap:14px; margin-top:12px; flex-wrap:wrap; }
+  .ink { font:var(--body-strong); }
+  .t { font:var(--label-xs); letter-spacing:var(--track-label); text-transform:uppercase; color:var(--ink-faint); margin:0 0 8px; }
+
+</style>
+</head>
+<body>
+
+  <p class="t">Fonds</p>
+  <div class="row">
+    <div class="sw" style="background:var(--bg-abyss)">abyss</div>
+    <div class="sw" style="background:var(--bg-base)">base</div>
+    <div class="sw" style="background:var(--bg-nav)">nav</div>
+    <div class="sw" style="background:var(--bg-card)">card</div>
+    <div class="sw" style="background:var(--bg-card-raised)">raised</div>
+    <div class="sw" style="background:var(--bg-head)">head</div>
+  </div>
+  <div class="inks">
+    <span class="ink" style="color:var(--ink)">ink</span>
+    <span class="ink" style="color:var(--ink-2)">ink-2</span>
+    <span class="ink" style="color:var(--ink-3)">ink-3</span>
+    <span class="ink" style="color:var(--ink-4)">ink-4</span>
+    <span class="ink" style="color:var(--ink-faint)">faint</span>
+    <span class="ink" style="color:var(--ink-disabled)">disabled</span>
+  </div>
+</body>
+</html>
