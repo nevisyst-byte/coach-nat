@@ -1,10 +1,11 @@
-# Déploiement auto-hébergé (serveur Nevisyst + Cloudflare Tunnel existant)
+# Déploiement auto-hébergé (serveur Nevisyst + tunnel Cloudflare dédié)
 
 Ce guide fait tourner l'app Next.js et sa base PostgreSQL sur le serveur Nevisyst
-(Docker Compose), puis les expose sur `coach-nat.nevi-syst.com` en réutilisant le
-tunnel Cloudflare et le Nginx Proxy Manager déjà en place sur ce serveur (même
-principe que l'app `immo`) — pas besoin de créer un nouveau tunnel ni un nouveau
-nom de domaine.
+(Docker Compose), avec un **tunnel Cloudflare dédié `coach-nat`** (conteneur
+`cloudflared` inclus dans le même `docker-compose.yml`) qui expose le site sur
+`coach-nat.nevi-syst.com`. Ce tunnel est indépendant de celui qui sert déjà
+`immo.nevi-syst.com`, `n8n.nevi-syst.com`, etc. — rien à toucher sur l'infra
+existante (tunnel principal, Nginx Proxy Manager).
 
 Tout ce qui suit s'exécute **sur le serveur** (en SSH, ou via code-server sur
 `code.nevi-syst.com`), pas dans un environnement cloud.
@@ -37,6 +38,10 @@ cp .env.production.example .env.production
 Ce fichier n'est utilisé que par Docker Compose, il ne touche pas au `.env` de
 développement local (`npm run dev` continue de fonctionner comme avant).
 
+Laisse `CLOUDFLARE_TUNNEL_TOKEN` avec sa valeur d'exemple pour l'instant — tu
+le récupères à l'étape 4. En attendant, seul le conteneur `cloudflared`
+redémarrera en échec (app et base de données démarrent normalement).
+
 ## 3. Lancer l'app + la base de données
 
 ```bash
@@ -49,7 +54,8 @@ Vérifie que ça tourne :
 
 ```bash
 docker compose logs -f app
-curl -I http://localhost:3010/login   # doit répondre 200
+docker compose exec app node -e "require('http').get('http://localhost:3000/login',r=>console.log(r.statusCode))"
+# doit afficher 200
 ```
 
 ### Charger les données de démonstration (une seule fois, optionnel)
@@ -60,44 +66,36 @@ docker compose exec app node_modules/.bin/tsx prisma/seed.ts
 
 Voir `web/README.md` pour la liste des comptes créés par le seed.
 
-## 4. Exposer le site sur coach-nat.nevi-syst.com
+## 4. Créer le tunnel Cloudflare dédié et lancer
 
-Le serveur a déjà un tunnel Cloudflare + un Nginx Proxy Manager (NPM, sur
-`192.168.1.39:81`) qui routent les sous-domaines `*.nevi-syst.com` vers les
-conteneurs (c'est ce qui sert déjà `immo.nevi-syst.com`, `n8n.nevi-syst.com`,
-etc.). Pour ajouter `coach-nat`, pas besoin de toucher au tunnel — seulement à
-NPM et, si besoin, à un enregistrement DNS.
+1. Dans le dashboard **Cloudflare Zero Trust** : **Networks → Tunnels → Create
+   a tunnel** → type **Cloudflared** → nomme-le `coach-nat`.
+2. À l'étape "Choose your environment", sélectionne **Docker**. Cloudflare
+   affiche une commande du type :
+   ```
+   docker run cloudflare/cloudflared:latest tunnel run --token eyJhIjo...
+   ```
+   Copie uniquement la valeur après `--token`.
+3. Toujours dans l'assistant Cloudflare, onglet **Public Hostname** : ajoute
+   - Subdomain : `coach-nat`
+   - Domain : `nevi-syst.com`
+   - Service : `HTTP` → `app:3000`
 
-1. **Vérifie l'accessibilité réseau** : NPM (conteneurisé) doit pouvoir
-   atteindre le conteneur `app` de coach-nat. Deux options :
-   - le plus simple : le port est déjà publié sur l'hôte
-     (`docker-compose.yml` → `${APP_PORT:-3010}:3000`), donc NPM peut cibler
-     `192.168.1.39:3010` directement ;
-   - plus propre : attacher le service `app` au même réseau Docker externe que
-     NPM (voir le bloc commenté dans `docker-compose.yml`) et cibler le
-     conteneur par son nom de service Docker (`app:3000`) — regarde sur quel
-     réseau tourne ton conteneur NPM avec `docker inspect <conteneur-npm>`.
-
-2. **Ajoute un Proxy Host dans NPM** (`http://192.168.1.39:81`, comme pour les
-   autres apps) :
-   - Domain Names : `coach-nat.nevi-syst.com`
-   - Forward Hostname/IP : `192.168.1.39` (ou le nom du service Docker si tu as
-     choisi l'option réseau partagé)
-   - Forward Port : `3010` (ou `3000` si réseau partagé)
-   - Active "Websockets Support"
-   - Onglet SSL : demande un certificat Let's Encrypt (ou réutilise le
-     wildcard existant si tu en as un pour `*.nevi-syst.com`)
-
-3. **DNS** : si tu as déjà un enregistrement DNS `*.nevi-syst.com` (wildcard)
-   pointant vers le tunnel Cloudflare, `coach-nat.nevi-syst.com` fonctionne
-   sans rien faire de plus. Sinon, ajoute un enregistrement DNS
-   `coach-nat.nevi-syst.com` (CNAME vers le même tunnel que les autres
-   sous-domaines) dans le dashboard Cloudflare, ou via
-   `cloudflared tunnel route dns <nom-du-tunnel-existant> coach-nat.nevi-syst.com`
-   sur le serveur.
+   (`app` est le nom du service Docker de `docker-compose.yml` — le conteneur
+   `cloudflared` du compose le rejoint sur le même réseau et peut l'appeler
+   directement par ce nom, pas besoin d'IP ni de port hôte.)
+4. Sur le serveur, remplace la valeur de `CLOUDFLARE_TUNNEL_TOKEN` dans
+   `.env.production` par ce token (édite le fichier, ne fais pas un simple
+   `echo >>` qui dupliquerait la ligne).
+5. Relance pour prendre en compte le token :
+   ```bash
+   docker compose --env-file .env.production up -d
+   docker compose logs -f cloudflared   # doit afficher "Registered tunnel connection"
+   ```
 
 Le site est alors accessible en HTTPS sur `https://coach-nat.nevi-syst.com`,
-sans port supplémentaire ouvert sur le serveur.
+sans aucun port ouvert sur le serveur, et sans toucher au tunnel principal ni
+au Nginx Proxy Manager déjà utilisés par tes autres services.
 
 ## 5. Mises à jour
 

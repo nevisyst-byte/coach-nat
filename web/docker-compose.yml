@@ -24,18 +24,20 @@ services:
       DATABASE_URL: postgresql://coachnat:${POSTGRES_PASSWORD:-coachnat}@db:5432/coachnat?schema=public
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set in .env}
       NODE_ENV: production
-    ports:
-      - "${APP_PORT:-3010}:3000"
-    # Si ton reverse proxy (ex. Nginx Proxy Manager) tourne dans Docker et doit
-    # atteindre ce conteneur par nom plutôt que par port hôte, décommente et
-    # adapte au nom du réseau externe de ton reverse proxy :
-    # networks:
-    #   - default
-    #   - proxy
-    #
-    # networks:
-    #   proxy:
-    #     external: true
+    # Pas de port publié sur l'hôte : le conteneur "cloudflared" ci-dessous
+    # atteint l'app directement via le réseau Docker interne (http://app:3000).
+    # Décommente si tu veux aussi y accéder en local pour déboguer :
+    # ports:
+    #   - "127.0.0.1:3010:3000"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN must be set in .env}
+    depends_on:
+      - app
 
 volumes:
   db_data:
