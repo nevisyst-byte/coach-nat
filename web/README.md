@@ -106,11 +106,31 @@ avec une différence volontaire par rapport au prototype statique : la modale
 `POST /api/absences` (le prototype se contentait de fermer la modale sans rien
 enregistrer).
 
+## Vacances scolaires, créneaux en pause et stages au planning
+
+Chaque `Creneau` récurrent porte un flag `actifHorsVacances` (vrai par défaut) : le
+planning le met visuellement en pause pendant les semaines de vacances scolaires de
+la zone du club (réglable dans `/admin`, réglage `AppSettings.zoneScolaire`), et
+bascule le flag en cliquant sur le lien sous chaque créneau pour ceux qui continuent
+toute l'année (ex. Masters). Sur ces mêmes semaines, les stages dont les dates
+(`Stage.dateDebut`/`dateFin`, `StageJour.date`) recouvrent la semaine affichée
+apparaissent directement dans la grille, à côté des créneaux habituels.
+
+Le calendrier scolaire (`src/lib/vacances-scolaires.ts`) est **saisi à la main**, pas
+synchronisé en direct avec une source officielle — voir l'avertissement en tête de ce
+fichier. À vérifier sur https://www.education.gouv.fr/calendrier-scolaire et à mettre
+à jour chaque année scolaire.
+
 ## Simplifications restantes
 
-- **Créneaux récurrents sans exception** : un `Creneau` reste un horaire hebdomadaire
-  fixe — il n'y a pas encore de mécanisme pour annuler ou déplacer une seule occurrence
-  sans toucher aux suivantes.
+- **Créneaux récurrents sans exception au jour près** : au-delà de la pause automatique
+  pendant les vacances scolaires, il n'y a pas encore de mécanisme pour annuler ou
+  déplacer une seule occurrence ponctuelle (hors vacances) sans toucher aux suivantes.
+- **Stages existants sans dates réelles** : les stages créés avant cette évolution (ou
+  encore non édités) ont `dateDebut`/`dateFin` à `null` — ils n'apparaissent pas dans le
+  recoupement automatique avec les vacances tant qu'on ne leur donne pas de vraies dates
+  (le formulaire de création en demande désormais, mais rien ne force la mise à jour des
+  anciens stages).
 - **Libellé de groupe en texte libre sur les créneaux de stage** : `CreneauStage.groupe`
   est une chaîne libre (ex. « Élite »), qui ne correspond pas toujours exactement au nom
   d'un `Groupe` réel (ex. « Compétition Élite »). Tant que les libellés ne sont pas
