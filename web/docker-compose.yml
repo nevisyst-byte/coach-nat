@@ -25,7 +25,17 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set in .env}
       NODE_ENV: production
     ports:
-      - "127.0.0.1:3000:3000"
+      - "${APP_PORT:-3010}:3000"
+    # Si ton reverse proxy (ex. Nginx Proxy Manager) tourne dans Docker et doit
+    # atteindre ce conteneur par nom plutôt que par port hôte, décommente et
+    # adapte au nom du réseau externe de ton reverse proxy :
+    # networks:
+    #   - default
+    #   - proxy
+    #
+    # networks:
+    #   proxy:
+    #     external: true
 
 volumes:
   db_data:

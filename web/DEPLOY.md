@@ -1,16 +1,24 @@
-# Déploiement auto-hébergé (serveur local + Cloudflare Tunnel)
+# Déploiement auto-hébergé (serveur Nevisyst + Cloudflare Tunnel existant)
 
-Ce guide fait tourner l'app Next.js et sa base PostgreSQL sur ta propre machine
-(Docker Compose), puis les expose publiquement via un tunnel Cloudflare — sans
-ouvrir de port sur ta box ni exposer ton IP.
+Ce guide fait tourner l'app Next.js et sa base PostgreSQL sur le serveur Nevisyst
+(Docker Compose), puis les expose sur `coach-nat.nevi-syst.com` en réutilisant le
+tunnel Cloudflare et le Nginx Proxy Manager déjà en place sur ce serveur (même
+principe que l'app `immo`) — pas besoin de créer un nouveau tunnel ni un nouveau
+nom de domaine.
 
-Tout ce qui suit s'exécute **sur le serveur local**, pas dans un environnement cloud.
+Tout ce qui suit s'exécute **sur le serveur** (en SSH, ou via code-server sur
+`code.nevi-syst.com`), pas dans un environnement cloud.
+
+## 0. Récupérer le code sur le serveur
+
+Place le projet dans `/home/flo/docker/coach-nat/` (même emplacement que les
+autres apps, ex. `/home/flo/docker/immo/`), par exemple via `git clone` une fois
+le dépôt GitHub accessible, ou en dépaquetant l'archive Git fournie.
 
 ## 1. Prérequis sur le serveur
 
-- [Docker](https://docs.docker.com/engine/install/) + Docker Compose (inclus dans
-  Docker Desktop, ou le plugin `docker-compose-plugin` sur Linux)
-- Un compte Cloudflare (gratuit) — pas besoin de nom de domaine pour commencer
+- Docker + Docker Compose — déjà installés sur Nevisyst (utilisés par les autres
+  services : n8n, Nextcloud, immo…)
 
 ## 2. Configurer les secrets
 
@@ -41,7 +49,7 @@ Vérifie que ça tourne :
 
 ```bash
 docker compose logs -f app
-curl -I http://localhost:3000/login   # doit répondre 200
+curl -I http://localhost:3010/login   # doit répondre 200
 ```
 
 ### Charger les données de démonstration (une seule fois, optionnel)
@@ -52,53 +60,44 @@ docker compose exec app node_modules/.bin/tsx prisma/seed.ts
 
 Voir `web/README.md` pour la liste des comptes créés par le seed.
 
-## 4. Exposer le site avec Cloudflare Tunnel
+## 4. Exposer le site sur coach-nat.nevi-syst.com
 
-### Option A — tester tout de suite, sans domaine (URL temporaire)
+Le serveur a déjà un tunnel Cloudflare + un Nginx Proxy Manager (NPM, sur
+`192.168.1.39:81`) qui routent les sous-domaines `*.nevi-syst.com` vers les
+conteneurs (c'est ce qui sert déjà `immo.nevi-syst.com`, `n8n.nevi-syst.com`,
+etc.). Pour ajouter `coach-nat`, pas besoin de toucher au tunnel — seulement à
+NPM et, si besoin, à un enregistrement DNS.
 
-```bash
-# Installer cloudflared (Linux Debian/Ubuntu) :
-curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-sudo dpkg -i cloudflared.deb
+1. **Vérifie l'accessibilité réseau** : NPM (conteneurisé) doit pouvoir
+   atteindre le conteneur `app` de coach-nat. Deux options :
+   - le plus simple : le port est déjà publié sur l'hôte
+     (`docker-compose.yml` → `${APP_PORT:-3010}:3000`), donc NPM peut cibler
+     `192.168.1.39:3010` directement ;
+   - plus propre : attacher le service `app` au même réseau Docker externe que
+     NPM (voir le bloc commenté dans `docker-compose.yml`) et cibler le
+     conteneur par son nom de service Docker (`app:3000`) — regarde sur quel
+     réseau tourne ton conteneur NPM avec `docker inspect <conteneur-npm>`.
 
-# Lancer un tunnel rapide vers l'app locale :
-cloudflared tunnel --url http://localhost:3000
-```
+2. **Ajoute un Proxy Host dans NPM** (`http://192.168.1.39:81`, comme pour les
+   autres apps) :
+   - Domain Names : `coach-nat.nevi-syst.com`
+   - Forward Hostname/IP : `192.168.1.39` (ou le nom du service Docker si tu as
+     choisi l'option réseau partagé)
+   - Forward Port : `3010` (ou `3000` si réseau partagé)
+   - Active "Websockets Support"
+   - Onglet SSL : demande un certificat Let's Encrypt (ou réutilise le
+     wildcard existant si tu en as un pour `*.nevi-syst.com`)
 
-Cloudflare affiche une URL du type `https://xxxx-xxxx.trycloudflare.com` — elle
-est utilisable immédiatement, mais **change à chaque relance** de la commande.
-Pratique pour vérifier que tout fonctionne avant d'engager un domaine.
+3. **DNS** : si tu as déjà un enregistrement DNS `*.nevi-syst.com` (wildcard)
+   pointant vers le tunnel Cloudflare, `coach-nat.nevi-syst.com` fonctionne
+   sans rien faire de plus. Sinon, ajoute un enregistrement DNS
+   `coach-nat.nevi-syst.com` (CNAME vers le même tunnel que les autres
+   sous-domaines) dans le dashboard Cloudflare, ou via
+   `cloudflared tunnel route dns <nom-du-tunnel-existant> coach-nat.nevi-syst.com`
+   sur le serveur.
 
-### Option B — une fois que tu as un nom de domaine sur Cloudflare
-
-1. Ajoute ton domaine à ton compte Cloudflare (DNS géré par eux).
-2. Authentifie `cloudflared` (ouvre un navigateur) :
-   ```bash
-   cloudflared tunnel login
-   ```
-3. Crée un tunnel nommé et persistant :
-   ```bash
-   cloudflared tunnel create coach-nat
-   cloudflared tunnel route dns coach-nat coach-nat.ton-domaine.fr
-   ```
-4. Crée `~/.cloudflared/config.yml` :
-   ```yaml
-   tunnel: coach-nat
-   credentials-file: /root/.cloudflared/<TUNNEL-ID>.json
-   ingress:
-     - hostname: coach-nat.ton-domaine.fr
-       service: http://localhost:3000
-     - service: http_status:404
-   ```
-5. Lance-le en service persistant :
-   ```bash
-   cloudflared tunnel run coach-nat
-   # ou, pour qu'il démarre au boot :
-   sudo cloudflared service install
-   ```
-
-Le site est alors accessible en HTTPS sur `https://coach-nat.ton-domaine.fr`,
-sans aucun port ouvert sur le serveur.
+Le site est alors accessible en HTTPS sur `https://coach-nat.nevi-syst.com`,
+sans port supplémentaire ouvert sur le serveur.
 
 ## 5. Mises à jour
 
