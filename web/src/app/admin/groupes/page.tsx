@@ -3,9 +3,10 @@ import { Card, SectionTitle } from "@/components/ui/Card";
 import { GroupesAdmin } from "@/components/admin/GroupesAdmin";
 
 export default async function AdminGroupesPage() {
-  const [groupes, coachs] = await Promise.all([
+  const [groupes, coachs, nageurs] = await Promise.all([
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
+    prisma.nageur.findMany({ orderBy: { nom: "asc" } }),
   ]);
 
   return (
@@ -14,6 +15,7 @@ export default async function AdminGroupesPage() {
       <GroupesAdmin
         groupes={groupes.map((g) => ({ id: g.id, nom: g.nom, pole: g.pole, categorie: g.categorie, color: g.color, objectif: g.objectif, coachId: g.coachId }))}
         coachs={coachs.map((c) => ({ id: c.id, nom: c.user.name }))}
+        nageurs={nageurs.map((n) => ({ id: n.id, nom: n.nom, groupeId: n.groupeId }))}
       />
     </Card>
   );
