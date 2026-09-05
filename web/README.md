@@ -31,6 +31,9 @@ npx tsx prisma/seed.ts
 npm run dev
 ```
 
+Pour un déploiement auto-hébergé (Docker Compose + Cloudflare Tunnel), voir
+[`DEPLOY.md`](./DEPLOY.md).
+
 Comptes créés par le seed (mot de passe `coachnat123` pour tous) :
 
 | Rôle | Email |
@@ -46,18 +49,27 @@ Comptes créés par le seed (mot de passe `coachnat123` pour tous) :
 Tous les écrans du prototype desktop, en responsive (barre latérale + bandeau photo
 sur desktop, barre d'onglets en bas sur mobile) :
 
-- Tableaux de bord général et coach
-- Planning global / mon planning (créneaux hebdomadaires récurrents, création/suppression)
-- Stages (planning de la semaine par stage, créneaux multiples/jour, création de stage)
-- Présences (pointage nageurs/encadrement par séance)
-- Calendrier (mois en cours + échéances de saison)
-- Nageurs (liste filtrable + fiche : cotation FFN, notation technique par nage,
-  modale de notation persistée)
+- **Tableau de bord** (`/general`) — vue générale / vue coach fusionnées derrière un
+  bouton bascule (`?vue=coach`), comme dans la dernière version du prototype
+- **Planning** (`/planning`) — vue globale / mon planning fusionnées derrière le même
+  mécanisme (`?vue=moi`), avec un bouton « Déclarer une absence » (modale persistant
+  une `Absence` nageur ou un `Conge` coach selon le « Qui » sélectionné)
+- Stages (planning de la semaine par stage, créneaux multiples/jour, création de stage,
+  cartes avec bandeau photo)
+- Présences (pointage nageurs par séance + panneau « Séance prévue » qui affiche le
+  contenu réellement généré pour cette occurrence, avec repli si rien n'est planifié)
+- Calendrier (mois en cours avec étiquettes d'évènements par jour + échéances de saison)
+- Nageurs (regroupés par pôle réel `Groupe.pole`, filtre pôle + recherche ; fiche :
+  cotation FFN, notation technique par nage, modale de notation persistée)
 - Absences & congés
 - Créateur de séance (génération de séance à partir de variant/intensité/nage/volume)
 - Thématiques d'entraînement (génération de cycle + 3 graphiques)
 - **Administration** (`/admin`, réservé au rôle `ADMIN`) : comptes, groupes,
   nageurs, effectifs par catégorie, échéances de saison
+
+Les anciennes routes séparées `/coach` et `/mon-planning` restent en place comme de
+simples redirections vers les écrans fusionnés ci-dessus, pour ne pas casser de liens
+existants.
 
 ## Modèle de séance daté (`SeanceInstance`)
 
@@ -82,6 +94,18 @@ précise, une `SeanceInstance` est créée (ou retrouvée) pour cette occurrence
 Le seed (`prisma/seed.ts`) génère 8 semaines d'historique réaliste (séances + présences)
 pour les créneaux réguliers, afin que ces écrans ne soient pas vides en développement.
 
+## Synchronisation avec le design mis à jour
+
+Le prototype `.dc.html` a évolué après l'implémentation initiale (fusion des tableaux
+de bord, fusion des plannings, restructuration de la page Nageurs par pôle, ajout de
+la modale « Déclarer une absence », remplacement du panneau Encadrement par « Séance
+prévue » sur `/presences`, bandeaux photo sur les cartes de stage, refonte visuelle
+globale — ombres, sidebar avec photo de fond, badges d'icônes). Tout a été porté ici,
+avec une différence volontaire par rapport au prototype statique : la modale
+« Déclarer une absence » persiste réellement une `Absence` ou un `Conge` via
+`POST /api/absences` (le prototype se contentait de fermer la modale sans rien
+enregistrer).
+
 ## Simplifications restantes
 
 - **Créneaux récurrents sans exception** : un `Creneau` reste un horaire hebdomadaire
@@ -98,6 +122,10 @@ pour les créneaux réguliers, afin que ces écrans ne soient pas vides en déve
 - Les effectifs par pôle affichent des totaux club réalistes (312 licenciés) issus de
   `CategorieEffectif` (éditables dans l'admin), alors que le roster détaillé ne modélise
   que 8 nageurs nommés (comme le prototype) — les deux ne sont pas censés se recouper.
+- **Congé déclaré via la modale d'absence** : le modèle `Conge` a un champ `impact`
+  obligatoire (ex. « 5 créneaux Sauvetage à couvrir ») que le prototype ne demande pas
+  à la déclaration ; la modale enregistre `"À évaluer"` par défaut, à affiner ensuite
+  depuis `/absences`.
 
 ## Structure
 

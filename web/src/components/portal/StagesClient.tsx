@@ -45,6 +45,7 @@ type StageCard = {
   nbCreneaux: number;
 };
 
+const STAGE_PHOTOS = ["/assets/pool-lanes.jpg", "/assets/swimmer.jpg", "/assets/flip-turn.jpg", "/assets/coach-poolside.jpg"];
 const TYPE_COLOR: Record<string, string> = { EAU: "#1E7BFF", PHYSIQUE: "#F2B33D", VIDEO: "#8C6BFF", RECUP: "#2ECC8F" };
 const STATUT_STYLE: Record<string, [string, string]> = {
   CONFIRME: ["rgba(46,204,143,0.14)", "#2ECC8F"],
@@ -197,16 +198,25 @@ export function StagesClient({
       </div>
 
       <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(380px,1fr))" }}>
-        {stages.map((st) => {
+        {stages.map((st, i) => {
           const [bg, fg] = STATUT_STYLE[st.statut];
           const remplissage = Math.round((st.inscrits / st.places) * 100);
           return (
             <Link
               key={st.id}
               href={`/stages?stage=${st.id}`}
-              className="rounded-2xl p-5"
+              className="rounded-2xl overflow-hidden"
               style={{ background: "var(--bg-card)", border: `1px solid ${st.id === stage.id ? "#24C8FF" : "var(--border)"}`, borderLeft: `4px solid ${st.color}` }}
             >
+              <div
+                style={{
+                  height: 96,
+                  backgroundImage: `linear-gradient(90deg,rgba(14,23,39,0.25),rgba(14,23,39,0.85)), url('${STAGE_PHOTOS[i % STAGE_PHOTOS.length]}')`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+              <div className="p-5">
               <div className="flex justify-between items-start gap-3">
                 <div className="min-w-0">
                   <h3 className="font-display text-xl tracking-[0.03em]">{st.nom}</h3>
@@ -253,6 +263,7 @@ export function StagesClient({
                 <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
                   Encadrement · {st.coachsLabel}
                 </div>
+              </div>
               </div>
             </Link>
           );

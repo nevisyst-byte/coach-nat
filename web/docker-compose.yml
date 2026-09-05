@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: coachnat
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-coachnat}
+      POSTGRES_DB: coachnat
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coachnat -d coachnat"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://coachnat:${POSTGRES_PASSWORD:-coachnat}@db:5432/coachnat?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set in .env}
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:3000:3000"
+
+volumes:
+  db_data:

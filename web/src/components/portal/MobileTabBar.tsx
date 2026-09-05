@@ -1,14 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { MOBILE_TABS } from "@/lib/theme";
 
 export function MobileTabBar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const vue = searchParams.get("vue");
 
-  const isActive = (href: string) =>
-    href === "/nageurs" ? pathname === "/nageurs" || pathname.startsWith("/nageurs/") : pathname === href;
+  const isActive = (tab: (typeof MOBILE_TABS)[number]) => {
+    const pathMatches = tab.pathname === "/nageurs" ? pathname === "/nageurs" || pathname.startsWith("/nageurs/") : pathname === tab.pathname;
+    if (!pathMatches) return false;
+    if ("vueParam" in tab && tab.vueParam) return vue === tab.vueParam;
+    return !vue;
+  };
 
   return (
     <nav
@@ -16,7 +22,7 @@ export function MobileTabBar() {
       style={{ background: "var(--bg-card-alt)", borderTop: "1px solid var(--border-strong)" }}
     >
       {MOBILE_TABS.map((tab) => {
-        const active = isActive(tab.href);
+        const active = isActive(tab);
         return (
           <Link
             key={tab.id}

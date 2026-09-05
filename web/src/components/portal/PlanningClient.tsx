@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ETAT_COLOR, ETAT_LABEL, JOURS } from "@/lib/format";
+import { ViewToggle } from "./ViewToggle";
 
 type Creneau = {
   id: string;
@@ -26,7 +27,9 @@ export function PlanningClient({
   weekOffset,
   groupes,
   coachs,
+  nageurs,
   canEdit,
+  showVueToggle = false,
   defaultCoachId = "",
 }: {
   creneaux: Creneau[];
@@ -35,14 +38,21 @@ export function PlanningClient({
   weekOffset: number;
   groupes: Option[];
   coachs: Option[];
+  nageurs: Option[];
   canEdit: boolean;
+  showVueToggle?: boolean;
   defaultCoachId?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const vue = searchParams.get("vue") === "moi" ? "moi" : "globale";
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState({ jour: 0, debut: "18:00", fin: "19:30", groupeId: groupes[0]?.id ?? "", coachId: defaultCoachId, bassin: "Bassin 50 m", etat: "ASSURE" });
   const [saving, setSaving] = useState(false);
+
+  const [absModalOpen, setAbsModalOpen] = useState(false);
+  const [absForm, setAbsForm] = useState({ qui: "nageur" as "nageur" | "coach", personneId: nageurs[0]?.id ?? "", date: "", motif: "" });
+  const [absSaving, setAbsSaving] = useState(false);
 
   function pushWeek(offset: number) {
     const params = new URLSearchParams(searchParams);
@@ -53,6 +63,26 @@ export function PlanningClient({
   function openModal(jour: number) {
     setForm((f) => ({ ...f, jour }));
     setModalOpen(true);
+  }
+
+  function setQui(qui: "nageur" | "coach") {
+    setAbsForm((f) => ({ ...f, qui, personneId: (qui === "nageur" ? nageurs[0]?.id : coachs[0]?.id) ?? "" }));
+  }
+
+  async function declarerAbsence() {
+    if (!absForm.personneId || !absForm.date) return;
+    setAbsSaving(true);
+    try {
+      await fetch("/api/absences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(absForm),
+      });
+      setAbsModalOpen(false);
+      router.push("/absences");
+    } finally {
+      setAbsSaving(false);
+    }
   }
 
   async function submit() {
@@ -80,6 +110,15 @@ export function PlanningClient({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 flex-wrap">
+        {showVueToggle && (
+          <ViewToggle
+            options={[
+              { value: "globale", label: "Vue globale" },
+              { value: "moi", label: "Mon planning" },
+            ]}
+            current={vue}
+          />
+        )}
         <div className="flex items-center gap-1.5 rounded-[10px] p-1.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }}>
           <button onClick={() => pushWeek(weekOffset - 1)} className="px-2.5 py-1 text-[15px] cursor-pointer">
             ‹
@@ -97,6 +136,13 @@ export function PlanningClient({
             </div>
           ))}
         </div>
+        <button
+          onClick={() => setAbsModalOpen(true)}
+          className="rounded-[10px] px-4 py-2.5 text-[13px] font-bold cursor-pointer"
+          style={{ border: "1px solid rgba(232,68,43,0.35)", background: "rgba(232,68,43,0.12)", color: "#FF9179" }}
+        >
+          − Déclarer une absence
+        </button>
         {canEdit && (
           <button
             onClick={() => openModal(0)}
@@ -263,6 +309,98 @@ export function PlanningClient({
               </button>
               <button onClick={submit} disabled={saving} className="rounded-[10px] px-5 py-2.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
                 {saving ? "Ajout…" : "Ajouter au planning"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {absModalOpen && (
+        <div onClick={() => setAbsModalOpen(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl" style={{ maxWidth: 480, background: "#101A2B", border: "1px solid var(--border-strong)" }}>
+            <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
+              <h2 className="font-display text-[22px] tracking-[0.05em]">Déclarer une absence</h2>
+              <button onClick={() => setAbsModalOpen(false)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
+                ✕
+              </button>
+            </div>
+            <div className="px-6 py-5 flex flex-col gap-3.5">
+              <div>
+                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  Qui
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {(["nageur", "coach"] as const).map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => setQui(q)}
+                      className="rounded-[9px] px-3.5 py-2 text-[13px] font-semibold cursor-pointer"
+                      style={{
+                        border: `1px solid ${absForm.qui === q ? "#1E7BFF" : "var(--border-strong)"}`,
+                        background: absForm.qui === q ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)",
+                        color: absForm.qui === q ? "var(--ink)" : "var(--ink-body)",
+                      }}
+                    >
+                      {q === "nageur" ? "Nageur" : "Coach"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  {absForm.qui === "coach" ? "Coach" : "Nageur"}
+                </div>
+                <select
+                  value={absForm.personneId}
+                  onChange={(e) => setAbsForm((f) => ({ ...f, personneId: e.target.value }))}
+                  className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                >
+                  {(absForm.qui === "coach" ? coachs : nageurs).map((p) => (
+                    <option key={p.id} value={p.id} style={{ background: "#101A2B" }}>
+                      {p.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3.5">
+                <div>
+                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                    Date
+                  </div>
+                  <input
+                    type="date"
+                    value={absForm.date}
+                    onChange={(e) => setAbsForm((f) => ({ ...f, date: e.target.value }))}
+                    className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                  />
+                </div>
+                <div>
+                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                    Motif
+                  </div>
+                  <input
+                    value={absForm.motif}
+                    onChange={(e) => setAbsForm((f) => ({ ...f, motif: e.target.value }))}
+                    placeholder="Maladie, scolaire…"
+                    className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="px-6 pb-5 pt-2 flex gap-2.5 justify-end">
+              <button onClick={() => setAbsModalOpen(false)} className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+                Annuler
+              </button>
+              <button
+                onClick={declarerAbsence}
+                disabled={absSaving}
+                className="rounded-[10px] px-5 py-2.5 text-[13px] font-bold cursor-pointer"
+                style={{ background: "linear-gradient(135deg,#E8442B,#B92E19)", color: "#fff", opacity: absSaving ? 0.7 : 1 }}
+              >
+                {absSaving ? "Envoi…" : "Déclarer"}
               </button>
             </div>
           </div>

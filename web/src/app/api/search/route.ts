@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
 const SCREENS = [
-  { label: "Tableau de bord général", href: "/general" },
-  { label: "Tableau de bord coach", href: "/coach" },
-  { label: "Planning global", href: "/planning" },
-  { label: "Mon planning", href: "/mon-planning" },
+  { label: "Tableau de bord", href: "/general" },
+  { label: "Tableau de bord coach", href: "/general?vue=coach" },
+  { label: "Planning", href: "/planning" },
+  { label: "Mon planning", href: "/planning?vue=moi" },
   { label: "Stages", href: "/stages" },
   { label: "Présences", href: "/presences" },
   { label: "Calendrier", href: "/calendrier" },

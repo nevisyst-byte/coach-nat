@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/Card";
 import { SeanceSelect } from "@/components/portal/SeanceSelect";
@@ -6,12 +7,12 @@ import { PresenceRoster } from "@/components/portal/PresenceRoster";
 import { JOURS } from "@/lib/format";
 import { lastOccurrenceOnOrBefore, toDateInputValue } from "@/lib/week";
 import { resolveSeanceInstance } from "@/lib/seance-instance";
+import { genererSeance } from "@/lib/seance-generator";
 
 export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string; date?: string }> }) {
-  const [creneaux, creneauxStage, coachs] = await Promise.all([
+  const [creneaux, creneauxStage] = await Promise.all([
     prisma.creneau.findMany({ include: { groupe: true } }),
     prisma.creneauStage.findMany({ include: { stage: true } }),
-    prisma.coach.findMany({ include: { user: true } }),
   ]);
 
   const options = [
@@ -59,7 +60,11 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
   const etatMap = new Map(presences.map((p) => [p.nomPersonne, p.etat]));
 
   const rosterNageurs = nageurs.map((n) => ({ nom: n.nom, initiales: n.initiales, sousTitre: n.groupe?.categorie ?? n.categorie, etat: etatMap.get(n.nom) ?? "PRESENT" }));
-  const rosterStaff = coachs.map((c) => ({ nom: c.user.name, initiales: c.initials, sousTitre: c.accessLevel, etat: etatMap.get(c.user.name) ?? "PRESENT" }));
+
+  const seancePrevue =
+    instance.variant && instance.intensite && instance.nage && instance.volumeNage
+      ? genererSeance(instance.variant, instance.intensite, instance.nage, instance.volumeNage)
+      : null;
 
   const compte = { PRESENT: 0, RETARD: 0, ABSENT: 0, EXCUSE: 0 } as Record<string, number>;
   for (const p of rosterNageurs) compte[p.etat]++;
@@ -69,6 +74,13 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="flex flex-col gap-4">
+      <Link
+        href="/planning"
+        className="self-start rounded-[9px] px-3.5 py-1.5 text-[13px]"
+        style={{ border: "1px solid var(--border-strong)", color: "var(--ink-body)" }}
+      >
+        ← Planning
+      </Link>
       <div className="flex items-center gap-3.5 flex-wrap">
         <SeanceSelect value={slot} options={options} />
         <DateNav slot={slot} date={date} stepDays={stepDays} />
@@ -118,7 +130,43 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
 
       <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(400px,1fr))" }}>
         <PresenceRoster title="Nageurs" people={rosterNageurs} seanceInstanceId={instance.id} role="SWIMMER" />
-        <PresenceRoster title="Encadrement" people={rosterStaff} seanceInstanceId={instance.id} role="COACH" />
+
+        <Card>
+          <h2 className="font-display text-[19px] tracking-[0.06em] mb-1">Séance prévue</h2>
+          {seancePrevue ? (
+            <>
+              <div className="text-[13px] mb-3.5" style={{ color: "#7FDCFF" }}>
+                {seancePrevue.resume}
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {seancePrevue.blocs.map((b) => (
+                  <div key={b.phase} className="flex gap-3.5 rounded-xl px-3.5 py-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)" }}>
+                    <div style={{ minWidth: 64 }}>
+                      <div className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
+                        {b.phase}
+                      </div>
+                      <div className="font-display text-lg">{b.distance}</div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold">{b.contenu}</div>
+                      <div className="text-xs mt-0.5" style={{ color: "var(--ink-secondary)" }}>
+                        {b.consigne}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+              Aucun contenu de séance planifié pour cette date. Utilise le{" "}
+              <Link href="/seance" style={{ color: "#7FDCFF" }}>
+                créateur de séance
+              </Link>{" "}
+              pour la préparer.
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   );

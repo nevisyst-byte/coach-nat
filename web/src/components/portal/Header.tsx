@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { titleFor } from "@/lib/screens";
 import { useNavState } from "./NavState";
@@ -11,8 +11,9 @@ type SearchResult = { kind: string; label: string; href: string; meta: string };
 export function Header({ userName }: { userName: string }) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toggle } = useNavState();
-  const { title, subtitle, pole } = titleFor(pathname);
+  const { title, subtitle, pole } = titleFor(pathname, searchParams.get("vue"));
 
   const [q, setQ] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);

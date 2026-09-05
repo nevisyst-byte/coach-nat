@@ -12,7 +12,7 @@ export function Card({
   return (
     <div
       className={`rounded-2xl ${className}`}
-      style={{ background: "var(--bg-card)", border: "1px solid var(--border)", padding, ...style }}
+      style={{ background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 10px 28px rgba(0,0,0,0.32)", padding, ...style }}
     >
       {children}
     </div>
@@ -24,7 +24,7 @@ export function SectionTitle({ children, right }: { children: React.ReactNode; r
     <div className="flex items-baseline justify-between mb-4 gap-2.5 flex-wrap">
       <h2 className="font-display text-[19px] tracking-[0.06em]">{children}</h2>
       {right && (
-        <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+        <span className="text-sm" style={{ color: "var(--ink-body)" }}>
           {right}
         </span>
       )}

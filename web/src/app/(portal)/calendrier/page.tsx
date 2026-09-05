@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { Card, SectionTitle } from "@/components/ui/Card";
 import { ETAT_COLOR } from "@/lib/format";
 
+type Evt = { label: string; color: string };
+
 const MOIS_LONG = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
@@ -9,7 +11,7 @@ const MOIS_LONG = [
 
 export default async function CalendrierPage() {
   const [creneaux, echeances] = await Promise.all([
-    prisma.creneau.findMany(),
+    prisma.creneau.findMany({ include: { groupe: true } }),
     prisma.echeance.findMany({ orderBy: { date: "asc" } }),
   ]);
 
@@ -20,20 +22,23 @@ export default async function CalendrierPage() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const startWeekday = (firstDay.getDay() + 6) % 7; // 0 = lundi
 
-  const echeancesByDay = new Map<number, string>();
+  const echeancesByDay = new Map<number, Evt[]>();
   for (const e of echeances) {
     const d = new Date(e.date);
-    if (d.getFullYear() === year && d.getMonth() === month) echeancesByDay.set(d.getDate(), e.color);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      const list = echeancesByDay.get(d.getDate()) ?? [];
+      list.push({ label: e.titre, color: e.color });
+      echeancesByDay.set(d.getDate(), list);
+    }
   }
 
-  const cells: { n: number | null; dots: string[] }[] = Array.from({ length: startWeekday }, () => ({ n: null, dots: [] }));
+  const cells: { n: number | null; evts: Evt[] }[] = Array.from({ length: startWeekday }, () => ({ n: null, evts: [] }));
   for (let d = 1; d <= daysInMonth; d++) {
     const weekday = (startWeekday + d - 1) % 7;
-    const dots = new Set<string>();
-    for (const c of creneaux) if (c.jour === weekday) dots.add(ETAT_COLOR[c.etat]);
-    const echeanceColor = echeancesByDay.get(d);
-    if (echeanceColor) dots.add(echeanceColor);
-    cells.push({ n: d, dots: Array.from(dots).slice(0, 3) });
+    const evts: Evt[] = [];
+    for (const c of creneaux) if (c.jour === weekday) evts.push({ label: c.groupe.nom, color: ETAT_COLOR[c.etat] });
+    evts.push(...(echeancesByDay.get(d) ?? []));
+    cells.push({ n: d, evts: evts.slice(0, 3) });
   }
 
   return (
@@ -58,9 +63,9 @@ export default async function CalendrierPage() {
             return (
               <div
                 key={i}
-                className="rounded-[9px] p-1.5 flex flex-col justify-between"
+                className="rounded-[9px] p-1.5 flex flex-col gap-0.5"
                 style={{
-                  aspectRatio: "1",
+                  minHeight: 74,
                   border: `1px solid ${isToday ? "#24C8FF" : "var(--border)"}`,
                   background: isToday ? "rgba(30,123,255,0.22)" : c.n ? "rgba(255,255,255,0.03)" : "transparent",
                 }}
@@ -70,11 +75,15 @@ export default async function CalendrierPage() {
                     <span className="text-xs font-semibold" style={{ color: isToday ? "var(--ink)" : "var(--ink-body)" }}>
                       {c.n}
                     </span>
-                    <div className="flex gap-1">
-                      {c.dots.map((color, j) => (
-                        <span key={j} className="w-[5px] h-[5px] rounded-full" style={{ background: color }} />
-                      ))}
-                    </div>
+                    {c.evts.map((e, j) => (
+                      <span
+                        key={j}
+                        className="text-[9px] font-bold leading-tight px-1 py-0.5 rounded whitespace-nowrap overflow-hidden text-ellipsis"
+                        style={{ background: "rgba(255,255,255,0.08)", color: e.color }}
+                      >
+                        {e.label}
+                      </span>
+                    ))}
                   </>
                 )}
               </div>

@@ -12,27 +12,19 @@ export const COLORS = {
 export const NAV_GROUPS = [
   {
     label: "Pilotage",
-    items: [
-      { id: "general", href: "/general", icon: "◈", label: "Tableau de bord général" },
-      { id: "coach", href: "/coach", icon: "◉", label: "Tableau de bord coach" },
-    ],
+    items: [{ id: "general", href: "/general", icon: "◈", label: "Tableau de bord" }],
   },
   {
     label: "Planning",
     items: [
-      { id: "planning-global", href: "/planning", icon: "▦", label: "Planning global" },
-      { id: "mon-planning", href: "/mon-planning", icon: "▤", label: "Mon planning" },
+      { id: "planning", href: "/planning", icon: "▦", label: "Planning" },
       { id: "stages", href: "/stages", icon: "⛭", label: "Stages" },
-      { id: "presences", href: "/presences", icon: "✓", label: "Présences" },
       { id: "calendrier", href: "/calendrier", icon: "▣", label: "Calendrier" },
-      { id: "absences", href: "/absences", icon: "✈", label: "Absences & congés" },
     ],
   },
   {
     label: "Nageurs",
-    items: [
-      { id: "nageurs", href: "/nageurs", icon: "⚑", label: "Nageurs" },
-    ],
+    items: [{ id: "nageurs", href: "/nageurs", icon: "⚑", label: "Nageurs" }],
   },
   {
     label: "Entraînement",
@@ -44,10 +36,10 @@ export const NAV_GROUPS = [
 ] as const;
 
 export const MOBILE_TABS = [
-  { id: "accueil", href: "/coach", icon: "◉", label: "Accueil" },
-  { id: "planning", href: "/mon-planning", icon: "▤", label: "Planning" },
-  { id: "nageurs", href: "/nageurs", icon: "⚑", label: "Nageurs" },
-  { id: "seance", href: "/seance", icon: "✦", label: "Séance" },
+  { id: "accueil", href: "/general?vue=coach", pathname: "/general", vueParam: "coach", icon: "◉", label: "Accueil" },
+  { id: "planning", href: "/planning?vue=moi", pathname: "/planning", vueParam: "moi", icon: "▤", label: "Planning" },
+  { id: "nageurs", href: "/nageurs", pathname: "/nageurs", icon: "⚑", label: "Nageurs" },
+  { id: "seance", href: "/seance", pathname: "/seance", icon: "✦", label: "Séance" },
 ] as const;
 
 export const POLE_LABELS: Record<string, string> = {
