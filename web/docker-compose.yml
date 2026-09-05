@@ -24,20 +24,12 @@ services:
       DATABASE_URL: postgresql://coachnat:${POSTGRES_PASSWORD:-coachnat}@db:5432/coachnat?schema=public
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set in .env}
       NODE_ENV: production
-    # Pas de port publié sur l'hôte : le conteneur "cloudflared" ci-dessous
-    # atteint l'app directement via le réseau Docker interne (http://app:3000).
-    # Décommente si tu veux aussi y accéder en local pour déboguer :
-    # ports:
-    #   - "127.0.0.1:3010:3000"
-
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: tunnel run
-    environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN must be set in .env}
-    depends_on:
-      - app
+    ports:
+      # Publié sur l'hôte pour que le tunnel Cloudflare existant (qui route
+      # via l'IP de la passerelle Docker, comme pour immo/n8n/etc.) puisse
+      # l'atteindre. Garde ce port cohérent avec l'entrée "Public Hostname"
+      # coach-nat.nevi-syst.com côté dashboard Cloudflare.
+      - "${APP_PORT:-3010}:3000"
 
 volumes:
   db_data:
