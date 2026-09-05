@@ -1,0 +1,278 @@
+// Schema du portail COACH-NAT
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  COACH
+}
+
+enum Pole {
+  FORMATION
+  COMPETITION
+  SAUVETAGE
+  LOISIR
+}
+
+enum Nage {
+  PAPILLON
+  DOS
+  BRASSE
+  CRAWL
+}
+
+enum EtatEncadrement {
+  ASSURE
+  REMPLACE
+  A_COUVRIR
+}
+
+enum TypeCreneau {
+  EAU
+  PHYSIQUE
+  VIDEO
+  RECUP
+}
+
+enum StatutStage {
+  CONFIRME
+  OUVERT
+  EN_PREPARATION
+}
+
+enum EtatPresence {
+  PRESENT
+  RETARD
+  ABSENT
+  EXCUSE
+}
+
+enum StatutAbsence {
+  VALIDEE
+  A_TRAITER
+  BLESSURE
+}
+
+enum StatutConge {
+  VALIDE
+  EN_ATTENTE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(COACH)
+  coach        Coach?
+  createdAt    DateTime @default(now())
+}
+
+model Coach {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  initials     String
+  accessLevel  String   @default("Accès total")
+  groupes      Groupe[]
+  creneaux     Creneau[]
+  stageCreneaux CreneauStage[]
+  conges       Conge[]
+  techniqueRatings NotationTechnique[]
+  createdAt    DateTime @default(now())
+}
+
+model CategorieEffectif {
+  id    String @id @default(cuid())
+  nom   String
+  pole  Pole
+  count Int
+}
+
+model Groupe {
+  id         String   @id @default(cuid())
+  nom        String
+  pole       Pole
+  categorie  String
+  color      String
+  objectif   String?
+  coachId    String?
+  coach      Coach?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  nageurs    Nageur[]
+  creneaux   Creneau[]
+  createdAt  DateTime @default(now())
+}
+
+model Nageur {
+  id              String   @id @default(cuid())
+  nom             String
+  initiales       String
+  age             Int
+  categorie       String
+  specialite      String
+  groupeId        String?
+  groupe          Groupe?  @relation(fields: [groupeId], references: [id], onDelete: SetNull)
+  pointsFFN       Int      @default(0)
+  rangDept        Int?
+  rangReg         Int?
+  rangNat         Int?
+  presenceRate    Int      @default(0)
+  performances    Performance[]
+  notations       NotationTechnique[]
+  absences        Absence[]
+  createdAt       DateTime @default(now())
+}
+
+model Performance {
+  id         String   @id @default(cuid())
+  nageurId   String
+  nageur     Nageur   @relation(fields: [nageurId], references: [id], onDelete: Cascade)
+  epreuve    String
+  temps      String
+  points     Int
+  niveau     String
+  deltaSaison String
+  rangNat    String
+  saison     String   @default("2025-2026")
+  createdAt  DateTime @default(now())
+}
+
+model NotationTechnique {
+  id          String   @id @default(cuid())
+  nageurId    String
+  nageur      Nageur   @relation(fields: [nageurId], references: [id], onDelete: Cascade)
+  nage        Nage
+  critere     String
+  note        Int
+  observation String?
+  coachId     String?
+  coach       Coach?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  date        DateTime @default(now())
+}
+
+model Creneau {
+  id            String          @id @default(cuid())
+  jour          Int
+  debut         String
+  fin           String
+  groupeId      String
+  groupe        Groupe          @relation(fields: [groupeId], references: [id], onDelete: Cascade)
+  coachId       String?
+  coach         Coach?          @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  libelleCoach  String?
+  bassin        String
+  effectifLabel String?
+  etat          EtatEncadrement @default(ASSURE)
+  createdAt     DateTime        @default(now())
+}
+
+model Stage {
+  id            String        @id @default(cuid())
+  nom           String
+  periodeLabel  String
+  lieu          String
+  groupesLabel  String
+  coachsLabel   String
+  statut        StatutStage   @default(EN_PREPARATION)
+  color         String        @default("#8C6BFF")
+  inscrits      Int           @default(0)
+  places        Int           @default(20)
+  budgetLabel   String?
+  regleLabel    String        @default("0%")
+  jours         StageJour[]
+  creneaux      CreneauStage[]
+  createdAt     DateTime      @default(now())
+}
+
+model StageJour {
+  id        String @id @default(cuid())
+  stageId   String
+  stage     Stage  @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  jour      Int
+  dateLabel String
+}
+
+model CreneauStage {
+  id        String      @id @default(cuid())
+  stageId   String
+  stage     Stage       @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  jour      Int
+  debut     String
+  fin       String
+  type      TypeCreneau @default(EAU)
+  groupe    String
+  coachId   String?
+  coach     Coach?      @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  bassin    String
+  theme     String
+  volume    Int         @default(0)
+  createdAt DateTime    @default(now())
+}
+
+model Presence {
+  id          String       @id @default(cuid())
+  contextKey  String
+  nomPersonne String
+  role        String
+  etat        EtatPresence @default(PRESENT)
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([contextKey, nomPersonne])
+}
+
+model Absence {
+  id       String        @id @default(cuid())
+  nageurId String
+  nageur   Nageur        @relation(fields: [nageurId], references: [id], onDelete: Cascade)
+  date     String
+  motif    String
+  statut   StatutAbsence @default(A_TRAITER)
+}
+
+model Conge {
+  id           String      @id @default(cuid())
+  coachId      String
+  coach        Coach       @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  periodeLabel String
+  motif        String
+  impact       String
+  statut       StatutConge @default(EN_ATTENTE)
+}
+
+model SeancePlan {
+  id           String   @id @default(cuid())
+  groupeNom    String
+  variant      String
+  intensite    String
+  nage         String
+  volumeCible  Int
+  blocs        Json
+  createdAt    DateTime @default(now())
+}
+
+model Echeance {
+  id     String   @id @default(cuid())
+  date   DateTime
+  titre  String
+  detail String
+  color  String   @default("#1E7BFF")
+}
+
+model CycleThematique {
+  id          String   @id @default(cuid())
+  theme       String
+  variant     String
+  nage        String
+  objectif    String
+  groupeNom   String
+  dureeSemaines Int
+  seances     Json
+  createdAt   DateTime @default(now())
+}

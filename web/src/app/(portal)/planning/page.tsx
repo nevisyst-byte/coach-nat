@@ -1,0 +1,31 @@
+import { prisma } from "@/lib/prisma";
+import { Card } from "@/components/ui/Card";
+import { PlanningClient } from "@/components/portal/PlanningClient";
+import { fmtDayLabel, weekDates, weekRangeLabel } from "@/lib/week";
+import { getSession } from "@/lib/auth";
+
+export default async function PlanningGlobalPage({ searchParams }: { searchParams: Promise<{ week?: string }> }) {
+  const { week } = await searchParams;
+  const weekOffset = Number(week ?? 0) || 0;
+  const session = await getSession();
+
+  const [creneaux, groupes, coachs] = await Promise.all([
+    prisma.creneau.findMany({ include: { groupe: true, coach: { include: { user: true } } } }),
+    prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
+    prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
+  ]);
+
+  return (
+    <Card>
+      <PlanningClient
+        creneaux={creneaux}
+        dayLabels={weekDates(weekOffset).map(fmtDayLabel)}
+        weekLabel={weekRangeLabel(weekOffset)}
+        weekOffset={weekOffset}
+        groupes={groupes.map((g) => ({ id: g.id, nom: g.nom }))}
+        coachs={coachs.map((c) => ({ id: c.id, nom: c.user.name }))}
+        canEdit={session?.role === "ADMIN"}
+      />
+    </Card>
+  );
+}

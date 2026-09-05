@@ -1,0 +1,127 @@
+export type Hero = {
+  img: string;
+  pos: string;
+  veil: "left" | "corner";
+  kicker: string;
+  title: string;
+  text: string;
+  cta1?: { label: string; href: string };
+  cta2?: { label: string; href: string };
+};
+
+export const TITLES: Record<string, [string, string, string]> = {
+  "/general": ["Tableau de bord général", "Vue club · tous groupes, tous coachs", "Pilotage"],
+  "/coach": ["Tableau de bord coach", "Vue personnelle · mes groupes et ma charge", "Pilotage"],
+  "/planning": ["Planning global", "Vue RH de tous les créneaux · code couleur par état d'encadrement", "Planning"],
+  "/mon-planning": ["Mon planning", "Mes créneaux et feuilles de présence", "Planning"],
+  "/stages": ["Stages", "Sessions hors saison · effectif, encadrement et budget", "Planning"],
+  "/presences": ["Présences", "Pointage nageurs et coachs par séance", "Planning"],
+  "/calendrier": ["Calendrier", "Séances, compétitions et congés de la saison", "Planning"],
+  "/absences": ["Absences & congés", "Indisponibilités coach et absences nageurs", "Planning"],
+  "/nageurs": ["Nageurs", "Effectif suivi · cotation FFN et rankings", "Nageurs"],
+  "/seance": ["Créateur de séance", "Variant · intensité · nage", "Entraînement"],
+  "/thematiques": ["Thématiques d'entraînement", "Un objectif → un cycle de séances généré", "Entraînement"],
+};
+
+const VEIL_L = "linear-gradient(90deg,rgba(8,13,24,0.97) 0%,rgba(8,13,24,0.92) 52%,rgba(8,13,24,0.28) 100%)";
+const VEIL_C = "linear-gradient(100deg,rgba(8,13,24,0.96) 0%,rgba(8,13,24,0.86) 46%,rgba(18,41,75,0.40) 100%)";
+
+export const HERO: Record<string, Hero> = {
+  "/general": {
+    img: "/assets/swimmer.jpg", pos: "right center", veil: "left",
+    kicker: "Saison 2025 / 2026", title: "Le club en un coup d'œil",
+    text: "Licenciés, coachs et créneaux hebdomadaires. Suis les alertes et les progressions du club.",
+    cta1: { label: "Créer une séance", href: "/seance" },
+    cta2: { label: "Absences & congés", href: "/absences" },
+  },
+  "/coach": {
+    img: "/assets/coach-poolside.jpg", pos: "center 35%", veil: "left",
+    kicker: "Vue personnelle", title: "Ta semaine au bord du bassin",
+    text: "Tes groupes, ta charge et les feuilles de présence qui attendent ta saisie.",
+    cta1: { label: "Mon planning", href: "/mon-planning" },
+    cta2: { label: "Saisir les présences", href: "/presences" },
+  },
+  "/planning": {
+    img: "/assets/pool-lanes.jpg", pos: "center 42%", veil: "corner",
+    kicker: "Vue responsable · tous coachs", title: "Qui couvre quoi, cette semaine",
+    text: "Le code couleur suit l'état d'encadrement : assuré, remplacé, à couvrir.",
+    cta1: { label: "Stages", href: "/stages" },
+    cta2: { label: "Congés coachs", href: "/absences" },
+  },
+  "/mon-planning": {
+    img: "/assets/pool-lanes.jpg", pos: "center 42%", veil: "corner",
+    kicker: "Mes créneaux", title: "Mon planning de la semaine",
+    text: "Ouvre un créneau pour pointer les présences ou charger la séance prévue.",
+    cta1: { label: "Créer une séance", href: "/seance" },
+    cta2: { label: "Mes présences", href: "/presences" },
+  },
+  "/stages": {
+    img: "/assets/pool-lanes.jpg", pos: "center 55%", veil: "corner",
+    kicker: "Sessions hors saison", title: "Stages et cycles intensifs",
+    text: "Plusieurs créneaux par jour, encadrement et budget suivis session par session.",
+    cta1: { label: "Pointer les présences", href: "/presences" },
+  },
+  "/presences": {
+    img: "/assets/coach-poolside.jpg", pos: "center 40%", veil: "left",
+    kicker: "Feuille de séance", title: "Pointage nageurs et encadrement",
+    text: "Quatre états par personne : présent, retard, absent, excusé.",
+    cta1: { label: "Voir le planning", href: "/mon-planning" },
+  },
+  "/calendrier": {
+    img: "/assets/pool-lanes.jpg", pos: "center 30%", veil: "corner",
+    kicker: "Vue saison", title: "Compétitions, stages et congés",
+    text: "Les échéances de la saison et les jours où l'encadrement est incomplet.",
+    cta1: { label: "Stages", href: "/stages" },
+    cta2: { label: "Congés", href: "/absences" },
+  },
+  "/absences": {
+    img: "/assets/coach-poolside.jpg", pos: "center 45%", veil: "left",
+    kicker: "Indisponibilités", title: "Congés coachs et absences nageurs",
+    text: "Chaque congé validé signale les créneaux à recouvrir sur le planning global.",
+    cta1: { label: "Planning global", href: "/planning" },
+  },
+  "/nageurs": {
+    img: "/assets/swimmer.jpg", pos: "center 35%", veil: "left",
+    kicker: "Effectif suivi", title: "Tous les nageurs, toutes les cotations",
+    text: "Points FFN, rangs départemental, régional et national, et assiduité.",
+    cta1: { label: "Créer une séance", href: "/seance" },
+  },
+  "/seance": {
+    img: "/assets/flip-turn.jpg", pos: "center 45%", veil: "corner",
+    kicker: "Variant · intensité · nage", title: "Construire une séance",
+    text: "Trois axes à combiner, un volume cible jusqu'à 10 km, et la séance se rédige toute seule.",
+    cta1: { label: "Thématiques", href: "/thematiques" },
+  },
+  "/thematiques": {
+    img: "/assets/flip-turn.jpg", pos: "center 30%", veil: "corner",
+    kicker: "Cycle d'entraînement", title: "Une thématique, un cycle entier",
+    text: "Volume aérobie, seuil, VMA, lactique, vitesse : choisis la dominante, le cycle se génère.",
+    cta1: { label: "Créateur de séance", href: "/seance" },
+  },
+};
+
+export function heroVeilCss(hero: Hero) {
+  const veil = hero.veil === "left" ? VEIL_L : VEIL_C;
+  return `${veil}, url('${hero.img}')`;
+}
+
+export function titleFor(pathname: string) {
+  if (pathname.startsWith("/nageurs/")) {
+    return { title: "Fiche nageur", subtitle: "Performances, technique et assiduité", pole: "Nageurs" };
+  }
+  const t = TITLES[pathname];
+  if (!t) return { title: "", subtitle: "", pole: "" };
+  return { title: t[0], subtitle: t[1], pole: t[2] };
+}
+
+export function heroFor(pathname: string): Hero | null {
+  if (pathname.startsWith("/nageurs/")) {
+    return {
+      img: "/assets/flip-turn.jpg", pos: "center 45%", veil: "left",
+      kicker: "Suivi individuel", title: "Fiche nageur",
+      text: "Meilleures performances, notation technique par nage et assiduité.",
+      cta1: { label: "Tous les nageurs", href: "/nageurs" },
+    };
+  }
+  return HERO[pathname] ?? null;
+}

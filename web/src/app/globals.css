@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+:root {
+  --bg-base: #080d18;
+  --bg-nav-top: #0b1524;
+  --bg-nav-bottom: #080d18;
+  --bg-card: #0e1727;
+  --bg-card-alt: #101a2b;
+  --bg-panel: #131f33;
+
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  --ink: #eaf1fb;
+  --ink-on-photo: #d6e2f2;
+  --ink-secondary: #8fa3c0;
+  --ink-tertiary: #61789b;
+  --ink-muted: #4e627f;
+  --ink-body: #a9bbd4;
+
+  --blue: #1e7bff;
+  --blue-deep: #0f5fd6;
+  --cyan: #24c8ff;
+  --red: #e8442b;
+  --red-deep: #b92e19;
+  --green: #2ecc8f;
+  --amber: #f2b33d;
+  --violet: #8c6bff;
+}
+
+@theme inline {
+  --color-bg-base: var(--bg-base);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-alt: var(--bg-card-alt);
+  --color-bg-panel: var(--bg-panel);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-on-photo: var(--ink-on-photo);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-tertiary: var(--ink-tertiary);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-body: var(--ink-body);
+  --color-blue: var(--blue);
+  --color-blue-deep: var(--blue-deep);
+  --color-cyan: var(--cyan);
+  --color-red: var(--red);
+  --color-red-deep: var(--red-deep);
+  --color-green: var(--green);
+  --color-amber: var(--amber);
+  --color-violet: var(--violet);
+  --font-display: var(--font-barlow-condensed);
+  --font-body: var(--font-barlow);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+}
+
+body {
+  font-family: var(--font-body), system-ui, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+a:hover {
+  color: #7fdcff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #22314d;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::selection {
+  background: rgba(30, 123, 255, 0.4);
+}
+
+button,
+select,
+input,
+textarea,
+tr {
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    color 0.14s ease,
+    filter 0.14s ease;
+}
+button:active {
+  transform: translateY(1px);
+}
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--ink-muted);
+}
+
+.font-display {
+  font-family: var(--font-barlow-condensed), sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+}
