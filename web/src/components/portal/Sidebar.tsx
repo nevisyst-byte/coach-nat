@@ -6,7 +6,15 @@ import { usePathname } from "next/navigation";
 import { NAV_GROUPS } from "@/lib/theme";
 import { useNavState } from "./NavState";
 
-export function Sidebar({ userName, roleLabel = "Coach · Accès total" }: { userName: string; roleLabel?: string }) {
+export function Sidebar({
+  userName,
+  roleLabel = "Coach · Accès total",
+  isAdmin = false,
+}: {
+  userName: string;
+  roleLabel?: string;
+  isAdmin?: boolean;
+}) {
   const pathname = usePathname();
   const { open } = useNavState();
 
@@ -110,9 +118,11 @@ export function Sidebar({ userName, roleLabel = "Coach · Accès total" }: { use
         ))}
       </nav>
 
-      <div
+      <Link
+        href={isAdmin ? "/admin" : "/general"}
         className="flex items-center gap-2.5 border-t px-3.5 py-3"
         style={{ borderColor: "var(--border)", justifyContent: open ? "flex-start" : "center" }}
+        title={isAdmin ? "Administration" : "Mon espace"}
       >
         <div
           className="w-[38px] h-[38px] rounded-full flex items-center justify-center font-bold text-sm shrink-0"
@@ -133,7 +143,7 @@ export function Sidebar({ userName, roleLabel = "Coach · Accès total" }: { use
             </div>
           </div>
         )}
-      </div>
+      </Link>
     </aside>
   );
 }
