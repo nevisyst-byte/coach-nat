@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient, Pole, Nage, EtatEncadrement, TypeCreneau, StatutStage, StatutAbsence, StatutConge } from "../src/generated/prisma/client";
+import { PrismaClient, Pole, Nage, EtatEncadrement, EtatPresence, TypeCreneau, StatutStage, StatutAbsence, StatutConge } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
@@ -84,6 +84,8 @@ async function main() {
     { nom: "Sport Handi", pole: Pole.LOISIR, categorie: "Sport Handi", color: "#8C6BFF", coach: "Léa Morel", objectif: "Adaptation individuelle" },
   ];
 
+  await prisma.presence.deleteMany();
+  await prisma.seanceInstance.deleteMany();
   await prisma.creneau.deleteMany();
   await prisma.creneauStage.deleteMany();
   await prisma.stageJour.deleteMany();
@@ -225,8 +227,30 @@ async function main() {
     { jour: 4, debut: "18:00", fin: "20:00", groupe: "Compétition Espoir", coach: "Marie Lefort", bassin: "Bassin 50 m", effectif: "14 nageurs", etat: EtatEncadrement.ASSURE },
     { jour: 5, debut: "09:00", fin: "11:00", groupe: "École Natation 1-2", coach: "Thomas Girard", bassin: "Bassin 25 m", effectif: "16 nageurs", etat: EtatEncadrement.ASSURE },
   ];
+  // ---- Historique de séances (8 dernières occurrences) + présence réelle ----
+  // Alimente les graphiques de charge (coach) et d'assiduité (fiche nageur) avec
+  // de vraies lignes datées plutôt que des exemples statiques.
+  const VARIANTS_SEANCE = ["Nage complète", "Bras", "Jambes", "Éducatif"];
+  const INTENSITES_SEANCE = ["Allure neutre", "Négatif split", "Progressif", "Allure 400", "Allure 200", "Vitesse"];
+  const NAGES_SEANCE = ["4 nages", "Spécialité", "Papillon", "Dos", "Brasse", "Crawl"];
+  const VOLUME_BASE: Record<string, number> = {
+    "Compétition Élite": 4800, "Compétition Espoir": 4000, "Compétition Avenir": 3200,
+    "Masters": 2600, "École Natation 3": 1500, "École Natation 1-2": 1200,
+    "Ado": 2000, "Sauvetage sportif": 2400,
+  };
+  const nageursParGroupe = new Map<string, string[]>();
+  for (const n of nageurDefs) nageursParGroupe.set(n.groupe, [...(nageursParGroupe.get(n.groupe) ?? []), n.nom]);
+
+  function lastOccurrence(jour: number, weeksAgo: number) {
+    const d = new Date();
+    const refJour = (d.getDay() + 6) % 7;
+    d.setDate(d.getDate() - ((refJour - jour + 7) % 7) - weeksAgo * 7);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
   for (const c of creneauDefs) {
-    await prisma.creneau.create({
+    const creneau = await prisma.creneau.create({
       data: {
         jour: c.jour,
         debut: c.debut,
@@ -239,6 +263,31 @@ async function main() {
         etat: c.etat,
       },
     });
+
+    const base = VOLUME_BASE[c.groupe] ?? 2500;
+    const roster = nageursParGroupe.get(c.groupe) ?? [];
+    for (let w = 1; w <= 8; w++) {
+      const date = lastOccurrence(c.jour, w);
+      const variant = VARIANTS_SEANCE[(w + c.jour) % VARIANTS_SEANCE.length];
+      const intensite = INTENSITES_SEANCE[(w * 2 + c.jour) % INTENSITES_SEANCE.length];
+      const nage = NAGES_SEANCE[(w + c.jour * 2) % NAGES_SEANCE.length];
+      const volumeNage = Math.round((base + (((w * 37 + c.jour * 13) % 9) - 4) * 100) / 50) * 50;
+
+      const instance = await prisma.seanceInstance.create({
+        data: { creneauId: creneau.id, date, groupeNom: c.groupe, coachId: c.coach ? coaches[c.coach].id : null, variant, intensite, nage, volumeNage },
+      });
+
+      if (roster.length > 0) {
+        await prisma.presence.createMany({
+          data: roster.map((nom) => {
+            const rate = nageurDefs.find((n) => n.nom === nom)?.presence ?? 85;
+            const roll = (w * 53 + nom.length * 7 + c.jour * 17) % 100;
+            const etat: EtatPresence = roll < rate ? EtatPresence.PRESENT : roll < rate + 10 ? EtatPresence.RETARD : roll < rate + 18 ? EtatPresence.EXCUSE : EtatPresence.ABSENT;
+            return { seanceInstanceId: instance.id, nomPersonne: nom, role: "SWIMMER", etat };
+          }),
+        });
+      }
+    }
   }
 
   // ---- Stages ----

@@ -2,40 +2,25 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, ProgressBar, SectionTitle } from "@/components/ui/Card";
+import { PeriodeToggle } from "@/components/portal/PeriodeToggle";
 import { hoursBetween, JOURS } from "@/lib/format";
 
-const CAMEMBERTS = [
-  {
-    titre: "Par nage",
-    items: [
-      { nom: "Crawl", m: 7200, color: "#1E7BFF" },
-      { nom: "4 nages", m: 3400, color: "#24C8FF" },
-      { nom: "Dos", m: 2100, color: "#2ECC8F" },
-      { nom: "Brasse", m: 1800, color: "#F2B33D" },
-      { nom: "Papillon", m: 1300, color: "#E8442B" },
-    ],
-  },
-  {
-    titre: "Par intensité",
-    items: [
-      { nom: "Allure neutre", m: 5600, color: "#5B7BA6" },
-      { nom: "Progressif", m: 2900, color: "#24C8FF" },
-      { nom: "Allure 400", m: 2600, color: "#1E7BFF" },
-      { nom: "Allure 200", m: 2100, color: "#F2B33D" },
-      { nom: "Négatif split", m: 1700, color: "#2ECC8F" },
-      { nom: "Vitesse", m: 900, color: "#E8442B" },
-    ],
-  },
-  {
-    titre: "Par variant",
-    items: [
-      { nom: "Nage complète", m: 9400, color: "#1E7BFF" },
-      { nom: "Éducatif", m: 2900, color: "#24C8FF" },
-      { nom: "Jambes", m: 2100, color: "#F2B33D" },
-      { nom: "Bras", m: 1400, color: "#E8442B" },
-    ],
-  },
-];
+const PALETTE = ["#1E7BFF", "#24C8FF", "#2ECC8F", "#F2B33D", "#E8442B", "#8C6BFF", "#5B7BA6"];
+
+type InstanceRow = { variant: string | null; intensite: string | null; nage: string | null; volumeNage: number | null };
+
+function aggregate(raw: InstanceRow[], field: "variant" | "intensite" | "nage") {
+  const sums = new Map<string, number>();
+  for (const r of raw) {
+    const key = r[field];
+    if (!key || !r.volumeNage) continue;
+    sums.set(key, (sums.get(key) ?? 0) + r.volumeNage);
+  }
+  const items = Array.from(sums.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([nom, m], i) => ({ nom, m, color: PALETTE[i % PALETTE.length] }));
+  return items;
+}
 
 function donut(items: { m: number; color: string }[]) {
   const total = items.reduce((a, r) => a + r.m, 0);
@@ -50,7 +35,7 @@ function donut(items: { m: number; color: string }[]) {
   return { total, css: `conic-gradient(${stops})` };
 }
 
-export default async function CoachPage() {
+export default async function CoachPage({ searchParams }: { searchParams: Promise<{ periode?: string }> }) {
   const session = await getSession();
   if (!session?.coachId) {
     return (
@@ -62,10 +47,16 @@ export default async function CoachPage() {
     );
   }
 
-  const [creneaux, groupes, conges] = await Promise.all([
+  const { periode = "4" } = await searchParams;
+  const days = periode === "8" ? 56 : periode === "saison" ? 252 : 28;
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  const [creneaux, groupes, conges, seanceInstances] = await Promise.all([
     prisma.creneau.findMany({ where: { coachId: session.coachId }, include: { groupe: { include: { nageurs: true } } } }),
     prisma.groupe.findMany({ where: { coachId: session.coachId }, include: { nageurs: true } }),
     prisma.conge.findMany({ where: { coachId: session.coachId } }),
+    prisma.seanceInstance.findMany({ where: { coachId: session.coachId, date: { gte: since } } }),
   ]);
 
   const heures = creneaux.reduce((a, c) => a + hoursBetween(c.debut, c.fin), 0);
@@ -77,6 +68,15 @@ export default async function CoachPage() {
     { icon: "✈", value: String(conges.length), label: "Congés déclarés" },
     { icon: "◷", value: `${heures} h`, label: "Heures hebdo" },
   ];
+
+  const parNage = aggregate(seanceInstances, "nage");
+  const parIntensite = aggregate(seanceInstances, "intensite");
+  const parVariant = aggregate(seanceInstances, "variant");
+  const camemberts = [
+    { titre: "Par nage", items: parNage },
+    { titre: "Par intensité", items: parIntensite },
+    { titre: "Par variant", items: parVariant },
+  ].filter((c) => c.items.length > 0);
 
   return (
     <div className="flex flex-col gap-5">
@@ -151,45 +151,56 @@ export default async function CoachPage() {
           <div>
             <h2 className="font-display text-[19px] tracking-[0.06em]">Répartition de la charge</h2>
             <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
-              Volume nagé de mes groupes · exemple illustratif (journal de séance à venir)
+              Volume réellement planifié via le créateur de séance
             </div>
           </div>
+          <PeriodeToggle current={periode} />
         </div>
-        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))" }}>
-          {CAMEMBERTS.map((ch) => {
-            const { total, css } = donut(ch.items);
-            return (
-              <div key={ch.titre}>
-                <div className="text-[11px] tracking-[0.14em] uppercase mb-3.5" style={{ color: "#61789B" }}>
-                  {ch.titre}
-                </div>
-                <div className="flex items-center gap-5 flex-wrap">
-                  <div className="relative w-[132px] h-[132px] shrink-0">
-                    <div className="absolute inset-0 rounded-full" style={{ background: css }} />
-                    <div className="absolute inset-[27px] rounded-full flex flex-col items-center justify-center" style={{ background: "var(--bg-card)" }}>
-                      <span className="font-display text-[19px] leading-none">{(total / 1000).toFixed(1).replace(".", ",")} km</span>
-                      <span className="text-[10px] uppercase tracking-[0.1em]" style={{ color: "#61789B" }}>
-                        nagés
-                      </span>
-                    </div>
+        {camemberts.length === 0 ? (
+          <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+            Aucune séance planifiée sur cette période. Utilise le{" "}
+            <Link href="/seance" style={{ color: "#7FDCFF" }}>
+              créateur de séance
+            </Link>{" "}
+            (bouton « Planifier la séance ») pour commencer à alimenter cette charge.
+          </div>
+        ) : (
+          <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))" }}>
+            {camemberts.map((ch) => {
+              const { total, css } = donut(ch.items);
+              return (
+                <div key={ch.titre}>
+                  <div className="text-[11px] tracking-[0.14em] uppercase mb-3.5" style={{ color: "#61789B" }}>
+                    {ch.titre}
                   </div>
-                  <div className="flex flex-col gap-2 flex-1" style={{ minWidth: 132 }}>
-                    {ch.items.map((r) => (
-                      <div key={r.nom} className="flex items-center gap-2 text-xs">
-                        <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: r.color }} />
-                        <span className="flex-1 font-semibold">{r.nom}</span>
-                        <span style={{ color: "var(--ink-secondary)" }}>{(r.m / 1000).toFixed(1).replace(".", ",")} km</span>
-                        <span className="font-bold" style={{ minWidth: 34, textAlign: "right" }}>
-                          {Math.round((r.m / total) * 100)}%
+                  <div className="flex items-center gap-5 flex-wrap">
+                    <div className="relative w-[132px] h-[132px] shrink-0">
+                      <div className="absolute inset-0 rounded-full" style={{ background: css }} />
+                      <div className="absolute inset-[27px] rounded-full flex flex-col items-center justify-center" style={{ background: "var(--bg-card)" }}>
+                        <span className="font-display text-[19px] leading-none">{(total / 1000).toFixed(1).replace(".", ",")} km</span>
+                        <span className="text-[10px] uppercase tracking-[0.1em]" style={{ color: "#61789B" }}>
+                          nagés
                         </span>
                       </div>
-                    ))}
+                    </div>
+                    <div className="flex flex-col gap-2 flex-1" style={{ minWidth: 132 }}>
+                      {ch.items.map((r) => (
+                        <div key={r.nom} className="flex items-center gap-2 text-xs">
+                          <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: r.color }} />
+                          <span className="flex-1 font-semibold">{r.nom}</span>
+                          <span style={{ color: "var(--ink-secondary)" }}>{(r.m / 1000).toFixed(1).replace(".", ",")} km</span>
+                          <span className="font-bold" style={{ minWidth: 34, textAlign: "right" }}>
+                            {Math.round((r.m / total) * 100)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </Card>
 
       <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))" }}>

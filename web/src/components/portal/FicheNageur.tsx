@@ -8,6 +8,7 @@ type Perf = { epreuve: string; temps: string; points: number; niveau: string; de
 type TechCritere = { nom: string; note: number };
 type Technique = { nage: string; color: string; moyenne: number; criteres: TechCritere[] };
 type AbsenceRow = { date: string; motif: string; statut: string };
+type AssiduiteRow = { sem: string; pct: number; color: string };
 
 const NAGE_META: Record<string, { label: string; color: string }> = {
   PAPILLON: { label: "Papillon", color: "#E8442B" },
@@ -28,6 +29,7 @@ export function FicheNageur({
   technique,
   absences,
   presenceRate,
+  assiduite,
   criteresList,
 }: {
   nageurId: string;
@@ -35,6 +37,7 @@ export function FicheNageur({
   technique: Technique[];
   absences: AbsenceRow[];
   presenceRate: number;
+  assiduite: AssiduiteRow[];
   criteresList: string[];
 }) {
   const router = useRouter();
@@ -194,13 +197,36 @@ export function FicheNageur({
       {tab === 2 && (
         <div className="mt-4 grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))" }}>
           <Card>
-            <h2 className="font-display text-[19px] tracking-[0.06em] mb-3.5">Présence</h2>
-            <div className="font-display text-[42px] leading-none" style={{ color: presenceRate >= 80 ? "#2ECC8F" : presenceRate >= 65 ? "#F2B33D" : "#E8442B" }}>
-              {presenceRate}%
+            <div className="flex items-baseline justify-between mb-3.5 gap-2 flex-wrap">
+              <h2 className="font-display text-[19px] tracking-[0.06em]">Assiduité</h2>
+              <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                8 dernières semaines pointées
+              </span>
             </div>
-            <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
-              Taux de présence suivi
-            </div>
+            {assiduite.length === 0 ? (
+              <>
+                <div className="font-display text-[42px] leading-none" style={{ color: presenceRate >= 80 ? "#2ECC8F" : presenceRate >= 65 ? "#F2B33D" : "#E8442B" }}>
+                  {presenceRate}%
+                </div>
+                <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
+                  Taux de présence suivi · pas encore de séance pointée sur les 8 dernières semaines
+                </div>
+              </>
+            ) : (
+              <div className="flex items-end gap-2" style={{ height: 150 }}>
+                {assiduite.map((a) => (
+                  <div key={a.sem} className="flex-1 flex flex-col justify-end items-center gap-1.5" style={{ height: "100%" }}>
+                    <span className="text-[11px] font-bold" style={{ color: a.color }}>
+                      {a.pct}%
+                    </span>
+                    <div className="w-full rounded-t-md" style={{ height: `${Math.max(a.pct, 4)}%`, background: a.color }} />
+                    <span className="text-[10px]" style={{ color: "#61789B" }}>
+                      {a.sem}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
           <Card>
             <h2 className="font-display text-[19px] tracking-[0.06em] mb-3.5">Absences déclarées</h2>

@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/Card";
 import { SeanceSelect } from "@/components/portal/SeanceSelect";
+import { DateNav } from "@/components/portal/DateNav";
 import { PresenceRoster } from "@/components/portal/PresenceRoster";
 import { JOURS } from "@/lib/format";
+import { lastOccurrenceOnOrBefore, toDateInputValue } from "@/lib/week";
+import { resolveSeanceInstance } from "@/lib/seance-instance";
 
-export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string }> }) {
+export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string; date?: string }> }) {
   const [creneaux, creneauxStage, coachs] = await Promise.all([
     prisma.creneau.findMany({ include: { groupe: true } }),
     prisma.creneauStage.findMany({ include: { stage: true } }),
@@ -26,21 +29,33 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
     );
   }
 
-  const { slot } = await searchParams;
-  const contextKey = slot && options.some((o) => o.value === slot) ? slot : options[0].value;
-  const [kind, id] = contextKey.split(":");
+  const { slot: slotParam, date: dateParam } = await searchParams;
+  const slot = slotParam && options.some((o) => o.value === slotParam) ? slotParam : options[0].value;
+  const [kind, id] = slot.split(":");
 
-  let groupeNom: string | null = null;
-  if (kind === "reg") {
-    const c = creneaux.find((x) => x.id === id);
-    groupeNom = c?.groupe.nom ?? null;
-  } else {
-    const c = creneauxStage.find((x) => x.id === id);
-    groupeNom = c && c.groupe !== "Tous groupes" ? c.groupe : null;
+  const stepDays = kind === "reg" ? 7 : 1;
+  const defaultDate =
+    kind === "reg"
+      ? toDateInputValue(lastOccurrenceOnOrBefore(creneaux.find((c) => c.id === id)!.jour))
+      : toDateInputValue(new Date());
+  const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : defaultDate;
+
+  const instance = await resolveSeanceInstance(slot, date);
+  if (!instance) {
+    return (
+      <Card>
+        <div className="text-sm" style={{ color: "var(--ink-secondary)" }}>
+          Séance introuvable.
+        </div>
+      </Card>
+    );
   }
 
-  const nageurs = await prisma.nageur.findMany({ where: groupeNom ? { groupe: { nom: groupeNom } } : {}, include: { groupe: true } });
-  const presences = await prisma.presence.findMany({ where: { contextKey } });
+  const groupeNom = kind === "reg" ? creneaux.find((c) => c.id === id)?.groupe.nom ?? null : creneauxStage.find((c) => c.id === id)?.groupe ?? null;
+  const realGroupe = groupeNom && groupeNom !== "Tous groupes" ? groupeNom : null;
+
+  const nageurs = await prisma.nageur.findMany({ where: realGroupe ? { groupe: { nom: realGroupe } } : {}, include: { groupe: true } });
+  const presences = await prisma.presence.findMany({ where: { seanceInstanceId: instance.id } });
   const etatMap = new Map(presences.map((p) => [p.nomPersonne, p.etat]));
 
   const rosterNageurs = nageurs.map((n) => ({ nom: n.nom, initiales: n.initiales, sousTitre: n.groupe?.categorie ?? n.categorie, etat: etatMap.get(n.nom) ?? "PRESENT" }));
@@ -55,7 +70,8 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3.5 flex-wrap">
-        <SeanceSelect value={contextKey} options={options} />
+        <SeanceSelect value={slot} options={options} />
+        <DateNav slot={slot} date={date} stepDays={stepDays} />
         <div className="flex gap-3.5 flex-wrap flex-1">
           {[
             { label: "Présent", color: "#2ECC8F" },
@@ -101,8 +117,8 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(400px,1fr))" }}>
-        <PresenceRoster title="Nageurs" people={rosterNageurs} contextKey={contextKey} role="SWIMMER" />
-        <PresenceRoster title="Encadrement" people={rosterStaff} contextKey={contextKey} role="COACH" />
+        <PresenceRoster title="Nageurs" people={rosterNageurs} seanceInstanceId={instance.id} role="SWIMMER" />
+        <PresenceRoster title="Encadrement" people={rosterStaff} seanceInstanceId={instance.id} role="COACH" />
       </div>
     </div>
   );

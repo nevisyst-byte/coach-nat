@@ -59,30 +59,45 @@ sur desktop, barre d'onglets en bas sur mobile) :
 - **Administration** (`/admin`, réservé au rôle `ADMIN`) : comptes, groupes,
   nageurs, effectifs par catégorie, échéances de saison
 
-## Simplifications assumées
+## Modèle de séance daté (`SeanceInstance`)
 
-Le prototype Claude Design contenait des données et interactions fictives qui ne
-correspondent à aucune table réelle. Pour livrer un vrai backend sans sur-ingénierie,
-quelques écarts assumés :
+Un `Creneau` (ou `CreneauStage`) ne représente qu'un horaire récurrent — il ne suffit pas
+à lui seul pour du suivi réel. Chaque fois qu'une séance a effectivement lieu à une date
+précise, une `SeanceInstance` est créée (ou retrouvée) pour cette occurrence :
 
-- **Créneaux récurrents** : un `Creneau` représente un horaire hebdomadaire récurrent
-  (pas un événement daté). La navigation "semaine" du planning affiche donc les vraies
-  dates de la semaine choisie, mais le contenu (les créneaux) reste identique d'une
-  semaine à l'autre — il n'y a pas encore de notion d'exception ponctuelle.
-- **Présence par créneau, pas par date** : les pointages sont rattachés à un créneau
-  (`contextKey`), pas à une occurrence datée précise. Un vrai suivi historique séance
-  par séance demanderait un modèle `SeanceInstance` (créneau × date) non implémenté ici.
-- **Répartition de charge (coach, nage/intensité/variant)** : ces graphiques utilisent
-  des volumes d'exemple (comme dans le prototype) plutôt qu'un vrai journal d'entraînement
-  nagé, qui n'existe pas encore comme table. Le seed ne modélise que 8 nageurs (comme le
-  prototype), alors que les effectifs par pôle affichent des totaux club réalistes
-  (312 licenciés) issus de `CategorieEffectif`, éditables dans l'admin.
+- **Présences** (`/presences`) sont rattachées à une `SeanceInstance`, pas au créneau
+  générique : le sélecteur de séance + le navigateur de date (semaine précédente/suivante
+  pour un créneau régulier, jour par jour pour un créneau de stage) résolvent la bonne
+  occurrence datée, créée à la volée si besoin. L'historique de pointage est donc réel et
+  daté, pas seulement "l'état courant" d'un créneau.
+- **Créateur de séance** (`/seance`) : « Planifier la séance » crée une `SeanceInstance`
+  à la date choisie (variant, intensité, nage, volume réellement nagé) — distinct
+  d'« Enregistrer le modèle » qui sauvegarde juste un gabarit réutilisable sans date.
+- **Répartition de la charge** (tableau de bord coach) agrège désormais les vraies
+  `SeanceInstance` du coach sur la période choisie (4/8 semaines, saison) par nage,
+  intensité et variant — un état vide s'affiche tant qu'aucune séance n'a été planifiée.
+- **Assiduité** (fiche nageur) calcule un vrai graphique hebdomadaire à partir des
+  présences datées des 8 dernières semaines, plutôt que d'inventer un historique.
+
+Le seed (`prisma/seed.ts`) génère 8 semaines d'historique réaliste (séances + présences)
+pour les créneaux réguliers, afin que ces écrans ne soient pas vides en développement.
+
+## Simplifications restantes
+
+- **Créneaux récurrents sans exception** : un `Creneau` reste un horaire hebdomadaire
+  fixe — il n'y a pas encore de mécanisme pour annuler ou déplacer une seule occurrence
+  sans toucher aux suivantes.
+- **Libellé de groupe en texte libre sur les créneaux de stage** : `CreneauStage.groupe`
+  est une chaîne libre (ex. « Élite »), qui ne correspond pas toujours exactement au nom
+  d'un `Groupe` réel (ex. « Compétition Élite »). Tant que les libellés ne sont pas
+  alignés (ou le champ transformé en relation), la feuille de présence d'un créneau de
+  stage peut afficher « Aucune personne rattachée » même quand un groupe existe.
 - **Podium** : le prototype affichait un "podium des progressions" basé sur un delta de
   temps fictif non stocké. Faute d'historique de performance daté, l'écran général
   affiche à la place un podium des meilleurs points FFN actuels.
-- **Assiduité par nageur** : le graphique hebdomadaire fictif du prototype a été remplacé
-  par le taux de présence réel du nageur (`presenceRate`) + la liste réelle des absences,
-  plutôt que d'inventer un historique semaine par semaine.
+- Les effectifs par pôle affichent des totaux club réalistes (312 licenciés) issus de
+  `CategorieEffectif` (éditables dans l'admin), alors que le roster détaillé ne modélise
+  que 8 nageurs nommés (comme le prototype) — les deux ne sont pas censés se recouper.
 
 ## Structure
 

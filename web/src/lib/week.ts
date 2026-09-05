@@ -23,6 +23,19 @@ export function fmtDayLabel(d: Date) {
   return `${String(d.getDate()).padStart(2, "0")} ${MOIS[d.getMonth()]}`;
 }
 
+export function lastOccurrenceOnOrBefore(jour: number, ref: Date = new Date()) {
+  const d = new Date(ref);
+  d.setHours(0, 0, 0, 0);
+  const refJour = (d.getDay() + 6) % 7; // 0 = lundi
+  const diff = (refJour - jour + 7) % 7;
+  d.setDate(d.getDate() - diff);
+  return d;
+}
+
+export function toDateInputValue(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
 export function weekRangeLabel(offset: number) {
   const dates = weekDates(offset);
   const first = dates[0];

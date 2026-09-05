@@ -12,12 +12,17 @@ const AXES = [
 
 const VOLUMES = ["1 500 m", "2 000 m", "2 500 m", "3 000 m", "3 500 m", "4 000 m", "5 000 m", "6 000 m", "7 000 m", "8 000 m", "9 000 m", "10 000 m"];
 
+function todayInput() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function SeanceCreator({ groupes }: { groupes: string[] }) {
   const [variant, setVariant] = useState("Nage complète");
   const [intensite, setIntensite] = useState("Allure 400");
   const [nage, setNage] = useState("4 nages");
   const [groupe, setGroupe] = useState(groupes[0] ?? "");
   const [volume, setVolume] = useState("3 000 m");
+  const [date, setDate] = useState(todayInput());
   const [saved, setSaved] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -30,7 +35,22 @@ export function SeanceCreator({ groupes }: { groupes: string[] }) {
   const volumeCible = parseInt(volume.replace(/\s/g, ""), 10);
   const { resume, blocs } = useMemo(() => genererSeance(variant, intensite, nage, volumeCible), [variant, intensite, nage, volumeCible]);
 
-  async function save() {
+  async function planifier() {
+    setSaving(true);
+    setSaved(null);
+    try {
+      await fetch("/api/seance-instances", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, groupeNom: groupe, variant, intensite, nage, volumeNage: volumeCible }),
+      });
+      setSaved(`Séance planifiée le ${new Date(`${date}T00:00:00`).toLocaleDateString("fr-FR")} — elle compte désormais dans la charge du groupe.`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function enregistrerModele() {
     setSaving(true);
     setSaved(null);
     try {
@@ -39,7 +59,7 @@ export function SeanceCreator({ groupes }: { groupes: string[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groupeNom: groupe, variant, intensite, nage, volumeCible, blocs }),
       });
-      setSaved("Séance enregistrée.");
+      setSaved("Modèle de séance enregistré (réutilisable, sans date).");
     } finally {
       setSaving(false);
     }
@@ -94,6 +114,12 @@ export function SeanceCreator({ groupes }: { groupes: string[] }) {
               ))}
             </select>
           </div>
+          <div>
+            <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+              Date de la séance
+            </div>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
+          </div>
         </div>
       </Card>
 
@@ -126,10 +152,10 @@ export function SeanceCreator({ groupes }: { groupes: string[] }) {
           ))}
         </div>
         <div className="flex gap-2.5 mt-5 flex-wrap">
-          <button onClick={save} disabled={saving} className="flex-1 rounded-[10px] py-3 text-[13px] font-bold cursor-pointer" style={{ minWidth: 130, background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
+          <button onClick={planifier} disabled={saving} className="flex-1 rounded-[10px] py-3 text-[13px] font-bold cursor-pointer" style={{ minWidth: 130, background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
             {saving ? "Enregistrement…" : "Planifier la séance"}
           </button>
-          <button onClick={save} disabled={saving} className="flex-1 rounded-[10px] py-3 text-[13px] font-semibold cursor-pointer" style={{ minWidth: 130, border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+          <button onClick={enregistrerModele} disabled={saving} className="flex-1 rounded-[10px] py-3 text-[13px] font-semibold cursor-pointer" style={{ minWidth: 130, border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
             Enregistrer le modèle
           </button>
         </div>

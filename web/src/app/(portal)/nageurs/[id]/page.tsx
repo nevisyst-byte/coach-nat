@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { FicheNageur } from "@/components/portal/FicheNageur";
-import { CRITERES } from "@/lib/format";
+import { CRITERES, isoWeekNumber, mondayOfWeek } from "@/lib/format";
 
 const NAGE_COLOR: Record<string, string> = { PAPILLON: "#E8442B", DOS: "#24C8FF", BRASSE: "#F2B33D", CRAWL: "#1E7BFF" };
 const NAGES = ["PAPILLON", "DOS", "BRASSE", "CRAWL"];
@@ -21,6 +21,29 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
   });
 
   if (!nageur) notFound();
+
+  const since8 = new Date();
+  since8.setDate(since8.getDate() - 56);
+  const presenceRows = await prisma.presence.findMany({
+    where: { nomPersonne: nageur.nom, seanceInstance: { date: { gte: since8 } } },
+    include: { seanceInstance: true },
+  });
+
+  const weekBuckets = new Map<string, { present: number; total: number; date: Date }>();
+  for (const p of presenceRows) {
+    const monday = mondayOfWeek(p.seanceInstance.date);
+    const key = monday.toISOString();
+    const bucket = weekBuckets.get(key) ?? { present: 0, total: 0, date: monday };
+    bucket.total += 1;
+    if (p.etat === "PRESENT" || p.etat === "RETARD") bucket.present += 1;
+    weekBuckets.set(key, bucket);
+  }
+  const assiduite = Array.from(weekBuckets.values())
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .map((b) => {
+      const pct = Math.round((b.present / b.total) * 100);
+      return { sem: `S${isoWeekNumber(b.date)}`, pct, color: pct >= 80 ? "#2ECC8F" : pct >= 65 ? "#F2B33D" : "#E8442B" };
+    });
 
   const technique = NAGES.map((nage) => {
     const rows = nageur.notations.filter((n) => n.nage === nage);
@@ -95,6 +118,7 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
         technique={technique}
         absences={nageur.absences.map((a) => ({ date: a.date, motif: a.motif, statut: a.statut }))}
         presenceRate={nageur.presenceRate}
+        assiduite={assiduite}
         criteresList={CRITERES}
       />
     </div>

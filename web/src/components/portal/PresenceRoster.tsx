@@ -13,14 +13,14 @@ const ETATS: { code: string; value: string; label: string; color: string; bg: st
 
 export type RosterPerson = { nom: string; initiales: string; sousTitre: string; etat: string };
 
-export function PresenceRoster({ title, people, contextKey, role }: { title: string; people: RosterPerson[]; contextKey: string; role: string }) {
+export function PresenceRoster({ title, people, seanceInstanceId, role }: { title: string; people: RosterPerson[]; seanceInstanceId: string; role: string }) {
   const router = useRouter();
 
   async function setEtat(nom: string, etat: string) {
     await fetch("/api/presences", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contextKey, nomPersonne: nom, role, etat }),
+      body: JSON.stringify({ seanceInstanceId, nomPersonne: nom, role, etat }),
     });
     router.refresh();
   }

@@ -86,6 +86,7 @@ model Coach {
   stageCreneaux CreneauStage[]
   conges       Conge[]
   techniqueRatings NotationTechnique[]
+  seanceInstances SeanceInstance[]
   createdAt    DateTime @default(now())
 }
 
@@ -170,6 +171,7 @@ model Creneau {
   bassin        String
   effectifLabel String?
   etat          EtatEncadrement @default(ASSURE)
+  instances     SeanceInstance[]
   createdAt     DateTime        @default(now())
 }
 
@@ -213,18 +215,46 @@ model CreneauStage {
   bassin    String
   theme     String
   volume    Int         @default(0)
+  instances SeanceInstance[]
   createdAt DateTime    @default(now())
 }
 
-model Presence {
-  id          String       @id @default(cuid())
-  contextKey  String
-  nomPersonne String
-  role        String
-  etat        EtatPresence @default(PRESENT)
-  updatedAt   DateTime     @updatedAt
+// Occurrence datée et concrète d'une séance : un Creneau (récurrent) ou un
+// CreneauStage donne lieu, à une date précise, à une SeanceInstance. C'est sur
+// cette instance que se rattachent la présence réelle (par date) et le volume
+// effectivement nagé (journal d'entraînement), plutôt que sur le créneau
+// générique qui ne représente qu'un horaire récurrent.
+model SeanceInstance {
+  id             String        @id @default(cuid())
+  date           DateTime
+  creneauId      String?
+  creneau        Creneau?      @relation(fields: [creneauId], references: [id], onDelete: SetNull)
+  creneauStageId String?
+  creneauStage   CreneauStage? @relation(fields: [creneauStageId], references: [id], onDelete: SetNull)
+  groupeNom      String
+  coachId        String?
+  coach          Coach?        @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  variant        String?
+  intensite      String?
+  nage           String?
+  volumeNage     Int?
+  presences      Presence[]
+  createdAt      DateTime      @default(now())
 
-  @@unique([contextKey, nomPersonne])
+  @@unique([creneauId, date])
+  @@unique([creneauStageId, date])
+}
+
+model Presence {
+  id               String         @id @default(cuid())
+  seanceInstanceId String
+  seanceInstance   SeanceInstance @relation(fields: [seanceInstanceId], references: [id], onDelete: Cascade)
+  nomPersonne      String
+  role             String
+  etat             EtatPresence   @default(PRESENT)
+  updatedAt        DateTime       @updatedAt
+
+  @@unique([seanceInstanceId, nomPersonne])
 }
 
 model Absence {

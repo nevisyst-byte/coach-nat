@@ -4,10 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
 const bodySchema = z.object({
-  seanceInstanceId: z.string().min(1),
-  nomPersonne: z.string().min(1),
-  role: z.string(),
-  etat: z.enum(["PRESENT", "RETARD", "ABSENT", "EXCUSE"]),
+  date: z.string(),
+  groupeNom: z.string(),
+  variant: z.string(),
+  intensite: z.string(),
+  nage: z.string(),
+  volumeNage: z.number().int(),
 });
 
 export async function POST(request: Request) {
@@ -18,12 +20,10 @@ export async function POST(request: Request) {
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
 
-  const { seanceInstanceId, nomPersonne, role, etat } = parsed.data;
-  await prisma.presence.upsert({
-    where: { seanceInstanceId_nomPersonne: { seanceInstanceId, nomPersonne } },
-    update: { etat, role },
-    create: { seanceInstanceId, nomPersonne, role, etat },
+  const { date, ...rest } = parsed.data;
+  const instance = await prisma.seanceInstance.create({
+    data: { ...rest, date: new Date(`${date}T00:00:00`), coachId: session.coachId },
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, id: instance.id });
 }
