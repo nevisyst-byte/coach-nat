@@ -118,21 +118,13 @@ export function PlanningClient({
     router.refresh();
   }
 
-  async function toggleActifHorsVacances(id: string, current: boolean) {
-    await fetch(`/api/creneaux/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ actifHorsVacances: !current }),
-    });
-    router.refresh();
-  }
-
   const [effectifCreneau, setEffectifCreneau] = useState<Creneau | null>(null);
   const [toutLeGroupe, setToutLeGroupe] = useState(true);
   const [effectifSelected, setEffectifSelected] = useState<Set<string>>(new Set());
+  const [pauseVacances, setPauseVacances] = useState(true);
   const [savingEffectif, setSavingEffectif] = useState(false);
 
-  function openEffectif(c: Creneau) {
+  function openReglages(c: Creneau) {
     const membresGroupe = nageurs.filter((n) => n.groupeId === c.groupeId);
     if (c.effectifNageurs.length > 0) {
       setToutLeGroupe(false);
@@ -141,6 +133,7 @@ export function PlanningClient({
       setToutLeGroupe(true);
       setEffectifSelected(new Set(membresGroupe.map((n) => n.id)));
     }
+    setPauseVacances(c.actifHorsVacances);
     setEffectifCreneau(c);
   }
 
@@ -153,14 +146,14 @@ export function PlanningClient({
     });
   }
 
-  async function saveEffectif() {
+  async function saveReglages() {
     if (!effectifCreneau) return;
     setSavingEffectif(true);
     try {
       await fetch(`/api/creneaux/${effectifCreneau.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nageurIds: toutLeGroupe ? null : Array.from(effectifSelected) }),
+        body: JSON.stringify({ nageurIds: toutLeGroupe ? null : Array.from(effectifSelected), actifHorsVacances: pauseVacances }),
       });
       setEffectifCreneau(null);
       router.refresh();
@@ -274,31 +267,32 @@ export function PlanningClient({
                       <span>·</span>
                       <span>{c.bassin}</span>
                     </div>
-                    {canEdit && (
-                      <div className="mt-2 flex flex-col gap-1 items-start">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleActifHorsVacances(c.id, c.actifHorsVacances);
-                          }}
-                          className="text-[11px] cursor-pointer underline"
-                          style={{ color: "var(--ink-muted)" }}
-                          title="Bascule si ce créneau continue ou non pendant les vacances scolaires"
-                        >
-                          {c.actifHorsVacances ? "En pause pendant les vacances" : "Continue pendant les vacances"}
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEffectif(c);
-                          }}
-                          className="text-[11px] cursor-pointer underline"
-                          style={{ color: "var(--ink-muted)" }}
-                          title="Choisir qui, dans le groupe, assiste à ce créneau"
-                        >
-                          {c.effectifNageurs.length > 0 ? `Effectif : ${c.effectifNageurs.length} nageur${c.effectifNageurs.length > 1 ? "s" : ""}` : "Effectif : tout le groupe"}
-                        </button>
+                    {canEdit && (!c.actifHorsVacances || c.effectifNageurs.length > 0) && (
+                      <div className="mt-2 flex flex-wrap gap-1.5 items-center">
+                        {!c.actifHorsVacances && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(242,179,61,0.15)", color: "#F2B33D" }} title="Ce créneau continue même pendant les vacances scolaires">
+                            🏖 Actif en vacances
+                          </span>
+                        )}
+                        {c.effectifNageurs.length > 0 && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(140,107,255,0.15)", color: "#8C6BFF" }} title="Seule une partie du groupe est attendue à ce créneau">
+                            {c.effectifNageurs.length} nageur{c.effectifNageurs.length > 1 ? "s" : ""} seulement
+                          </span>
+                        )}
                       </div>
+                    )}
+                    {canEdit && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openReglages(c);
+                        }}
+                        className="mt-2 text-[11px] cursor-pointer underline"
+                        style={{ color: "var(--ink-muted)" }}
+                        title="Réglages : effectif attendu et comportement pendant les vacances scolaires"
+                      >
+                        ⚙ Réglages
+                      </button>
                     )}
                   </div>
                 );
@@ -553,7 +547,7 @@ export function PlanningClient({
           <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl overflow-hidden flex flex-col" style={{ maxWidth: 480, maxHeight: "82vh", background: "#101A2B", border: "1px solid var(--border-strong)" }}>
             <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
               <div>
-                <h2 className="font-display text-[22px] tracking-[0.05em]">Effectif — {effectifCreneau.groupe.nom}</h2>
+                <h2 className="font-display text-[22px] tracking-[0.05em]">Réglages — {effectifCreneau.groupe.nom}</h2>
                 <div className="text-[13px] mt-0.5" style={{ color: "var(--ink-secondary)" }}>
                   {JOURS[effectifCreneau.jour]} {effectifCreneau.debut}–{effectifCreneau.fin}
                 </div>
@@ -562,7 +556,22 @@ export function PlanningClient({
                 ✕
               </button>
             </div>
-            <div className="px-6 pt-4 flex gap-1.5">
+            <div className="px-6 pt-4">
+              <label className="flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
+                <input type="checkbox" checked={!pauseVacances} onChange={(e) => setPauseVacances(!e.target.checked)} className="w-4 h-4 cursor-pointer" />
+                <span className="flex-1 text-sm">Continue pendant les vacances scolaires</span>
+              </label>
+              <div className="text-[11px] mt-1.5 mb-1" style={{ color: "var(--ink-muted)" }}>
+                Par défaut, ce créneau se met en pause automatiquement pendant les vacances (les stages
+                prennent le relais). Coche pour qu&apos;il continue toute l&apos;année.
+              </div>
+            </div>
+            <div className="px-6 pt-3 flex gap-1.5">
+              <div className="text-[11px] tracking-[0.12em] uppercase w-full mb-0.5" style={{ color: "#61789B" }}>
+                Effectif attendu
+              </div>
+            </div>
+            <div className="px-6 flex gap-1.5">
               <button
                 onClick={() => setToutLeGroupe(true)}
                 className="rounded-[9px] px-3.5 py-2 text-[13px] font-semibold cursor-pointer"
@@ -600,7 +609,7 @@ export function PlanningClient({
                 Annuler
               </button>
               <button
-                onClick={saveEffectif}
+                onClick={saveReglages}
                 disabled={savingEffectif}
                 className="rounded-[10px] px-5 py-2.5 text-[13px] font-bold cursor-pointer"
                 style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: savingEffectif ? 0.7 : 1 }}
