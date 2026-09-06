@@ -23,6 +23,8 @@ const STATUT_STYLE: Record<string, [string, string]> = {
   BLESSURE: ["rgba(242,179,61,0.15)", "#F2B33D"],
 };
 
+type FfnResult = { iuf: string; nom: string };
+
 export function FicheNageur({
   nageurId,
   perfs,
@@ -31,6 +33,8 @@ export function FicheNageur({
   presenceRate,
   assiduite,
   criteresList,
+  ffnIuf = null,
+  ffnSyncedAt = null,
 }: {
   nageurId: string;
   perfs: Perf[];
@@ -39,6 +43,8 @@ export function FicheNageur({
   presenceRate: number;
   assiduite: AssiduiteRow[];
   criteresList: string[];
+  ffnIuf?: string | null;
+  ffnSyncedAt?: string | null;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState(0);
@@ -47,6 +53,66 @@ export function FicheNageur({
   const [notes, setNotes] = useState<Record<string, number>>({});
   const [observation, setObservation] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const [ffnSearchOpen, setFfnSearchOpen] = useState(false);
+  const [ffnQuery, setFfnQuery] = useState("");
+  const [ffnResults, setFfnResults] = useState<FfnResult[]>([]);
+  const [ffnSearching, setFfnSearching] = useState(false);
+  const [ffnSyncing, setFfnSyncing] = useState(false);
+  const [ffnError, setFfnError] = useState<string | null>(null);
+
+  async function searchFfn() {
+    setFfnSearching(true);
+    setFfnError(null);
+    try {
+      const res = await fetch(`/api/nageurs/${nageurId}/ffn?q=${encodeURIComponent(ffnQuery)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setFfnError(data.error ?? "Erreur");
+        return;
+      }
+      setFfnResults(data.results);
+    } finally {
+      setFfnSearching(false);
+    }
+  }
+
+  async function linkAndSync(iuf: string) {
+    setFfnSyncing(true);
+    setFfnError(null);
+    try {
+      const res = await fetch(`/api/nageurs/${nageurId}/ffn`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ iuf }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFfnError(data.error ?? "Erreur");
+        return;
+      }
+      setFfnSearchOpen(false);
+      router.refresh();
+    } finally {
+      setFfnSyncing(false);
+    }
+  }
+
+  async function resync() {
+    setFfnSyncing(true);
+    setFfnError(null);
+    try {
+      const res = await fetch(`/api/nageurs/${nageurId}/ffn`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+      const data = await res.json();
+      if (!res.ok) {
+        setFfnError(data.error ?? "Erreur");
+        return;
+      }
+      router.refresh();
+    } finally {
+      setFfnSyncing(false);
+    }
+  }
 
   const tabs = ["Cotation FFN", "Notation technique", "Assiduité"];
 
@@ -95,11 +161,37 @@ export function FicheNageur({
 
       {tab === 0 && (
         <Card padding={0} className="overflow-hidden mt-4">
-          <div className="px-5 py-4 flex justify-between items-baseline flex-wrap gap-2" style={{ borderBottom: "1px solid var(--border)" }}>
-            <h2 className="font-display text-[19px] tracking-[0.06em]">Meilleures performances · cotation FFN</h2>
-            <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
-              Table de cotation FFN 2025-2026 · bassin 50m
-            </span>
+          <div className="px-5 py-4 flex justify-between items-center flex-wrap gap-2.5" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div>
+              <h2 className="font-display text-[19px] tracking-[0.06em]">Meilleures performances · cotation FFN</h2>
+              <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                {ffnIuf ? `IUF ${ffnIuf}${ffnSyncedAt ? ` · synchronisé le ${ffnSyncedAt}` : ""}` : "Pas encore relié à une fiche FFN"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {ffnError && (
+                <span className="text-xs" style={{ color: "#FF9179" }}>
+                  {ffnError}
+                </span>
+              )}
+              {ffnIuf && (
+                <button
+                  onClick={resync}
+                  disabled={ffnSyncing}
+                  className="rounded-[9px] px-3.5 py-2 text-[13px] font-semibold cursor-pointer"
+                  style={{ border: "1px solid rgba(30,123,255,0.4)", background: "rgba(30,123,255,0.1)", color: "#7FDCFF", opacity: ffnSyncing ? 0.6 : 1 }}
+                >
+                  {ffnSyncing ? "Synchronisation…" : "Resynchroniser"}
+                </button>
+              )}
+              <button
+                onClick={() => setFfnSearchOpen(true)}
+                className="rounded-[9px] px-3.5 py-2 text-[13px] font-semibold cursor-pointer"
+                style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+              >
+                {ffnIuf ? "Changer le lien FFN" : "Relier à une fiche FFN"}
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse" style={{ minWidth: 700 }}>
@@ -131,7 +223,7 @@ export function FicheNageur({
                         {p.niveau}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-right text-sm font-bold" style={{ color: p.deltaSaison.startsWith("−") ? "#2ECC8F" : "#E8442B" }}>
+                    <td className="px-3 py-3 text-right text-sm font-bold" style={{ color: p.deltaSaison === "—" ? "var(--ink-muted)" : p.deltaSaison.startsWith("−") ? "#2ECC8F" : "#E8442B" }}>
                       {p.deltaSaison}
                     </td>
                     <td className="px-5 py-3 text-right text-[13px]" style={{ color: "var(--ink-body)" }}>
@@ -356,6 +448,65 @@ export function FicheNageur({
               >
                 {saving ? "Enregistrement…" : "Enregistrer la notation"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {ffnSearchOpen && (
+        <div onClick={() => setFfnSearchOpen(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl" style={{ maxWidth: 480, background: "#101A2B", border: "1px solid var(--border-strong)" }}>
+            <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
+              <h2 className="font-display text-[22px] tracking-[0.05em]">Relier à une fiche FFN</h2>
+              <button onClick={() => setFfnSearchOpen(false)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
+                ✕
+              </button>
+            </div>
+            <div className="px-6 py-5 flex flex-col gap-3.5">
+              <div className="flex gap-2">
+                <input
+                  value={ffnQuery}
+                  onChange={(e) => setFfnQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && searchFfn()}
+                  placeholder="Nom Prénom (4 caractères min.)"
+                  className="flex-1 rounded-[9px] px-3 py-2.5 text-sm outline-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                />
+                <button
+                  onClick={searchFfn}
+                  disabled={ffnSearching || ffnQuery.trim().length < 4}
+                  className="rounded-[9px] px-4 py-2.5 text-[13px] font-bold cursor-pointer"
+                  style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: ffnSearching ? 0.7 : 1 }}
+                >
+                  {ffnSearching ? "…" : "Chercher"}
+                </button>
+              </div>
+              {ffnError && (
+                <div className="text-[13px]" style={{ color: "#FF9179" }}>
+                  {ffnError}
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5 max-h-[280px] overflow-y-auto">
+                {ffnResults.map((r) => (
+                  <button
+                    key={r.iuf}
+                    onClick={() => linkAndSync(r.iuf)}
+                    disabled={ffnSyncing}
+                    className="flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left cursor-pointer"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }}
+                  >
+                    <span className="text-sm font-semibold">{r.nom}</span>
+                    <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                      IUF {r.iuf}
+                    </span>
+                  </button>
+                ))}
+                {ffnResults.length === 0 && !ffnSearching && (
+                  <div className="text-[13px] text-center py-4" style={{ color: "var(--ink-secondary)" }}>
+                    Cherche un nom pour voir les résultats.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

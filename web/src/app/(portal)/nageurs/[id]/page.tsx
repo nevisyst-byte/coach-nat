@@ -120,6 +120,8 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
         presenceRate={nageur.presenceRate}
         assiduite={assiduite}
         criteresList={CRITERES}
+        ffnIuf={nageur.ffnIuf}
+        ffnSyncedAt={nageur.ffnSyncedAt ? nageur.ffnSyncedAt.toLocaleDateString("fr-FR") : null}
       />
     </div>
   );

@@ -118,6 +118,11 @@ model Nageur {
   age             Int
   categorie       String
   specialite      String
+  // Identifiant unique fédéral (IUF) sur ffn.extranat.fr, une fois relié via
+  // la recherche FFN sur la fiche nageur. Permet de resynchroniser les
+  // performances sans redemander une recherche par nom.
+  ffnIuf          String?
+  ffnSyncedAt     DateTime?
   groupeId        String?
   groupe          Groupe?  @relation(fields: [groupeId], references: [id], onDelete: SetNull)
   pointsFFN       Int      @default(0)

@@ -121,6 +121,30 @@ synchronisé en direct avec une source officielle — voir l'avertissement en t�
 fichier. À vérifier sur https://www.education.gouv.fr/calendrier-scolaire et à mettre
 à jour chaque année scolaire.
 
+## Synchronisation FFN (fiche nageur)
+
+Depuis la fiche nageur (onglet « Cotation FFN »), un coach peut relier un nageur à sa
+fiche sur `ffn.extranat.fr` (recherche par nom, via le vrai endpoint JSON du site,
+`_recherche.php`) puis synchroniser ses meilleures performances personnelles (MPP),
+25m et 50m confondus. Le nageur garde son IUF (`Nageur.ffnIuf`) pour resynchroniser
+sans redemander une recherche.
+
+Il n'existe pas d'API officielle pour les performances elles-mêmes : `src/lib/ffn.ts`
+parse le HTML de la page de résultats (`nat_recherche.php?idopt=mpp`) avec `cheerio`.
+Le parsing a été construit et testé contre un vrai échantillon HTML fourni pendant le
+développement (un bug réel — cheerio enveloppe les `<tr>` orphelins dans un `<tbody>`
+implicite, comme un navigateur — a été trouvé et corrigé grâce à ce test), mais **la
+requête réseau elle-même n'a jamais pu être testée en conditions réelles** : l'environnement
+où ce code a été écrit n'a aucun accès internet sortant. Le premier test réel se fera
+depuis le serveur de prod. Si `ffn.extranat.fr` change la structure de sa page, le
+parsing peut casser silencieusement (0 performance importée, sans erreur) — voir le
+commentaire en tête de `src/lib/ffn.ts`.
+
+Une synchronisation **remplace entièrement** les `Performance` existantes du nageur
+(pas de fusion) — les entrées éventuellement saisies à la main pour ce nageur seraient
+donc écrasées. `deltaSaison` et `rangNat` (colonnes historiques de l'écran, issues du
+prototype) ne sont pas fournies par la page FFN scrapée et restent à `"—"`.
+
 ## Simplifications restantes
 
 - **Créneaux récurrents sans exception au jour près** : au-delà de la pause automatique
