@@ -1,6 +1,11 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card, SectionTitle } from "@/components/ui/Card";
 import { ETAT_COLOR } from "@/lib/format";
+import { getSession } from "@/lib/auth";
+import { SemaineTypeClient } from "@/components/portal/SemaineTypeClient";
+import { CalendrierClient } from "@/components/portal/CalendrierClient";
+import { EcheancesAdmin } from "@/components/admin/EcheancesAdmin";
 
 type Evt = { label: string; color: string };
 
@@ -10,9 +15,14 @@ const MOIS_LONG = [
 ];
 
 export default async function CalendrierPage() {
-  const [creneaux, echeances] = await Promise.all([
-    prisma.creneau.findMany({ include: { groupe: true } }),
+  const session = await getSession();
+  const [creneaux, groupes, coachs, nageurs, echeances, stages] = await Promise.all([
+    prisma.creneau.findMany({ include: { groupe: true, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } } }),
+    prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
+    prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
+    prisma.nageur.findMany({ orderBy: { nom: "asc" } }),
     prisma.echeance.findMany({ orderBy: { date: "asc" } }),
+    prisma.stage.findMany({ orderBy: { dateDebut: "asc" } }),
   ]);
 
   const today = new Date();
@@ -41,7 +51,7 @@ export default async function CalendrierPage() {
     cells.push({ n: d, evts: evts.slice(0, 3) });
   }
 
-  return (
+  const vueEnsemble = (
     <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(330px,1fr))" }}>
       <Card>
         <div className="flex justify-between items-center mb-3.5">
@@ -113,8 +123,106 @@ export default async function CalendrierPage() {
               </div>
             );
           })}
+          {echeances.length === 0 && (
+            <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+              Aucune échéance enregistrée.
+            </div>
+          )}
         </div>
       </Card>
     </div>
   );
+
+  const semaineType = (
+    <SemaineTypeClient
+      creneaux={creneaux}
+      groupes={groupes.map((g) => ({ id: g.id, nom: g.nom }))}
+      coachs={coachs.map((c) => ({ id: c.id, nom: c.user.name }))}
+      nageurs={nageurs.map((n) => ({ id: n.id, nom: n.nom, groupeId: n.groupeId }))}
+    />
+  );
+
+  const vacances = (
+    <Card>
+      <div className="flex justify-between items-center mb-3.5 gap-3 flex-wrap">
+        <div>
+          <SectionTitle>Stages de vacances</SectionTitle>
+          <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+            Les créneaux de la semaine type se mettent en pause sur ces périodes ; les stages ci-dessous
+            prennent le relais au planning.
+          </div>
+        </div>
+        <Link
+          href="/stages"
+          className="rounded-[10px] px-4 py-2.5 text-[13px] font-bold cursor-pointer"
+          style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff" }}
+        >
+          Gérer les stages →
+        </Link>
+      </div>
+      <div className="flex flex-col gap-2.5">
+        {stages.map((s) => (
+          <Link
+            key={s.id}
+            href={`/stages?stage=${s.id}`}
+            className="flex items-center gap-3.5 rounded-xl px-3.5 py-3"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", borderLeft: `4px solid ${s.color}` }}
+          >
+            <div className="flex-1">
+              <div className="text-sm font-semibold">{s.nom}</div>
+              <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                {s.periodeLabel} · {s.lieu}
+              </div>
+            </div>
+          </Link>
+        ))}
+        {stages.length === 0 && (
+          <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+            Aucun stage enregistré pour l&apos;instant.
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+
+  const datesSpecifiques = (
+    <Card>
+      <SectionTitle>Dates spécifiques (compétitions, réunions…)</SectionTitle>
+      {session?.role === "ADMIN" ? (
+        <EcheancesAdmin echeances={echeances.map((e) => ({ id: e.id, date: e.date.toISOString(), titre: e.titre, detail: e.detail, color: e.color }))} />
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {echeances.map((e) => {
+            const d = new Date(e.date);
+            return (
+              <div key={e.id} className="flex gap-3.5 items-center rounded-xl px-3.5 py-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", borderLeft: `4px solid ${e.color}` }}>
+                <div className="text-center" style={{ minWidth: 46 }}>
+                  <div className="font-display text-2xl leading-none">{d.getDate()}</div>
+                  <div className="text-[11px] uppercase" style={{ color: "var(--ink-secondary)" }}>
+                    {MOIS_LONG[d.getMonth()].slice(0, 4)}
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold">{e.titre}</div>
+                  <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                    {e.detail}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {echeances.length === 0 && (
+            <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+              Aucune échéance enregistrée.
+            </div>
+          )}
+          <div className="text-[12px] mt-1" style={{ color: "var(--ink-muted)" }}>
+            Seul un administrateur peut ajouter ou modifier ces dates.
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+
+  return <CalendrierClient vueEnsemble={vueEnsemble} semaineType={semaineType} vacances={vacances} datesSpecifiques={datesSpecifiques} />;
 }
