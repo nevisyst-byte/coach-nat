@@ -11,9 +11,16 @@ Tout ce qui suit s'exécute **sur le serveur** (en SSH, ou via code-server sur
 
 ## 0. Récupérer le code sur le serveur
 
-Place le projet dans `/home/flo/docker/coach-nat/` (même emplacement que les
-autres apps, ex. `/home/flo/docker/immo/`), par exemple via `git clone` une fois
-le dépôt GitHub accessible, ou en dépaquetant l'archive Git fournie.
+Le code est sur GitHub, dépôt privé `nevisyst-byte/coach-nat`. Clone-le dans
+`/home/flo/docker/coach-nat/` (même emplacement que les autres apps, ex.
+`/home/flo/docker/immo/`) :
+
+```bash
+cd /home/flo/docker
+git clone git@github.com:nevisyst-byte/coach-nat.git coach-nat
+# ou en HTTPS avec un token personnel si tu n'as pas de clé SSH configurée :
+# git clone https://<ton-token>@github.com/nevisyst-byte/coach-nat.git coach-nat
+```
 
 ## 1. Prérequis sur le serveur
 
@@ -82,30 +89,27 @@ sans toucher au reste de la config de ce tunnel.
 
 ## 5. Mises à jour
 
-La session cloud qui développe ce projet n'a pas d'accès réseau sortant (ni vers
-GitHub, ni vers ton serveur) — les mises à jour arrivent donc sous forme d'un
-fichier `coachnat.bundle` (archive Git) à récupérer manuellement.
+Le code avance directement sur GitHub (`nevisyst-byte/coach-nat`, dépôt privé) —
+la session qui développe ce projet y pousse ses commits sur la branche `main`.
 
 ### En une commande, avec `deploy.sh`
 
-Une fois `coachnat.bundle` téléchargé sur ton PC puis copié sur le serveur
-(`scp`), un seul script applique le bundle **et** relance l'app :
+Un seul script récupère la dernière version depuis GitHub **et** relance l'app :
 
 ```bash
-~/coach-nat/web/deploy.sh ~/coachnat.bundle
+~/coach-nat/web/deploy.sh
 ```
 
-*(ou juste `~/coach-nat/web/deploy.sh` si le bundle est déjà à `~/coachnat.bundle`)*
-
 Il vérifie qu'il n'y a pas de modifications locales non commitées qui
-bloqueraient la fusion, fait le `git pull` du bundle, reconstruit et relance
-les conteneurs, puis affiche leur état.
+bloqueraient la fusion, fait le `git pull origin main`, reconstruit et relance
+les conteneurs, puis affiche leur état. C'est la commande à lancer depuis ton
+téléphone en SSH (ex. via Termius) pour déployer une mise à jour sans PC.
 
 ### Mise à jour manuelle, étape par étape
 
 ```bash
 cd ~/coach-nat
-git pull ~/coachnat.bundle main
+git pull origin main
 cd web
 docker compose --env-file .env.production up -d --build
 ```
@@ -119,23 +123,15 @@ Si `git pull` refuse en disant que des modifications locales seraient
 le serveur) : `git status` pour voir lesquelles, puis soit les committer, soit
 les annuler avec `git checkout -- <fichier>` avant de relancer le pull.
 
-### Garder aussi une copie à jour sur GitHub (optionnel)
+### Repli sans réseau (bundle Git)
 
-Le dépôt `nevisyst-byte/coach-nat` existe sur GitHub, mais la session cloud qui
-développe ce projet n'a actuellement pas les droits d'y pousser directement
-(connecteur GitHub qui reste bloqué en « autorisé » sans jamais s'installer
-comme application — pas un problème réseau cette fois, un souci côté connecteur
-resté sans solution malgré plusieurs tentatives). En attendant que ce soit
-résolu, tu peux pousser toi-même depuis le serveur, avec tes propres
-identifiants Git (SSH ou token personnel) :
+Si GitHub est injoignable depuis le serveur, ou en cas de souci ponctuel côté
+connecteur, l'ancienne méthode par bundle reste disponible : récupère le
+fichier `coachnat.bundle` fourni, copie-le sur le serveur, puis :
 
 ```bash
-cd ~/coach-nat
-git remote add origin git@github.com:nevisyst-byte/coach-nat.git   # une seule fois
-git push -u origin main
+~/coach-nat/web/deploy.sh ~/coachnat.bundle
 ```
-
-Ça garde GitHub synchronisé sans dépendre du connecteur cassé.
 
 ## 6. Sauvegardes
 

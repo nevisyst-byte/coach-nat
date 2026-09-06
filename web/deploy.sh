@@ -1,25 +1,18 @@
 #!/bin/bash
-# Applique un nouveau bundle Git et relance l'app en une seule commande.
+# Récupère la dernière version du code et relance l'app en une seule commande.
 #
-# Usage (depuis n'importe où, typiquement /home/flo) :
-#   ~/coach-nat/web/deploy.sh ~/coachnat.bundle
-#
-# Ou sans argument si le bundle est déjà à l'emplacement habituel :
+# Usage normal (depuis n'importe où, typiquement /home/flo) :
 #   ~/coach-nat/web/deploy.sh
+# → récupère la dernière version depuis GitHub (origin/main) et redéploie.
+#
+# Repli sans réseau GitHub (bundle fourni manuellement) :
+#   ~/coach-nat/web/deploy.sh ~/coachnat.bundle
 set -euo pipefail
 
-BUNDLE="${1:-$HOME/coachnat.bundle}"
+BUNDLE="${1:-}"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-if [ ! -f "$BUNDLE" ]; then
-  echo "Bundle introuvable : $BUNDLE"
-  echo "Passe le chemin en argument : $0 /chemin/vers/coachnat.bundle"
-  exit 1
-fi
-
 echo "==> Dépôt : $REPO_DIR"
-echo "==> Bundle : $BUNDLE"
-
 cd "$REPO_DIR"
 
 if ! git diff --quiet || ! git diff --cached --quiet; then
@@ -30,8 +23,17 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   exit 1
 fi
 
-echo "==> git pull du bundle..."
-git pull "$BUNDLE" main
+if [ -n "$BUNDLE" ]; then
+  if [ ! -f "$BUNDLE" ]; then
+    echo "Bundle introuvable : $BUNDLE"
+    exit 1
+  fi
+  echo "==> git pull du bundle $BUNDLE..."
+  git pull "$BUNDLE" main
+else
+  echo "==> git pull depuis GitHub (origin/main)..."
+  git pull origin main
+fi
 
 echo "==> Reconstruction et redémarrage des conteneurs..."
 cd "$REPO_DIR/web"
