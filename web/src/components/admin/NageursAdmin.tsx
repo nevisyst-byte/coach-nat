@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type Nageur = { id: string; nom: string; age: number; categorie: string; specialite: string; groupeId: string | null; pointsFFN: number; presenceRate: number; membreDepuis: string | null };
+type Nageur = { id: string; nom: string; age: number; categorie: string; specialite: string | null; groupeId: string | null; pointsFFN: number; presenceRate: number; membreDepuis: string | null };
 type Groupe = { id: string; nom: string };
 
 export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes: Groupe[] }) {
@@ -44,7 +44,7 @@ export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes:
         <input required placeholder="Nom complet" value={form.nom} onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
         <input required type="number" placeholder={`Année de naissance (ex. ${currentYear - 12})`} value={form.anneeNaissance} onChange={(e) => setForm((f) => ({ ...f, anneeNaissance: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
         <input required placeholder="Catégorie" value={form.categorie} onChange={(e) => setForm((f) => ({ ...f, categorie: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
-        <input required placeholder="Spécialité" value={form.specialite} onChange={(e) => setForm((f) => ({ ...f, specialite: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
+        <input placeholder="Spécialité (optionnel)" value={form.specialite} onChange={(e) => setForm((f) => ({ ...f, specialite: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
         <select value={form.groupeId} onChange={(e) => setForm((f) => ({ ...f, groupeId: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
           <option value="" style={{ background: "#101A2B" }}>
             — groupe —
@@ -74,7 +74,8 @@ export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes:
             <div style={{ minWidth: 160 }}>
               <div className="text-sm font-semibold">{n.nom}</div>
               <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
-                {n.age} ans · {n.categorie} · {n.specialite}
+                {n.age} ans · {n.categorie}
+                {n.specialite ? ` · ${n.specialite}` : ""}
               </div>
             </div>
             <select

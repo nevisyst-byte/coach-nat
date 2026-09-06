@@ -11,7 +11,7 @@ type NageurRow = {
   initiales: string;
   age: number;
   categorie: string;
-  specialite: string;
+  specialite: string | null;
   groupeId: string | null;
   groupeNom: string | null;
   pointsFFN: number;
@@ -69,7 +69,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
   }
 
   function openEdit(n: NageurRow) {
-    setEditForm({ ...splitNom(n.nom), anneeNaissance: String(currentYear - n.age), categorie: n.categorie, specialite: n.specialite, groupeId: n.groupeId ?? "" });
+    setEditForm({ ...splitNom(n.nom), anneeNaissance: String(currentYear - n.age), categorie: n.categorie, specialite: n.specialite ?? "", groupeId: n.groupeId ?? "" });
     setEditing({ id: n.id });
   }
 
@@ -123,7 +123,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
     setEditForm((f) => ({ ...f, groupeId, categorie: f.categorie.trim() ? f.categorie : (g?.categorie ?? f.categorie) }));
   }
 
-  const createIncomplet = !prenom.trim() || !nomFamille.trim() || !completer.categorie.trim() || !completer.specialite.trim() || !parseInt(completer.anneeNaissance, 10);
+  const createIncomplet = !prenom.trim() || !nomFamille.trim() || !completer.categorie.trim() || !parseInt(completer.anneeNaissance, 10);
 
   async function submitCreate() {
     if (createIncomplet) return;
@@ -134,7 +134,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
         nom: `${prenom.trim()} ${nomFamille.trim()}`.trim(),
         anneeNaissance: parseInt(completer.anneeNaissance, 10),
         categorie: completer.categorie.trim(),
-        specialite: completer.specialite.trim(),
+        specialite: completer.specialite.trim() || null,
         groupeId: completer.groupeId || null,
         ffnIuf: selectedIuf ?? undefined,
       };
@@ -153,7 +153,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
     }
   }
 
-  const editIncomplet = !editForm.prenom.trim() || !editForm.nomFamille.trim() || !editForm.categorie.trim() || !editForm.specialite.trim() || !parseInt(editForm.anneeNaissance, 10);
+  const editIncomplet = !editForm.prenom.trim() || !editForm.nomFamille.trim() || !editForm.categorie.trim() || !parseInt(editForm.anneeNaissance, 10);
 
   async function submitEdit() {
     if (!editing || editIncomplet) return;
@@ -163,7 +163,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
         nom: `${editForm.prenom.trim()} ${editForm.nomFamille.trim()}`.trim(),
         anneeNaissance: parseInt(editForm.anneeNaissance, 10),
         categorie: editForm.categorie.trim(),
-        specialite: editForm.specialite.trim(),
+        specialite: editForm.specialite.trim() || null,
         groupeId: editForm.groupeId || null,
       };
       await fetch(`/api/admin/nageurs/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -225,7 +225,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                           {n.nom}
                         </div>
                         <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
-                          {n.age} ans · {n.specialite}
+                          {n.age} ans{n.specialite ? ` · ${n.specialite}` : ""}
                         </div>
                       </div>
                     </Link>
@@ -390,7 +390,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                 </div>
               </div>
               <input
-                placeholder="Spécialité (ex. Crawl, 4 nages…)"
+                placeholder="Spécialité — optionnel, à définir par le coach (ex. Crawl, 4 nages…)"
                 value={completer.specialite}
                 onChange={(e) => setCompleter((f) => ({ ...f, specialite: e.target.value }))}
                 className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
@@ -471,7 +471,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                 ))}
               </select>
               <input
-                placeholder="Spécialité (ex. Crawl, 4 nages…)"
+                placeholder="Spécialité — optionnel, à définir par le coach (ex. Crawl, 4 nages…)"
                 value={editForm.specialite}
                 onChange={(e) => setEditForm((f) => ({ ...f, specialite: e.target.value }))}
                 className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"

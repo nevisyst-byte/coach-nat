@@ -123,7 +123,9 @@ model Nageur {
   // à partir de celle-ci à chaque enregistrement.
   anneeNaissance  Int?
   categorie       String
-  specialite      String
+  // Optionnelle : évolue avec le temps, sous l'appréciation du coach — pas
+  // forcément connue dès l'inscription du nageur.
+  specialite      String?
   // Identifiant unique fédéral (IUF) sur ffn.extranat.fr, une fois relié via
   // la recherche FFN sur la fiche nageur. Permet de resynchroniser les
   // performances sans redemander une recherche par nom.

@@ -87,7 +87,8 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
         <div className="flex-1" style={{ minWidth: 200 }}>
           <h2 className="font-display text-[32px] leading-none">{nageur.nom}</h2>
           <div className="text-[13px] mt-1.5" style={{ color: "var(--ink-body)" }}>
-            {nageur.age} ans · {nageur.categorie} · {nageur.groupe?.nom ?? "—"} · Spécialité {nageur.specialite}
+            {nageur.age} ans · {nageur.categorie} · {nageur.groupe?.nom ?? "—"}
+            {nageur.specialite ? ` · Spécialité ${nageur.specialite}` : ""}
           </div>
         </div>
         <div className="flex gap-3 flex-wrap">

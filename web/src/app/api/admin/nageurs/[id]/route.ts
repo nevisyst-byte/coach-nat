@@ -9,7 +9,7 @@ const bodySchema = z.object({
   anneeNaissance: z.number().int().min(1900).max(new Date().getFullYear()).optional(),
   age: z.number().int().positive().optional(),
   categorie: z.string().min(1).optional(),
-  specialite: z.string().min(1).optional(),
+  specialite: z.string().nullable().optional(),
   groupeId: z.string().nullable().optional(),
   pointsFFN: z.number().int().optional(),
   rangDept: z.number().int().nullable().optional(),

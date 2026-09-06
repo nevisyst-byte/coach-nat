@@ -13,7 +13,8 @@ const bodySchema = z.object({
   anneeNaissance: z.number().int().min(1900).max(new Date().getFullYear()).optional(),
   age: z.number().int().positive().optional(),
   categorie: z.string().min(1),
-  specialite: z.string().min(1),
+  // Optionnelle : évolue avec le temps, sous l'appréciation du coach.
+  specialite: z.string().nullable().optional(),
   groupeId: z.string().nullable().optional(),
   membreDepuis: z
     .string()
