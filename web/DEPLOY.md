@@ -82,15 +82,60 @@ sans toucher au reste de la config de ce tunnel.
 
 ## 5. Mises à jour
 
-Après un `git pull` de nouveaux changements :
+La session cloud qui développe ce projet n'a pas d'accès réseau sortant (ni vers
+GitHub, ni vers ton serveur) — les mises à jour arrivent donc sous forme d'un
+fichier `coachnat.bundle` (archive Git) à récupérer manuellement.
+
+### En une commande, avec `deploy.sh`
+
+Une fois `coachnat.bundle` téléchargé sur ton PC puis copié sur le serveur
+(`scp`), un seul script applique le bundle **et** relance l'app :
 
 ```bash
+~/coach-nat/web/deploy.sh ~/coachnat.bundle
+```
+
+*(ou juste `~/coach-nat/web/deploy.sh` si le bundle est déjà à `~/coachnat.bundle`)*
+
+Il vérifie qu'il n'y a pas de modifications locales non commitées qui
+bloqueraient la fusion, fait le `git pull` du bundle, reconstruit et relance
+les conteneurs, puis affiche leur état.
+
+### Mise à jour manuelle, étape par étape
+
+```bash
+cd ~/coach-nat
+git pull ~/coachnat.bundle main
+cd web
 docker compose --env-file .env.production up -d --build
 ```
 
 Le conteneur réappliquera automatiquement les migrations manquantes au
 redémarrage (`prisma migrate deploy` est sans danger à rejouer : il applique
 uniquement les migrations pas encore appliquées).
+
+Si `git pull` refuse en disant que des modifications locales seraient
+écrasées (ça peut arriver si un fichier a été édité à la main directement sur
+le serveur) : `git status` pour voir lesquelles, puis soit les committer, soit
+les annuler avec `git checkout -- <fichier>` avant de relancer le pull.
+
+### Garder aussi une copie à jour sur GitHub (optionnel)
+
+Le dépôt `nevisyst-byte/coach-nat` existe sur GitHub, mais la session cloud qui
+développe ce projet n'a actuellement pas les droits d'y pousser directement
+(connecteur GitHub qui reste bloqué en « autorisé » sans jamais s'installer
+comme application — pas un problème réseau cette fois, un souci côté connecteur
+resté sans solution malgré plusieurs tentatives). En attendant que ce soit
+résolu, tu peux pousser toi-même depuis le serveur, avec tes propres
+identifiants Git (SSH ou token personnel) :
+
+```bash
+cd ~/coach-nat
+git remote add origin git@github.com:nevisyst-byte/coach-nat.git   # une seule fois
+git push -u origin main
+```
+
+Ça garde GitHub synchronisé sans dépendre du connecteur cassé.
 
 ## 6. Sauvegardes
 
