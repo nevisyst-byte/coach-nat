@@ -43,7 +43,15 @@ const NIVEAU_LABEL: Record<string, string> = {
   "[DEP]": "Départemental",
 };
 
-export async function fetchFfnPerformances(iuf: string): Promise<FfnPerformance[]> {
+export type FfnPerformancesResult = {
+  performances: FfnPerformance[];
+  // Estimée à partir de l'âge affiché sur la performance la plus récente
+  // (colonne "(X ans)" de la page FFN) et de sa date — pas une vraie date de
+  // naissance (jour/mois inconnus), à confirmer/corriger par le coach.
+  anneeNaissanceEstimee: number | null;
+};
+
+export async function fetchFfnPerformances(iuf: string): Promise<FfnPerformancesResult> {
   const url = `${BASE}/nat_recherche.php?idact=nat&idiuf=${encodeURIComponent(iuf)}&idrch_id=${encodeURIComponent(iuf)}&idopt=mpp`;
   const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
   if (!res.ok) throw new Error(`Fiche FFN : HTTP ${res.status}`);
@@ -55,13 +63,14 @@ export async function fetchFfnPerformances(iuf: string): Promise<FfnPerformance[
  * liste des performances. Séparé de fetchFfnPerformances pour être testable
  * hors-ligne à partir d'un échantillon HTML réel — voir la note en tête de
  * fichier sur le risque de rupture si le site change sa structure. */
-export function parsePerformancesHtml(html: string): FfnPerformance[] {
+export function parsePerformancesHtml(html: string): FfnPerformancesResult {
   const $ = cheerio.load(html);
 
   const table = $("table").filter((_, el) => $(el).text().includes("Meilleures Performances Personnelles")).first();
-  if (table.length === 0) return [];
+  if (table.length === 0) return { performances: [], anneeNaissanceEstimee: null };
 
   const performances: FfnPerformance[] = [];
+  const ageHints: { anneeEstimee: number; date: string }[] = [];
   let bassin: "25m" | "50m" = "50m";
 
   // Le HTML source a des <tr> orphelins (sans <tbody> explicite) au milieu de
@@ -75,6 +84,7 @@ export function parsePerformancesHtml(html: string): FfnPerformance[] {
 
     const epreuve = $(cells[0]).text().trim();
     const temps = $(cells[1]).text().trim();
+    const ageAtPerf = $(cells[2]).text().trim(); // ex. "(16 ans)"
     const pointsText = $(cells[3]).text().trim();
     const points = parseInt(pointsText.replace(/[^\d]/g, ""), 10) || 0;
     const lieuTexts = $(cells[4]).find("p").map((_, p) => $(p).text().trim()).get();
@@ -86,6 +96,12 @@ export function parsePerformancesHtml(html: string): FfnPerformance[] {
 
     if (!epreuve || !temps) return;
     performances.push({ epreuve, bassin, temps, points, niveau, lieu, date, club });
+
+    const ageMatch = ageAtPerf.match(/(\d+)\s*an/);
+    const dateMatch = date.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (ageMatch && dateMatch) {
+      ageHints.push({ anneeEstimee: parseInt(dateMatch[3], 10) - parseInt(ageMatch[1], 10), date });
+    }
   }
 
   table.children().each((_, el) => {
@@ -103,5 +119,13 @@ export function parsePerformancesHtml(html: string): FfnPerformance[] {
     }
   });
 
-  return performances;
+  // La date la plus récente donne l'estimation la plus fiable (le plus proche
+  // possible de l'année de naissance réelle malgré l'approximation jour/mois).
+  const plusRecente = ageHints.sort((a, b) => {
+    const [, da, ma, ya] = a.date.match(/(\d{2})\/(\d{2})\/(\d{4})/) ?? [];
+    const [, db, mb, yb] = b.date.match(/(\d{2})\/(\d{2})\/(\d{4})/) ?? [];
+    return `${ya}${ma}${da}`.localeCompare(`${yb}${mb}${db}`);
+  })[ageHints.length - 1];
+
+  return { performances, anneeNaissanceEstimee: plusRecente?.anneeEstimee ?? null };
 }

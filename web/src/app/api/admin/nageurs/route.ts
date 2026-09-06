@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { upsertInscriptionActive } from "@/lib/saison";
+import { syncNageurFfn } from "@/lib/ffn-sync";
 
 const bodySchema = z.object({
   nom: z.string().min(1),
@@ -19,6 +20,9 @@ const bodySchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .nullable()
     .optional(),
+  // Si fourni (nageur trouvé sur FFN avant création), relie et synchronise
+  // ses performances immédiatement après la création.
+  ffnIuf: z.string().min(1).optional(),
 });
 
 export async function POST(request: Request) {
@@ -31,7 +35,7 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
-  const { anneeNaissance, age, ...rest } = parsed.data;
+  const { anneeNaissance, age, ffnIuf, ...rest } = parsed.data;
 
   const initiales = parsed.data.nom
     .split(" ")
@@ -51,5 +55,17 @@ export async function POST(request: Request) {
     },
   });
   await upsertInscriptionActive(nageur.id, nageur.groupeId);
-  return NextResponse.json({ ok: true, id: nageur.id });
+
+  let ffnError: string | null = null;
+  if (ffnIuf) {
+    try {
+      await syncNageurFfn(nageur.id, ffnIuf);
+    } catch (e) {
+      // Le nageur est créé même si la synchro FFN échoue (réseau, site FFN
+      // en panne…) — l'admin pourra réessayer depuis sa fiche.
+      ffnError = e instanceof Error ? e.message : "Synchronisation FFN indisponible";
+    }
+  }
+
+  return NextResponse.json({ ok: true, id: nageur.id, ffnError });
 }

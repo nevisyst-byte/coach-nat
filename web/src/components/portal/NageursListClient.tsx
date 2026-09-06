@@ -26,7 +26,6 @@ type Groupe = { id: string; nom: string; categorie: string };
 type FfnResult = { iuf: string; nom: string };
 
 const currentYear = new Date().getFullYear();
-const emptyForm = { prenom: "", nomFamille: "", anneeNaissance: "", categorie: "", specialite: "", groupeId: "" };
 
 function splitNom(nom: string) {
   const i = nom.indexOf(" ");
@@ -35,56 +34,139 @@ function splitNom(nom: string) {
 
 export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { groupesByPole: Pole[]; allGroupes: Groupe[]; isAdmin: boolean }) {
   const router = useRouter();
-  const [modal, setModal] = useState<{ mode: "create" } | { mode: "edit"; id: string } | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
 
-  // Après création, on propose de relier tout de suite le nageur à sa fiche FFN.
-  const [ffnStep, setFfnStep] = useState<{ nageurId: string; nom: string } | null>(null);
-  const [ffnQuery, setFfnQuery] = useState("");
+  // Création : "recherche" (prénom/nom + FFN) -> "completer" (champs propres au club).
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createStep, setCreateStep] = useState<"recherche" | "completer">("recherche");
+  const [prenom, setPrenom] = useState("");
+  const [nomFamille, setNomFamille] = useState("");
   const [ffnResults, setFfnResults] = useState<FfnResult[]>([]);
+  const [ffnSearched, setFfnSearched] = useState(false);
   const [ffnSearching, setFfnSearching] = useState(false);
-  const [ffnLinking, setFfnLinking] = useState(false);
   const [ffnError, setFfnError] = useState<string | null>(null);
+  const [selectedIuf, setSelectedIuf] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [completer, setCompleter] = useState({ anneeNaissance: "", categorie: "", specialite: "", groupeId: "" });
+  const [saving, setSaving] = useState(false);
+  const [saveWarning, setSaveWarning] = useState<string | null>(null);
+
+  // Édition d'un nageur existant : formulaire simple, sans re-recherche FFN
+  // (déjà gérée depuis sa fiche individuelle).
+  const [editing, setEditing] = useState<{ id: string } | null>(null);
+  const [editForm, setEditForm] = useState({ prenom: "", nomFamille: "", anneeNaissance: "", categorie: "", specialite: "", groupeId: "" });
 
   function openCreate() {
-    setForm(emptyForm);
-    setModal({ mode: "create" });
+    setPrenom("");
+    setNomFamille("");
+    setFfnResults([]);
+    setFfnSearched(false);
+    setFfnError(null);
+    setSelectedIuf(null);
+    setCompleter({ anneeNaissance: "", categorie: "", specialite: "", groupeId: "" });
+    setSaveWarning(null);
+    setCreateStep("recherche");
+    setCreateOpen(true);
   }
 
   function openEdit(n: NageurRow) {
-    setForm({ ...splitNom(n.nom), anneeNaissance: String(currentYear - n.age), categorie: n.categorie, specialite: n.specialite, groupeId: n.groupeId ?? "" });
-    setModal({ mode: "edit", id: n.id });
+    setEditForm({ ...splitNom(n.nom), anneeNaissance: String(currentYear - n.age), categorie: n.categorie, specialite: n.specialite, groupeId: n.groupeId ?? "" });
+    setEditing({ id: n.id });
   }
 
-  function chooseGroupe(groupeId: string) {
+  async function searchFfn() {
+    const q = `${prenom.trim()} ${nomFamille.trim()}`.trim();
+    if (q.length < 4) return;
+    setFfnSearching(true);
+    setFfnError(null);
+    try {
+      const res = await fetch(`/api/ffn/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setFfnError(data.error ?? "Erreur");
+        return;
+      }
+      setFfnResults(data.results);
+      setFfnSearched(true);
+    } finally {
+      setFfnSearching(false);
+    }
+  }
+
+  async function pickFfnResult(iuf: string) {
+    setSelectedIuf(iuf);
+    setPreviewLoading(true);
+    setFfnError(null);
+    try {
+      const res = await fetch(`/api/ffn/preview?iuf=${encodeURIComponent(iuf)}`);
+      const data = await res.json();
+      setCompleter((f) => ({ ...f, anneeNaissance: data.anneeNaissanceEstimee ? String(data.anneeNaissanceEstimee) : "" }));
+    } finally {
+      setPreviewLoading(false);
+      setCreateStep("completer");
+    }
+  }
+
+  function skipFfn() {
+    setSelectedIuf(null);
+    setCreateStep("completer");
+  }
+
+  function chooseGroupeCreate(groupeId: string) {
     const g = allGroupes.find((x) => x.id === groupeId);
-    setForm((f) => ({ ...f, groupeId, categorie: f.categorie.trim() ? f.categorie : (g?.categorie ?? f.categorie) }));
+    setCompleter((f) => ({ ...f, groupeId, categorie: f.categorie.trim() ? f.categorie : (g?.categorie ?? f.categorie) }));
   }
 
-  async function submit() {
-    const nom = `${form.prenom.trim()} ${form.nomFamille.trim()}`.trim();
-    const annee = parseInt(form.anneeNaissance, 10);
-    if (!nom || !form.categorie.trim() || !form.specialite.trim() || !annee) return;
+  function chooseGroupeEdit(groupeId: string) {
+    const g = allGroupes.find((x) => x.id === groupeId);
+    setEditForm((f) => ({ ...f, groupeId, categorie: f.categorie.trim() ? f.categorie : (g?.categorie ?? f.categorie) }));
+  }
+
+  const createIncomplet = !prenom.trim() || !nomFamille.trim() || !completer.categorie.trim() || !completer.specialite.trim() || !parseInt(completer.anneeNaissance, 10);
+
+  async function submitCreate() {
+    if (createIncomplet) return;
+    setSaving(true);
+    setSaveWarning(null);
+    try {
+      const body = {
+        nom: `${prenom.trim()} ${nomFamille.trim()}`.trim(),
+        anneeNaissance: parseInt(completer.anneeNaissance, 10),
+        categorie: completer.categorie.trim(),
+        specialite: completer.specialite.trim(),
+        groupeId: completer.groupeId || null,
+        ffnIuf: selectedIuf ?? undefined,
+      };
+      const res = await fetch("/api/admin/nageurs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (data.ffnError) {
+        setSaveWarning(`Nageur créé, mais la synchro FFN a échoué (${data.ffnError}) — réessayable depuis sa fiche.`);
+        setSaving(false);
+        router.refresh();
+        return;
+      }
+      setCreateOpen(false);
+      router.refresh();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const editIncomplet = !editForm.prenom.trim() || !editForm.nomFamille.trim() || !editForm.categorie.trim() || !editForm.specialite.trim() || !parseInt(editForm.anneeNaissance, 10);
+
+  async function submitEdit() {
+    if (!editing || editIncomplet) return;
     setSaving(true);
     try {
-      const body = { nom, anneeNaissance: annee, categorie: form.categorie.trim(), specialite: form.specialite.trim(), groupeId: form.groupeId || null };
-      if (modal?.mode === "edit") {
-        await fetch(`/api/admin/nageurs/${modal.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-        setModal(null);
-        router.refresh();
-      } else {
-        const res = await fetch("/api/admin/nageurs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-        const data = await res.json();
-        setModal(null);
-        router.refresh();
-        if (res.ok) {
-          setFfnQuery(nom);
-          setFfnResults([]);
-          setFfnError(null);
-          setFfnStep({ nageurId: data.id, nom });
-        }
-      }
+      const body = {
+        nom: `${editForm.prenom.trim()} ${editForm.nomFamille.trim()}`.trim(),
+        anneeNaissance: parseInt(editForm.anneeNaissance, 10),
+        categorie: editForm.categorie.trim(),
+        specialite: editForm.specialite.trim(),
+        groupeId: editForm.groupeId || null,
+      };
+      await fetch(`/api/admin/nageurs/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      setEditing(null);
+      router.refresh();
     } finally {
       setSaving(false);
     }
@@ -96,44 +178,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
     router.refresh();
   }
 
-  async function searchFfn() {
-    if (!ffnStep) return;
-    setFfnSearching(true);
-    setFfnError(null);
-    try {
-      const res = await fetch(`/api/nageurs/${ffnStep.nageurId}/ffn?q=${encodeURIComponent(ffnQuery)}`);
-      const data = await res.json();
-      if (!res.ok) {
-        setFfnError(data.error ?? "Erreur");
-        return;
-      }
-      setFfnResults(data.results);
-    } finally {
-      setFfnSearching(false);
-    }
-  }
-
-  async function linkFfn(iuf: string) {
-    if (!ffnStep) return;
-    setFfnLinking(true);
-    setFfnError(null);
-    try {
-      const res = await fetch(`/api/nageurs/${ffnStep.nageurId}/ffn`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ iuf }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setFfnError(data.error ?? "Erreur");
-        return;
-      }
-      setFfnStep(null);
-      router.refresh();
-    } finally {
-      setFfnLinking(false);
-    }
-  }
+  const inputStyle = { background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" };
 
   return (
     <>
@@ -215,44 +260,100 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
         ))}
       </div>
 
-      {modal && (
-        <div onClick={() => setModal(null)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
+      {/* Création : étape 1, recherche FFN */}
+      {createOpen && createStep === "recherche" && (
+        <div onClick={() => setCreateOpen(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl" style={{ maxWidth: 480, background: "#101A2B", border: "1px solid var(--border-strong)" }}>
+            <div className="px-6 py-5" style={{ borderBottom: "1px solid var(--border-strong)" }}>
+              <h2 className="font-display text-[22px] tracking-[0.05em]">Nouveau nageur</h2>
+              <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
+                Saisis le nom, on cherche directement sur ffn.extranat.fr pour récupérer ce qui existe.
+              </div>
+            </div>
+            <div className="px-6 py-5 flex flex-col gap-3.5">
+              <div className="grid grid-cols-2 gap-3.5">
+                <input placeholder="Prénom" value={prenom} onChange={(e) => setPrenom(e.target.value)} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={inputStyle} />
+                <input placeholder="Nom" value={nomFamille} onChange={(e) => setNomFamille(e.target.value)} onKeyDown={(e) => e.key === "Enter" && searchFfn()} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={inputStyle} />
+              </div>
+              <button
+                onClick={searchFfn}
+                disabled={ffnSearching || `${prenom.trim()} ${nomFamille.trim()}`.trim().length < 4}
+                className="rounded-[10px] py-2.5 text-[13px] font-bold cursor-pointer"
+                style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: ffnSearching || `${prenom.trim()} ${nomFamille.trim()}`.trim().length < 4 ? 0.5 : 1 }}
+              >
+                {ffnSearching ? "Recherche…" : "Chercher sur FFN"}
+              </button>
+              {ffnError && (
+                <div className="text-[13px]" style={{ color: "#FF9179" }}>
+                  {ffnError}
+                </div>
+              )}
+              {ffnResults.length > 0 && (
+                <div className="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto">
+                  {ffnResults.map((r) => (
+                    <button
+                      key={r.iuf}
+                      onClick={() => pickFfnResult(r.iuf)}
+                      disabled={previewLoading}
+                      className="flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left cursor-pointer"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }}
+                    >
+                      <span className="text-sm font-semibold">{r.nom}</span>
+                      <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                        {previewLoading && selectedIuf === r.iuf ? "…" : `IUF ${r.iuf}`}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {ffnResults.length === 0 && !ffnSearching && ffnSearched && (
+                <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+                  Aucun résultat FFN — tu peux continuer en saisie manuelle.
+                </div>
+              )}
+            </div>
+            <div className="px-6 pb-5 pt-2 flex gap-2.5 justify-end" style={{ borderTop: "1px solid var(--border)" }}>
+              <button onClick={() => setCreateOpen(false)} className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+                Annuler
+              </button>
+              <button onClick={skipFfn} disabled={!prenom.trim() || !nomFamille.trim()} className="rounded-[10px] px-5 py-2.5 text-[13px] font-bold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)", opacity: !prenom.trim() || !nomFamille.trim() ? 0.5 : 1 }}>
+                Continuer sans FFN
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Création : étape 2, compléter les champs propres au club */}
+      {createOpen && createStep === "completer" && (
+        <div onClick={() => setCreateOpen(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
           <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl" style={{ maxWidth: 480, background: "#101A2B", border: "1px solid var(--border-strong)" }}>
             <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
-              <h2 className="font-display text-[22px] tracking-[0.05em]">{modal.mode === "edit" ? "Modifier le nageur" : "Nouveau nageur"}</h2>
-              <button onClick={() => setModal(null)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
-                ✕
+              <div>
+                <h2 className="font-display text-[22px] tracking-[0.05em]">
+                  {prenom} {nomFamille}
+                </h2>
+                <div className="text-[13px] mt-0.5" style={{ color: selectedIuf ? "#2ECC8F" : "var(--ink-secondary)" }}>
+                  {selectedIuf ? `Relié à la fiche FFN (IUF ${selectedIuf})` : "Sans lien FFN"}
+                </div>
+              </div>
+              <button onClick={() => setCreateStep("recherche")} className="text-xs cursor-pointer underline" style={{ color: "var(--ink-muted)" }}>
+                ← changer
               </button>
             </div>
             <div className="px-6 py-5 flex flex-col gap-3.5">
               <div className="grid grid-cols-2 gap-3.5">
-                <input
-                  placeholder="Prénom"
-                  value={form.prenom}
-                  onChange={(e) => setForm((f) => ({ ...f, prenom: e.target.value }))}
-                  className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                />
-                <input
-                  placeholder="Nom"
-                  value={form.nomFamille}
-                  onChange={(e) => setForm((f) => ({ ...f, nomFamille: e.target.value }))}
-                  className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3.5">
                 <div>
                   <div className="text-[11px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "#61789B" }}>
-                    Année de naissance
+                    Année de naissance {selectedIuf && completer.anneeNaissance && <span style={{ color: "#2ECC8F" }}>(estimée FFN)</span>}
                   </div>
                   <input
                     type="number"
                     placeholder={`ex. ${currentYear - 12}`}
-                    value={form.anneeNaissance}
-                    onChange={(e) => setForm((f) => ({ ...f, anneeNaissance: e.target.value }))}
+                    value={completer.anneeNaissance}
+                    onChange={(e) => setCompleter((f) => ({ ...f, anneeNaissance: e.target.value }))}
                     className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                    style={inputStyle}
                   />
                 </div>
                 <div>
@@ -261,10 +362,10 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                   </div>
                   <input
                     placeholder="ex. Espoir, EN3…"
-                    value={form.categorie}
-                    onChange={(e) => setForm((f) => ({ ...f, categorie: e.target.value }))}
+                    value={completer.categorie}
+                    onChange={(e) => setCompleter((f) => ({ ...f, categorie: e.target.value }))}
                     className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                    style={inputStyle}
                   />
                 </div>
               </div>
@@ -272,12 +373,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                 <div className="text-[11px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "#61789B" }}>
                   Groupe
                 </div>
-                <select
-                  value={form.groupeId}
-                  onChange={(e) => chooseGroupe(e.target.value)}
-                  className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                >
+                <select value={completer.groupeId} onChange={(e) => chooseGroupeCreate(e.target.value)} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={inputStyle}>
                   <option value="" style={{ background: "#101A2B" }}>
                     — groupe —
                   </option>
@@ -293,82 +389,104 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
               </div>
               <input
                 placeholder="Spécialité (ex. Crawl, 4 nages…)"
-                value={form.specialite}
-                onChange={(e) => setForm((f) => ({ ...f, specialite: e.target.value }))}
+                value={completer.specialite}
+                onChange={(e) => setCompleter((f) => ({ ...f, specialite: e.target.value }))}
                 className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                style={inputStyle}
               />
+              {saveWarning && (
+                <div className="text-[13px]" style={{ color: "#F2B33D" }}>
+                  {saveWarning}
+                </div>
+              )}
             </div>
             <div className="px-6 pb-5 pt-2 flex gap-2.5 justify-end">
-              <button onClick={() => setModal(null)} className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+              <button onClick={() => setCreateOpen(false)} className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
                 Annuler
               </button>
               <button
-                onClick={submit}
-                disabled={saving || !form.prenom.trim() || !form.nomFamille.trim() || !form.categorie.trim() || !form.specialite.trim() || !parseInt(form.anneeNaissance, 10)}
+                onClick={submitCreate}
+                disabled={saving || createIncomplet}
                 className="rounded-[10px] px-5 py-2.5 text-[13px] font-bold cursor-pointer"
-                style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}
+                style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving || createIncomplet ? 0.5 : 1, cursor: saving || createIncomplet ? "not-allowed" : "pointer" }}
               >
-                {saving ? "Enregistrement…" : modal.mode === "edit" ? "Enregistrer" : "Créer le nageur"}
+                {saving ? "Enregistrement…" : "Créer le nageur"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {ffnStep && (
-        <div onClick={() => setFfnStep(null)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
+      {editing && (
+        <div onClick={() => setEditing(null)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
           <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl" style={{ maxWidth: 480, background: "#101A2B", border: "1px solid var(--border-strong)" }}>
-            <div className="px-6 py-5" style={{ borderBottom: "1px solid var(--border-strong)" }}>
-              <h2 className="font-display text-[22px] tracking-[0.05em]">Relier {ffnStep.nom} à sa fiche FFN ?</h2>
-              <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
-                Nageur créé. Tu peux le relier maintenant à ffn.extranat.fr pour récupérer ses performances, ou le faire plus tard depuis sa fiche.
-              </div>
+            <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
+              <h2 className="font-display text-[22px] tracking-[0.05em]">Modifier le nageur</h2>
+              <button onClick={() => setEditing(null)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
+                ✕
+              </button>
             </div>
             <div className="px-6 py-5 flex flex-col gap-3.5">
-              <div className="flex gap-2">
-                <input
-                  value={ffnQuery}
-                  onChange={(e) => setFfnQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && searchFfn()}
-                  placeholder="Nom Prénom (4 caractères min.)"
-                  className="flex-1 rounded-[9px] px-3 py-2.5 text-sm outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                />
-                <button
-                  onClick={searchFfn}
-                  disabled={ffnSearching || ffnQuery.trim().length < 4}
-                  className="rounded-[9px] px-4 py-2.5 text-[13px] font-bold cursor-pointer"
-                  style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: ffnSearching ? 0.7 : 1 }}
-                >
-                  {ffnSearching ? "…" : "Chercher"}
-                </button>
+              <div className="grid grid-cols-2 gap-3.5">
+                <input placeholder="Prénom" value={editForm.prenom} onChange={(e) => setEditForm((f) => ({ ...f, prenom: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={inputStyle} />
+                <input placeholder="Nom" value={editForm.nomFamille} onChange={(e) => setEditForm((f) => ({ ...f, nomFamille: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={inputStyle} />
               </div>
-              {ffnError && (
-                <div className="text-[13px]" style={{ color: "#FF9179" }}>
-                  {ffnError}
+              <div className="grid grid-cols-2 gap-3.5">
+                <div>
+                  <div className="text-[11px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "#61789B" }}>
+                    Année de naissance
+                  </div>
+                  <input
+                    type="number"
+                    placeholder={`ex. ${currentYear - 12}`}
+                    value={editForm.anneeNaissance}
+                    onChange={(e) => setEditForm((f) => ({ ...f, anneeNaissance: e.target.value }))}
+                    className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
+                    style={inputStyle}
+                  />
                 </div>
-              )}
-              <div className="flex flex-col gap-1.5 max-h-[240px] overflow-y-auto">
-                {ffnResults.map((r) => (
-                  <button
-                    key={r.iuf}
-                    onClick={() => linkFfn(r.iuf)}
-                    disabled={ffnLinking}
-                    className="flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left cursor-pointer"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }}
-                  >
-                    <span className="text-sm font-semibold">{r.nom}</span>
-                    <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
-                      IUF {r.iuf}
-                    </span>
-                  </button>
-                ))}
+                <div>
+                  <div className="text-[11px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "#61789B" }}>
+                    Catégorie
+                  </div>
+                  <input
+                    placeholder="ex. Espoir, EN3…"
+                    value={editForm.categorie}
+                    onChange={(e) => setEditForm((f) => ({ ...f, categorie: e.target.value }))}
+                    className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
+                    style={inputStyle}
+                  />
+                </div>
               </div>
+              <select value={editForm.groupeId} onChange={(e) => chooseGroupeEdit(e.target.value)} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={inputStyle}>
+                <option value="" style={{ background: "#101A2B" }}>
+                  — groupe —
+                </option>
+                {allGroupes.map((g) => (
+                  <option key={g.id} value={g.id} style={{ background: "#101A2B" }}>
+                    {g.nom}
+                  </option>
+                ))}
+              </select>
+              <input
+                placeholder="Spécialité (ex. Crawl, 4 nages…)"
+                value={editForm.specialite}
+                onChange={(e) => setEditForm((f) => ({ ...f, specialite: e.target.value }))}
+                className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
+                style={inputStyle}
+              />
             </div>
-            <div className="px-6 pb-5 pt-2 flex gap-2.5 justify-end" style={{ borderTop: "1px solid var(--border)" }}>
-              <button onClick={() => setFfnStep(null)} className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
-                Plus tard
+            <div className="px-6 pb-5 pt-2 flex gap-2.5 justify-end">
+              <button onClick={() => setEditing(null)} className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+                Annuler
+              </button>
+              <button
+                onClick={submitEdit}
+                disabled={saving || editIncomplet}
+                className="rounded-[10px] px-5 py-2.5 text-[13px] font-bold cursor-pointer"
+                style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving || editIncomplet ? 0.5 : 1, cursor: saving || editIncomplet ? "not-allowed" : "pointer" }}
+              >
+                {saving ? "Enregistrement…" : "Enregistrer"}
               </button>
             </div>
           </div>
@@ -377,3 +495,4 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
     </>
   );
 }
+

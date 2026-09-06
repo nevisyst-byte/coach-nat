@@ -18,6 +18,19 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
   const [success, setSuccess] = useState<string | null>(null);
 
   const resetConfirme = !resetDonnees || confirmText.trim().toUpperCase() === "RÉINITIALISER";
+  const formIncomplet = !label.trim() || !dateDebut || !dateFin || !resetConfirme;
+
+  function ouvrirFormulaire() {
+    const now = new Date();
+    // Une saison de natation démarre en septembre : avant septembre on
+    // propose "année précédente - année en cours", sinon "année en cours -
+    // suivante".
+    const debut = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+    setLabel(`${debut}-${debut + 1}`);
+    setDateDebut(`${debut}-09-01`);
+    setDateFin(`${debut + 1}-08-31`);
+    setFormOpen(true);
+  }
 
   async function activer(id: string, label: string) {
     setError(null);
@@ -109,7 +122,7 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
 
       {!formOpen ? (
         <button
-          onClick={() => setFormOpen(true)}
+          onClick={ouvrirFormulaire}
           className="self-start rounded-[10px] px-4 py-2.5 text-[13px] font-bold cursor-pointer"
           style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff" }}
         >
@@ -185,9 +198,9 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
             </button>
             <button
               onClick={creer}
-              disabled={saving || !label.trim() || !dateDebut || !dateFin || !resetConfirme}
+              disabled={saving || formIncomplet}
               className="rounded-[10px] px-5 py-2.5 text-[13px] font-bold cursor-pointer"
-              style={{ background: resetDonnees ? "linear-gradient(135deg,#E8442B,#B92E19)" : "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving || !resetConfirme ? 0.6 : 1 }}
+              style={{ background: resetDonnees ? "linear-gradient(135deg,#E8442B,#B92E19)" : "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving || formIncomplet ? 0.5 : 1, cursor: saving || formIncomplet ? "not-allowed" : "pointer" }}
             >
               {saving ? "Création…" : resetDonnees ? "Créer et réinitialiser" : "Créer et activer"}
             </button>
