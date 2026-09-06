@@ -342,12 +342,14 @@ model Conge {
 
 model SeancePlan {
   id           String   @id @default(cuid())
+  nom          String   @default("Modèle sans nom")
   groupeNom    String
   variant      String
   intensite    String
   nage         String
   volumeCible  Int
   blocs        Json
+  updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
 }
 

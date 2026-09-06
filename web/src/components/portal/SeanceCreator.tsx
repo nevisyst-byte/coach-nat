@@ -16,7 +16,9 @@ function todayInput() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function SeanceCreator({ groupes }: { groupes: string[] }) {
+type Modele = { id: string; nom: string; groupeNom: string; variant: string; intensite: string; nage: string; volumeCible: number };
+
+export function SeanceCreator({ groupes, modeles: modelesInitiaux }: { groupes: string[]; modeles: Modele[] }) {
   const [variant, setVariant] = useState("Nage complète");
   const [intensite, setIntensite] = useState("Allure 400");
   const [nage, setNage] = useState("4 nages");
@@ -25,6 +27,33 @@ export function SeanceCreator({ groupes }: { groupes: string[] }) {
   const [date, setDate] = useState(todayInput());
   const [saved, setSaved] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const [modeles, setModeles] = useState(modelesInitiaux);
+  const [nomModele, setNomModele] = useState("");
+  const [modeleChargeId, setModeleChargeId] = useState<string | null>(null);
+
+  function chargerModele(m: Modele) {
+    setVariant(m.variant);
+    setIntensite(m.intensite);
+    setNage(m.nage);
+    setGroupe(m.groupeNom);
+    const vol = VOLUMES.find((v) => parseInt(v.replace(/\s/g, ""), 10) === m.volumeCible);
+    if (vol) setVolume(vol);
+    setNomModele(m.nom);
+    setModeleChargeId(m.id);
+    setSaved(null);
+  }
+
+  function nouveauModele() {
+    setNomModele("");
+    setModeleChargeId(null);
+  }
+
+  async function supprimerModele(id: string) {
+    await fetch(`/api/seances/${id}`, { method: "DELETE" });
+    setModeles((prev) => prev.filter((m) => m.id !== id));
+    if (modeleChargeId === id) nouveauModele();
+  }
 
   const axesState: Record<string, [string, (v: string) => void]> = {
     variant: [variant, setVariant],
@@ -51,22 +80,84 @@ export function SeanceCreator({ groupes }: { groupes: string[] }) {
   }
 
   async function enregistrerModele() {
+    if (!nomModele.trim()) return;
     setSaving(true);
     setSaved(null);
     try {
-      await fetch("/api/seances", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groupeNom: groupe, variant, intensite, nage, volumeCible, blocs }),
-      });
-      setSaved("Modèle de séance enregistré (réutilisable, sans date).");
+      const payload = { nom: nomModele.trim(), groupeNom: groupe, variant, intensite, nage, volumeCible, blocs };
+      if (modeleChargeId) {
+        await fetch(`/api/seances/${modeleChargeId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        setModeles((prev) => prev.map((m) => (m.id === modeleChargeId ? { ...m, ...payload } : m)).sort((a, b) => (a.id === modeleChargeId ? -1 : b.id === modeleChargeId ? 1 : 0)));
+        setSaved(`Modèle « ${payload.nom} » mis à jour.`);
+      } else {
+        const res = await fetch("/api/seances", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        setModeles((prev) => [{ id: data.id, ...payload }, ...prev]);
+        setModeleChargeId(data.id);
+        setSaved(`Modèle « ${payload.nom} » enregistré (réutilisable, sans date).`);
+      }
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(330px,1fr))" }}>
+    <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "260px repeat(auto-fit,minmax(330px,1fr))" }}>
+      <Card style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="flex items-baseline justify-between">
+          <h3 className="font-display text-[17px] tracking-[0.1em] uppercase">Modèles enregistrés</h3>
+        </div>
+        <div className="flex flex-col gap-1.5" style={{ maxHeight: 420, overflowY: "auto" }}>
+          {modeles.map((m) => (
+            <div
+              key={m.id}
+              className="flex items-center gap-2 rounded-[9px] px-3 py-2 cursor-pointer"
+              onClick={() => chargerModele(m)}
+              style={{
+                background: modeleChargeId === m.id ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${modeleChargeId === m.id ? "#1E7BFF" : "var(--border-strong)"}`,
+              }}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-semibold truncate">{m.nom}</div>
+                <div className="text-[11px] truncate" style={{ color: "var(--ink-secondary)" }}>
+                  {m.groupeNom}
+                </div>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  supprimerModele(m.id);
+                }}
+                className="text-xs cursor-pointer shrink-0"
+                style={{ color: "var(--ink-muted)" }}
+                title="Supprimer ce modèle"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          {modeles.length === 0 && (
+            <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+              Aucun modèle enregistré pour l&apos;instant.
+            </div>
+          )}
+        </div>
+        {modeleChargeId && (
+          <button onClick={nouveauModele} className="self-start text-[12px] cursor-pointer underline" style={{ color: "var(--ink-muted)" }}>
+            + Nouveau modèle (au lieu de modifier)
+          </button>
+        )}
+      </Card>
+
       <Card style={{ display: "flex", flexDirection: "column", gap: 22 }}>
         {AXES.map((ax) => {
           const [value, setValue] = axesState[ax.key];
@@ -151,12 +242,24 @@ export function SeanceCreator({ groupes }: { groupes: string[] }) {
             </div>
           ))}
         </div>
-        <div className="flex gap-2.5 mt-5 flex-wrap">
+        <div className="mt-5">
+          <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+            Nom du modèle
+          </div>
+          <input
+            value={nomModele}
+            onChange={(e) => setNomModele(e.target.value)}
+            placeholder="ex. Vitesse crawl pré-compét"
+            className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+          />
+        </div>
+        <div className="flex gap-2.5 mt-3 flex-wrap">
           <button onClick={planifier} disabled={saving} className="flex-1 rounded-[10px] py-3 text-[13px] font-bold cursor-pointer" style={{ minWidth: 130, background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
             {saving ? "Enregistrement…" : "Planifier la séance"}
           </button>
-          <button onClick={enregistrerModele} disabled={saving} className="flex-1 rounded-[10px] py-3 text-[13px] font-semibold cursor-pointer" style={{ minWidth: 130, border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
-            Enregistrer le modèle
+          <button onClick={enregistrerModele} disabled={saving || !nomModele.trim()} className="flex-1 rounded-[10px] py-3 text-[13px] font-semibold cursor-pointer" style={{ minWidth: 130, border: "1px solid var(--border-strong)", color: "var(--ink)", opacity: !nomModele.trim() ? 0.5 : 1 }}>
+            {modeleChargeId ? `Mettre à jour « ${nomModele.trim() || "…"} »` : "Enregistrer sous ce nom"}
           </button>
         </div>
         {saved && (

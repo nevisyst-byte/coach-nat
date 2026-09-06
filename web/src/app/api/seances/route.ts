@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
 const bodySchema = z.object({
+  nom: z.string().min(1),
   groupeNom: z.string(),
   variant: z.string(),
   intensite: z.string(),
@@ -11,6 +12,14 @@ const bodySchema = z.object({
   volumeCible: z.number().int(),
   blocs: z.array(z.object({ phase: z.string(), distance: z.string(), contenu: z.string(), consigne: z.string() })),
 });
+
+export async function GET() {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+  const seances = await prisma.seancePlan.findMany({ orderBy: { updatedAt: "desc" } });
+  return NextResponse.json({ seances });
+}
 
 export async function POST(request: Request) {
   const session = await getSession();
