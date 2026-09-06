@@ -138,7 +138,7 @@ export function Header({ userName }: { userName: string }) {
           className="hidden lg:flex items-center rounded-[10px] px-3 py-2 text-xs font-bold tracking-[0.1em] uppercase"
           style={{ background: "rgba(30,123,255,0.12)", border: "1px solid rgba(30,123,255,0.4)", color: "#8CC4FF" }}
         >
-          Saison 25/26
+          Saison 26/27
         </div>
         <button
           onClick={logout}
