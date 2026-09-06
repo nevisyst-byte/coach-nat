@@ -120,7 +120,7 @@ async function GlobalDashboard() {
     }));
   const podiumOrder = podium.length === 3 ? [podium[1], podium[0], podium[2]] : podium;
   const medaille = ["#F2B33D", "#C8D4E4", "#D08A5A"];
-  const heights = [118, 158, 88];
+  const heights = [158, 118, 88];
 
   return (
     <>
