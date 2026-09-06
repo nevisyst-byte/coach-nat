@@ -141,3 +141,45 @@ manuel :
 ```bash
 docker compose --env-file .env.production exec db pg_dump -U coachnat coachnat > backup-$(date +%F).sql
 ```
+
+## 7. Mailing (mot de passe oublié, notifications)
+
+L'app envoie des mails via [Resend](https://resend.com) : réinitialisation de
+mot de passe, créneau à couvrir, absence déclarée, rappel d'échéance à venir.
+Sans clé API configurée, les mails sont simplement journalisés dans les logs
+du conteneur `app` (rien n'est cassé, l'app fonctionne normalement).
+
+### Mettre en place Resend
+
+1. Crée un compte sur [resend.com](https://resend.com) (gratuit jusqu'à 3000
+   mails/mois).
+2. Onglet **Domains** → ajoute `nevi-syst.com` (ou un sous-domaine dédié,
+   ex. `mail.nevi-syst.com`) et suis les instructions pour ajouter les
+   enregistrements DNS (SPF/DKIM) chez ton registrar. Sans domaine vérifié,
+   Resend ne laisse envoyer qu'à l'adresse mail du compte — inutilisable pour
+   de vrais coachs.
+3. Onglet **API Keys** → crée une clé, copie-la dans `.env.production` :
+   ```
+   RESEND_API_KEY=re_xxxxxxxx
+   MAIL_FROM=COACH-NAT <notifications@nevi-syst.com>
+   APP_URL=https://coach-nat.nevi-syst.com
+   ```
+4. Relance le conteneur `app` (`docker compose --env-file .env.production up -d app`)
+   pour qu'il prenne en compte les nouvelles variables.
+
+### Rappel d'échéances (tâche cron)
+
+Le serveur Next.js self-hosté n'a pas de scheduler intégré : le rappel mail
+avant une échéance de saison (compétition, réunion...) est déclenché par un
+appel HTTP externe, à faire une fois par jour via `crontab` sur le serveur :
+
+```bash
+crontab -e
+# tous les jours à 8h :
+0 8 * * * curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://coach-nat.nevi-syst.com/api/cron/echeances-rappel
+```
+
+Remplace `$CRON_SECRET` par la valeur mise dans `.env.production`. Chaque
+échéance ne déclenche qu'un seul rappel (marqué en base une fois envoyé),
+donc un appel quotidien suffit même si le job tourne plusieurs jours de
+suite avant l'échéance.

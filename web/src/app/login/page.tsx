@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
@@ -134,6 +135,10 @@ function LoginForm() {
           >
             {loading ? "Connexion…" : "Se connecter"}
           </button>
+
+          <Link href="/mot-de-passe-oublie" className="text-[12px] text-center" style={{ color: "var(--ink-secondary)" }}>
+            Mot de passe oublié ?
+          </Link>
         </form>
       </div>
     </div>

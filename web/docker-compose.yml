@@ -24,6 +24,12 @@ services:
       DATABASE_URL: postgresql://coachnat:${POSTGRES_PASSWORD:-coachnat}@db:5432/coachnat?schema=public
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set in .env}
       NODE_ENV: production
+      # Mailing (mot de passe oublié, notifications) — voir DEPLOY.md § Mailing.
+      # RESEND_API_KEY vide = les mails sont simplement journalisés, pas envoyés.
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-COACH-NAT <onboarding@resend.dev>}
+      APP_URL: ${APP_URL:-https://coach-nat.nevi-syst.com}
+      CRON_SECRET: ${CRON_SECRET:-}
     ports:
       # Publié sur l'hôte pour que le tunnel Cloudflare existant (qui route
       # via l'IP de la passerelle Docker, comme pour immo/n8n/etc.) puisse

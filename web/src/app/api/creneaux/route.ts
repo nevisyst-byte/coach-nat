@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { notifierCreneauACouvrir } from "@/lib/notifications";
 
 const bodySchema = z.object({
   jour: z.number().int().min(0).max(6),
@@ -22,6 +23,11 @@ export async function POST(request: Request) {
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
 
-  const creneau = await prisma.creneau.create({ data: parsed.data });
+  const creneau = await prisma.creneau.create({ data: parsed.data, include: { groupe: true } });
+  if (creneau.etat === "A_COUVRIR") {
+    notifierCreneauACouvrir({ jour: creneau.jour, debut: creneau.debut, fin: creneau.fin, bassin: creneau.bassin, groupeNom: creneau.groupe.nom }).catch((e) =>
+      console.error("[notif] créneau à couvrir:", e)
+    );
+  }
   return NextResponse.json({ ok: true, id: creneau.id });
 }

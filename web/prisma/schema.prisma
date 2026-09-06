@@ -74,13 +74,27 @@ enum StatutConge {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         Role     @default(COACH)
-  coach        Coach?
-  createdAt    DateTime @default(now())
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  name                String
+  role                Role                 @default(COACH)
+  coach               Coach?
+  passwordResetTokens PasswordResetToken[]
+  createdAt           DateTime             @default(now())
+}
+
+// Jeton de réinitialisation de mot de passe envoyé par mail. Seul son hash
+// (sha256) est stocké — jamais le jeton en clair — et il est à usage unique
+// (usedAt) avec une durée de vie courte (voir lib/password-reset.ts).
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
 }
 
 model Coach {
@@ -408,11 +422,14 @@ model SeancePlan {
 }
 
 model Echeance {
-  id     String   @id @default(cuid())
-  date   DateTime
-  titre  String
-  detail String
-  color  String   @default("#1E7BFF")
+  id            String   @id @default(cuid())
+  date          DateTime
+  titre         String
+  detail        String
+  color         String   @default("#1E7BFF")
+  // Évite de renvoyer plusieurs fois le mail de rappel si la tâche cron
+  // passe plusieurs fois dans la fenêtre de rappel avant l'échéance.
+  rappelEnvoye  Boolean  @default(false)
 }
 
 model CycleThematique {

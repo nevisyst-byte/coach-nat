@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { notifierCreneauACouvrir } from "@/lib/notifications";
 
 const bodySchema = z.object({
   actifHorsVacances: z.boolean().optional(),
@@ -34,7 +35,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { jour, debut, fin, groupeId, coachId, bassin, etat } = fields;
   if (jour !== undefined || debut !== undefined || fin !== undefined || groupeId !== undefined || coachId !== undefined || bassin !== undefined || etat !== undefined) {
-    await prisma.creneau.update({ where: { id }, data: { jour, debut, fin, groupeId, coachId, bassin, etat } });
+    const avant = etat === "A_COUVRIR" ? await prisma.creneau.findUnique({ where: { id }, select: { etat: true } }) : null;
+    const apres = await prisma.creneau.update({ where: { id }, data: { jour, debut, fin, groupeId, coachId, bassin, etat }, include: { groupe: true } });
+    if (etat === "A_COUVRIR" && avant?.etat !== "A_COUVRIR") {
+      notifierCreneauACouvrir({ jour: apres.jour, debut: apres.debut, fin: apres.fin, bassin: apres.bassin, groupeNom: apres.groupe.nom }).catch((e) =>
+        console.error("[notif] créneau à couvrir:", e)
+      );
+    }
   }
 
   if (nageurIds !== undefined) {
