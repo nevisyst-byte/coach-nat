@@ -145,6 +145,27 @@ Une synchronisation **remplace entièrement** les `Performance` existantes du na
 donc écrasées. `deltaSaison` et `rangNat` (colonnes historiques de l'écran, issues du
 prototype) ne sont pas fournies par la page FFN scrapée et restent à `"—"`.
 
+## Saisons et historique multi-saison
+
+Un modèle `Saison` (ex. "2026-2027") porte une seule saison "active" à la fois — c'est elle qui
+détermine le badge affiché dans l'en-tête, la saison sur laquelle portent les nouvelles
+inscriptions, et celle que la synchronisation FFN vient compléter. Contrairement à
+`Nageur.groupeId` (toujours "en direct"), le modèle `Inscription` garde, pour chaque nageur et
+chaque saison, une photo du groupe et du coach à ce moment-là : changer le groupe d'un nageur ne
+réécrit donc plus l'historique des saisons précédentes. Cet historique (visible dans l'onglet
+« Évolution » de la fiche nageur, avec la date d'arrivée au club si renseignée) est mis à jour
+automatiquement à chaque création/modification de nageur depuis `/admin`.
+
+La synchronisation FFN a été corrigée dans la foulée : elle ne remplace désormais que les
+performances de la saison active (`Performance.saison`), au lieu d'écraser tout l'historique à
+chaque resynchro — l'onglet « Évolution » peut ainsi montrer le temps d'un nageur sur une épreuve
+donnée, saison après saison.
+
+Démarrer une nouvelle saison se fait depuis `/admin` → section Saisons → « Nouvelle saison », avec
+une case à cocher optionnelle « Réinitialiser nageurs, groupes, créneaux et stages » (confirmation
+par saisie du mot RÉINITIALISER) pour repartir de zéro sur le roster et la structure du club en
+gardant les comptes utilisateurs et l'historique des séances/présences déjà pointées.
+
 ## Simplifications restantes
 
 - **Créneaux récurrents sans exception au jour près** : au-delà de la pause automatique

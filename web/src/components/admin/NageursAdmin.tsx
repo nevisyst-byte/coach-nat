@@ -3,12 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type Nageur = { id: string; nom: string; age: number; categorie: string; specialite: string; groupeId: string | null; pointsFFN: number; presenceRate: number };
+type Nageur = { id: string; nom: string; age: number; categorie: string; specialite: string; groupeId: string | null; pointsFFN: number; presenceRate: number; membreDepuis: string | null };
 type Groupe = { id: string; nom: string };
 
 export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes: Groupe[] }) {
   const router = useRouter();
-  const [form, setForm] = useState({ nom: "", age: "14", categorie: "", specialite: "", groupeId: "" });
+  const [form, setForm] = useState({ nom: "", age: "14", categorie: "", specialite: "", groupeId: "", membreDepuis: "" });
   const [saving, setSaving] = useState(false);
 
   async function createNageur(e: React.FormEvent) {
@@ -18,9 +18,9 @@ export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes:
       await fetch("/api/admin/nageurs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, age: parseInt(form.age, 10) || 14, groupeId: form.groupeId || null }),
+        body: JSON.stringify({ ...form, age: parseInt(form.age, 10) || 14, groupeId: form.groupeId || null, membreDepuis: form.membreDepuis || null }),
       });
-      setForm({ nom: "", age: "14", categorie: "", specialite: "", groupeId: "" });
+      setForm({ nom: "", age: "14", categorie: "", specialite: "", groupeId: "", membreDepuis: "" });
       router.refresh();
     } finally {
       setSaving(false);
@@ -54,6 +54,14 @@ export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes:
             </option>
           ))}
         </select>
+        <input
+          type="date"
+          title="Membre depuis"
+          value={form.membreDepuis}
+          onChange={(e) => setForm((f) => ({ ...f, membreDepuis: e.target.value }))}
+          className="rounded-[9px] px-3 py-2.5 text-sm outline-none"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+        />
         <button type="submit" disabled={saving} className="rounded-[9px] px-4 py-2.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
           {saving ? "Création…" : "Créer le nageur"}
         </button>
@@ -98,6 +106,14 @@ export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes:
               className="rounded-[9px] px-2.5 py-2 text-sm outline-none"
               style={{ width: 90, background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
               title="Présence %"
+            />
+            <input
+              type="date"
+              title="Membre depuis"
+              defaultValue={n.membreDepuis ?? ""}
+              onBlur={(e) => update(n.id, { membreDepuis: e.target.value || null })}
+              className="rounded-[9px] px-2.5 py-2 text-sm outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
             />
             <button onClick={() => remove(n.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
               Supprimer

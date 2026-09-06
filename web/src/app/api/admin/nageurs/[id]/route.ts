@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { upsertInscriptionActive } from "@/lib/saison";
 
 const bodySchema = z.object({
   groupeId: z.string().nullable().optional(),
@@ -10,6 +11,11 @@ const bodySchema = z.object({
   rangReg: z.number().int().nullable().optional(),
   rangNat: z.number().int().nullable().optional(),
   presenceRate: z.number().int().optional(),
+  membreDepuis: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
 });
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -24,7 +30,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
 
-  await prisma.nageur.update({ where: { id }, data: parsed.data });
+  const { membreDepuis, ...rest } = parsed.data;
+  const nageur = await prisma.nageur.update({
+    where: { id },
+    data: { ...rest, ...(membreDepuis !== undefined ? { membreDepuis: membreDepuis ? new Date(membreDepuis) : null } : {}) },
+  });
+  if ("groupeId" in parsed.data) await upsertInscriptionActive(id, nageur.groupeId);
   return NextResponse.json({ ok: true });
 }
 

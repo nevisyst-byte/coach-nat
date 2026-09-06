@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { FicheNageur } from "@/components/portal/FicheNageur";
 import { CRITERES, isoWeekNumber, mondayOfWeek } from "@/lib/format";
+import { getActiveSaison } from "@/lib/saison";
 
 const NAGE_COLOR: Record<string, string> = { PAPILLON: "#E8442B", DOS: "#24C8FF", BRASSE: "#F2B33D", CRAWL: "#1E7BFF" };
 const NAGES = ["PAPILLON", "DOS", "BRASSE", "CRAWL"];
@@ -17,10 +18,13 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
       performances: { orderBy: { points: "desc" } },
       absences: { orderBy: { id: "desc" } },
       notations: { orderBy: { date: "desc" } },
+      inscriptions: { include: { saison: true, groupe: true, coach: { include: { user: true } } }, orderBy: { saison: { dateDebut: "desc" } } },
     },
   });
 
   if (!nageur) notFound();
+
+  const saisonActive = await getActiveSaison();
 
   const since8 = new Date();
   since8.setDate(since8.getDate() - 56);
@@ -114,7 +118,9 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
           niveau: p.niveau,
           deltaSaison: p.deltaSaison,
           rangNat: p.rangNat,
+          saison: p.saison,
         }))}
+        saisonActive={saisonActive?.label ?? null}
         technique={technique}
         absences={nageur.absences.map((a) => ({ date: a.date, motif: a.motif, statut: a.statut }))}
         presenceRate={nageur.presenceRate}
@@ -122,6 +128,12 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
         criteresList={CRITERES}
         ffnIuf={nageur.ffnIuf}
         ffnSyncedAt={nageur.ffnSyncedAt ? nageur.ffnSyncedAt.toLocaleDateString("fr-FR") : null}
+        membreDepuis={nageur.membreDepuis ? nageur.membreDepuis.toLocaleDateString("fr-FR") : null}
+        inscriptions={nageur.inscriptions.map((i) => ({
+          saison: i.saison.label,
+          groupe: i.groupe?.nom ?? "—",
+          coach: i.coach?.user.name ?? "—",
+        }))}
       />
     </div>
   );

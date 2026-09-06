@@ -87,6 +87,7 @@ model Coach {
   conges       Conge[]
   techniqueRatings NotationTechnique[]
   seanceInstances SeanceInstance[]
+  inscriptions Inscription[]
   createdAt    DateTime @default(now())
 }
 
@@ -108,6 +109,7 @@ model Groupe {
   coach      Coach?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
   nageurs    Nageur[]
   creneaux   Creneau[]
+  inscriptions Inscription[]
   createdAt  DateTime @default(now())
 }
 
@@ -123,6 +125,11 @@ model Nageur {
   // performances sans redemander une recherche par nom.
   ffnIuf          String?
   ffnSyncedAt     DateTime?
+  // Date d'arrivée au club (saisie manuelle, affichée sur la fiche nageur
+  // en "membre depuis"). Distincte de l'historique par saison ci-dessous :
+  // un nageur peut être arrivé il y a 3 saisons mais n'avoir d'Inscription
+  // qu'à partir de la saison où ce suivi a été mis en place.
+  membreDepuis    DateTime?
   groupeId        String?
   groupe          Groupe?  @relation(fields: [groupeId], references: [id], onDelete: SetNull)
   pointsFFN       Int      @default(0)
@@ -133,7 +140,43 @@ model Nageur {
   performances    Performance[]
   notations       NotationTechnique[]
   absences        Absence[]
+  inscriptions    Inscription[]
   createdAt       DateTime @default(now())
+}
+
+// Une saison sportive du club (ex. "2026-2027"). Une seule est "active" à la
+// fois (appliqué côté application, pas en contrainte SQL) : c'est elle qui
+// détermine le badge affiché dans l'en-tête et la saison sur laquelle
+// portent les nouvelles inscriptions et synchronisations FFN.
+model Saison {
+  id           String        @id @default(cuid())
+  label        String        @unique
+  dateDebut    DateTime
+  dateFin      DateTime
+  active       Boolean       @default(false)
+  inscriptions Inscription[]
+  createdAt    DateTime      @default(now())
+}
+
+// Photo, pour un nageur et une saison donnés, du groupe et du coach au
+// moment où cette ligne a été créée/mise à jour — contrairement à
+// Nageur.groupeId (toujours "en direct"), ceci ne bouge plus une fois la
+// saison passée. Permet de répondre à "dans quel groupe/avec quel coach
+// était ce nageur en 2025-2026 ?" même après un changement de groupe.
+model Inscription {
+  id        String   @id @default(cuid())
+  nageurId  String
+  nageur    Nageur   @relation(fields: [nageurId], references: [id], onDelete: Cascade)
+  saisonId  String
+  saison    Saison   @relation(fields: [saisonId], references: [id], onDelete: Cascade)
+  groupeId  String?
+  groupe    Groupe?  @relation(fields: [groupeId], references: [id], onDelete: SetNull)
+  coachId   String?
+  coach     Coach?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([nageurId, saisonId])
 }
 
 model Performance {

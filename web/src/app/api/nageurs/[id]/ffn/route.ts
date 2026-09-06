@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { searchFfnIndividus, fetchFfnPerformances } from "@/lib/ffn";
+import { getActiveSaison } from "@/lib/saison";
 
 export async function GET(request: Request) {
   const session = await getSession();
@@ -41,9 +42,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: e instanceof Error ? e.message : "Synchronisation FFN indisponible" }, { status: 502 });
   }
 
+  // Ne remplace que les performances déjà enregistrées pour la saison en
+  // cours : celles des saisons précédentes restent intactes, pour garder la
+  // progression du nageur épreuve par épreuve d'une saison à l'autre.
+  const saison = await getActiveSaison();
+  const saisonLabel = saison?.label ?? "2026-2027";
+
   await prisma.$transaction([
     prisma.nageur.update({ where: { id }, data: { ffnIuf: iuf, ffnSyncedAt: new Date() } }),
-    prisma.performance.deleteMany({ where: { nageurId: id } }),
+    prisma.performance.deleteMany({ where: { nageurId: id, saison: saisonLabel } }),
     prisma.performance.createMany({
       data: perfs.map((p) => ({
         nageurId: id,
@@ -56,6 +63,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         // séparé, pas construit ici) — "—" plutôt qu'une valeur inventée.
         deltaSaison: "—",
         rangNat: "—",
+        saison: saisonLabel,
       })),
     }),
   ]);

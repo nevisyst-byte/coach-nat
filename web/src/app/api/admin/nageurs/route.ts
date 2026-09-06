@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { upsertInscriptionActive } from "@/lib/saison";
 
 const bodySchema = z.object({
   nom: z.string().min(1),
@@ -9,6 +10,11 @@ const bodySchema = z.object({
   categorie: z.string().min(1),
   specialite: z.string().min(1),
   groupeId: z.string().nullable().optional(),
+  membreDepuis: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -29,6 +35,14 @@ export async function POST(request: Request) {
     .join("")
     .toUpperCase();
 
-  const nageur = await prisma.nageur.create({ data: { ...parsed.data, initiales, groupeId: parsed.data.groupeId || null } });
+  const nageur = await prisma.nageur.create({
+    data: {
+      ...parsed.data,
+      initiales,
+      groupeId: parsed.data.groupeId || null,
+      membreDepuis: parsed.data.membreDepuis ? new Date(parsed.data.membreDepuis) : null,
+    },
+  });
+  await upsertInscriptionActive(nageur.id, nageur.groupeId);
   return NextResponse.json({ ok: true, id: nageur.id });
 }

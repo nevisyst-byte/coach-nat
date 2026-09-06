@@ -12,7 +12,17 @@ export default async function AdminNageursPage() {
     <Card>
       <SectionTitle>Nageurs</SectionTitle>
       <NageursAdmin
-        nageurs={nageurs.map((n) => ({ id: n.id, nom: n.nom, age: n.age, categorie: n.categorie, specialite: n.specialite, groupeId: n.groupeId, pointsFFN: n.pointsFFN, presenceRate: n.presenceRate }))}
+        nageurs={nageurs.map((n) => ({
+          id: n.id,
+          nom: n.nom,
+          age: n.age,
+          categorie: n.categorie,
+          specialite: n.specialite,
+          groupeId: n.groupeId,
+          pointsFFN: n.pointsFFN,
+          presenceRate: n.presenceRate,
+          membreDepuis: n.membreDepuis ? n.membreDepuis.toISOString().slice(0, 10) : null,
+        }))}
         groupes={groupes.map((g) => ({ id: g.id, nom: g.nom }))}
       />
     </Card>

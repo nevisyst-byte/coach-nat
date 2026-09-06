@@ -4,11 +4,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 
-type Perf = { epreuve: string; temps: string; points: number; niveau: string; deltaSaison: string; rangNat: string };
+type Perf = { epreuve: string; temps: string; points: number; niveau: string; deltaSaison: string; rangNat: string; saison: string };
 type TechCritere = { nom: string; note: number };
 type Technique = { nage: string; color: string; moyenne: number; criteres: TechCritere[] };
 type AbsenceRow = { date: string; motif: string; statut: string };
 type AssiduiteRow = { sem: string; pct: number; color: string };
+type InscriptionRow = { saison: string; groupe: string; coach: string };
 
 const NAGE_META: Record<string, { label: string; color: string }> = {
   PAPILLON: { label: "Papillon", color: "#E8442B" },
@@ -28,6 +29,7 @@ type FfnResult = { iuf: string; nom: string };
 export function FicheNageur({
   nageurId,
   perfs,
+  saisonActive = null,
   technique,
   absences,
   presenceRate,
@@ -35,9 +37,12 @@ export function FicheNageur({
   criteresList,
   ffnIuf = null,
   ffnSyncedAt = null,
+  membreDepuis = null,
+  inscriptions = [],
 }: {
   nageurId: string;
   perfs: Perf[];
+  saisonActive?: string | null;
   technique: Technique[];
   absences: AbsenceRow[];
   presenceRate: number;
@@ -45,6 +50,8 @@ export function FicheNageur({
   criteresList: string[];
   ffnIuf?: string | null;
   ffnSyncedAt?: string | null;
+  membreDepuis?: string | null;
+  inscriptions?: InscriptionRow[];
 }) {
   const router = useRouter();
   const [tab, setTab] = useState(0);
@@ -114,7 +121,17 @@ export function FicheNageur({
     }
   }
 
-  const tabs = ["Cotation FFN", "Notation technique", "Assiduité"];
+  const tabs = ["Cotation FFN", "Notation technique", "Assiduité", "Évolution"];
+
+  const perfsCourants = saisonActive ? perfs.filter((p) => p.saison === saisonActive) : perfs;
+
+  const perfsParEpreuve = new Map<string, Perf[]>();
+  for (const p of perfs) {
+    const arr = perfsParEpreuve.get(p.epreuve) ?? [];
+    arr.push(p);
+    perfsParEpreuve.set(p.epreuve, arr);
+  }
+  for (const arr of perfsParEpreuve.values()) arr.sort((a, b) => a.saison.localeCompare(b.saison));
 
   async function saveNotation() {
     setSaving(true);
@@ -205,7 +222,7 @@ export function FicheNageur({
                 </tr>
               </thead>
               <tbody>
-                {perfs.map((p) => (
+                {perfsCourants.map((p) => (
                   <tr key={p.epreuve} style={{ borderTop: "1px solid var(--border)" }}>
                     <td className="px-5 py-3 text-sm font-semibold">{p.epreuve}</td>
                     <td className="px-3 py-3 text-right font-display text-lg">{p.temps}</td>
@@ -231,10 +248,10 @@ export function FicheNageur({
                     </td>
                   </tr>
                 ))}
-                {perfs.length === 0 && (
+                {perfsCourants.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-5 py-6 text-sm text-center" style={{ color: "var(--ink-secondary)" }}>
-                      Aucune performance enregistrée.
+                      Aucune performance enregistrée{saisonActive ? ` pour la saison ${saisonActive}` : ""}.
                     </td>
                   </tr>
                 )}
@@ -344,6 +361,86 @@ export function FicheNageur({
                   </div>
                 );
               })}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {tab === 3 && (
+        <div className="mt-4 flex flex-col gap-4">
+          <Card padding={0} className="overflow-hidden">
+            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+              <h2 className="font-display text-[19px] tracking-[0.06em]">Parcours au club</h2>
+              <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                {membreDepuis ? `Membre depuis le ${membreDepuis}` : "Date d'arrivée au club non renseignée"}
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse" style={{ minWidth: 480 }}>
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.03)" }}>
+                    {["Saison", "Groupe", "Coach"].map((h) => (
+                      <th key={h} className="text-[11px] tracking-[0.12em] uppercase px-5 py-2.5 text-left" style={{ color: "#61789B" }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {inscriptions.map((i) => (
+                    <tr key={i.saison} style={{ borderTop: "1px solid var(--border)" }}>
+                      <td className="px-5 py-3 text-sm font-semibold">{i.saison}</td>
+                      <td className="px-5 py-3 text-sm">{i.groupe}</td>
+                      <td className="px-5 py-3 text-sm" style={{ color: "var(--ink-body)" }}>
+                        {i.coach}
+                      </td>
+                    </tr>
+                  ))}
+                  {inscriptions.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-5 py-6 text-sm text-center" style={{ color: "var(--ink-secondary)" }}>
+                        Pas encore d&apos;historique de saison pour ce nageur.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <Card padding={0} className="overflow-hidden">
+            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+              <h2 className="font-display text-[19px] tracking-[0.06em]">Évolution des temps par épreuve</h2>
+              <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                Saison par saison, à partir des synchronisations FFN
+              </span>
+            </div>
+            <div className="flex flex-col" style={{ borderTop: "1px solid var(--border)" }}>
+              {Array.from(perfsParEpreuve.entries()).map(([epreuve, rows]) => (
+                <div key={epreuve} className="px-5 py-3.5 flex items-center gap-3 flex-wrap" style={{ borderBottom: "1px solid var(--border)" }}>
+                  <div className="text-sm font-semibold" style={{ minWidth: 120 }}>
+                    {epreuve}
+                  </div>
+                  <div className="flex-1 flex items-center gap-4 flex-wrap">
+                    {rows.map((r, i) => (
+                      <div key={r.saison} className="flex items-center gap-2 text-[13px]">
+                        {i > 0 && (
+                          <span style={{ color: "var(--ink-muted)" }}>→</span>
+                        )}
+                        <span style={{ color: "var(--ink-secondary)" }}>{r.saison}</span>
+                        <span className="font-display text-base" style={{ color: "#7FDCFF" }}>
+                          {r.temps}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {perfsParEpreuve.size === 0 && (
+                <div className="px-5 py-6 text-sm text-center" style={{ color: "var(--ink-secondary)" }}>
+                  Aucune performance enregistrée pour l&apos;instant.
+                </div>
+              )}
             </div>
           </Card>
         </div>

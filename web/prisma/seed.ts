@@ -35,6 +35,12 @@ async function main() {
     { email: "paul.nadal@coach-nat.fr", name: "Paul Nadal", initials: "PN" },
   ];
 
+  // ---- Saisons ----
+  await prisma.inscription.deleteMany();
+  await prisma.saison.deleteMany();
+  await prisma.saison.create({ data: { label: "2025-2026", dateDebut: new Date("2025-09-01"), dateFin: new Date("2026-08-31"), active: false } });
+  const saisonActive = await prisma.saison.create({ data: { label: "2026-2027", dateDebut: new Date("2026-09-01"), dateFin: new Date("2027-08-31"), active: true } });
+
   const coaches: Record<string, { id: string }> = {};
   for (const c of coachDefs) {
     const user = await prisma.user.upsert({
@@ -97,7 +103,7 @@ async function main() {
   await prisma.groupe.deleteMany();
   await prisma.conge.deleteMany();
 
-  const groupes: Record<string, { id: string; nom: string }> = {};
+  const groupes: Record<string, { id: string; nom: string; coachId: string | null }> = {};
   for (const g of groupeDefs) {
     const created = await prisma.groupe.create({
       data: {
@@ -163,6 +169,10 @@ async function main() {
     });
     nageurs[n.nom] = nageur;
 
+    await prisma.inscription.create({
+      data: { nageurId: nageur.id, saisonId: saisonActive.id, groupeId: groupes[n.groupe].id, coachId: groupes[n.groupe].coachId },
+    });
+
     // Performances (variation légère par nageur, seulement pour les groupes compétition)
     if (n.pointsFFN > 0) {
       const delta = (i - 2) * 6;
@@ -175,6 +185,22 @@ async function main() {
           niveau: p.niveau,
           deltaSaison: p.delta,
           rangNat: p.rangNat,
+          saison: "2026-2027",
+        })),
+      });
+
+      // Un point de comparaison la saison précédente, pour illustrer
+      // l'onglet "Évolution" de la fiche nageur (temps légèrement moins bons).
+      await prisma.performance.createMany({
+        data: PERF_TEMPLATE.map((p) => ({
+          nageurId: nageur.id,
+          epreuve: p.epreuve,
+          temps: p.temps,
+          points: Math.max(500, p.points + delta - 40),
+          niveau: p.niveau,
+          deltaSaison: "—",
+          rangNat: "—",
+          saison: "2025-2026",
         })),
       });
 

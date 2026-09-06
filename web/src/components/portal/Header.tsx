@@ -8,7 +8,7 @@ import { useNavState } from "./NavState";
 
 type SearchResult = { kind: string; label: string; href: string; meta: string };
 
-export function Header({ userName }: { userName: string }) {
+export function Header({ userName, saisonLabel }: { userName: string; saisonLabel: string | null }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -134,12 +134,14 @@ export function Header({ userName }: { userName: string }) {
             {userName}
           </span>
         </div>
-        <div
-          className="hidden lg:flex items-center rounded-[10px] px-3 py-2 text-xs font-bold tracking-[0.1em] uppercase"
-          style={{ background: "rgba(30,123,255,0.12)", border: "1px solid rgba(30,123,255,0.4)", color: "#8CC4FF" }}
-        >
-          Saison 26/27
-        </div>
+        {saisonLabel && (
+          <div
+            className="hidden lg:flex items-center rounded-[10px] px-3 py-2 text-xs font-bold tracking-[0.1em] uppercase"
+            style={{ background: "rgba(30,123,255,0.12)", border: "1px solid rgba(30,123,255,0.4)", color: "#8CC4FF" }}
+          >
+            Saison {saisonLabel}
+          </div>
+        )}
         <button
           onClick={logout}
           className="rounded-[10px] px-3 py-2 text-xs font-semibold cursor-pointer"
