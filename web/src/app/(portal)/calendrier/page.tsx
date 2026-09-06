@@ -16,13 +16,14 @@ const MOIS_LONG = [
 
 export default async function CalendrierPage() {
   const session = await getSession();
-  const [creneaux, groupes, coachs, nageurs, echeances, stages] = await Promise.all([
+  const [creneaux, groupes, coachs, nageurs, echeances, stages, evenementsSemaine] = await Promise.all([
     prisma.creneau.findMany({ include: { groupe: true, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } } }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
     prisma.nageur.findMany({ orderBy: { nom: "asc" } }),
     prisma.echeance.findMany({ orderBy: { date: "asc" } }),
     prisma.stage.findMany({ orderBy: { dateDebut: "asc" } }),
+    prisma.evenementSemaine.findMany({ include: { coach: { include: { user: true } } } }),
   ]);
 
   const today = new Date();
@@ -133,12 +134,28 @@ export default async function CalendrierPage() {
     </div>
   );
 
+  const prochainesEcheances = echeances
+    .filter((e) => e.date.getTime() >= new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime())
+    .map((e) => ({ id: e.id, titre: e.titre, detail: e.detail, color: e.color, date: e.date.toISOString(), jour: (new Date(e.date).getDay() + 6) % 7 }));
+
   const semaineType = (
     <SemaineTypeClient
       creneaux={creneaux}
       groupes={groupes.map((g) => ({ id: g.id, nom: g.nom }))}
       coachs={coachs.map((c) => ({ id: c.id, nom: c.user.name }))}
       nageurs={nageurs.map((n) => ({ id: n.id, nom: n.nom, groupeId: n.groupeId }))}
+      evenements={evenementsSemaine.map((e) => ({
+        id: e.id,
+        jour: e.jour,
+        debut: e.debut,
+        fin: e.fin,
+        categorie: e.categorie,
+        titre: e.titre,
+        lieu: e.lieu,
+        coachId: e.coachId,
+        coach: e.coach ? { user: { name: e.coach.user.name } } : null,
+      }))}
+      prochainesEcheances={prochainesEcheances}
     />
   );
 

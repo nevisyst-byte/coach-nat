@@ -36,7 +36,7 @@ function LoginForm() {
         return;
       }
       const next = params.get("next");
-      router.push(next || (data.role === "ADMIN" ? "/admin" : "/general"));
+      router.push(next || "/general");
       router.refresh();
     } finally {
       setLoading(false);

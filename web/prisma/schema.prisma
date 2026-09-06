@@ -41,6 +41,14 @@ enum TypeCreneau {
   RECUP
 }
 
+// Catégorie d'un rendez-vous récurrent de la semaine type qui n'est pas un
+// entraînement (celui-ci reste porté par Creneau, avec groupe/coach/bassin).
+enum CategorieEvenement {
+  REUNION
+  FORUM
+  AUTRE
+}
+
 enum StatutStage {
   CONFIRME
   OUVERT
@@ -83,6 +91,7 @@ model Coach {
   accessLevel  String   @default("Accès total")
   groupes      Groupe[]
   creneaux     Creneau[]
+  evenementsSemaine EvenementSemaine[]
   stageCreneaux CreneauStage[]
   conges       Conge[]
   techniqueRatings NotationTechnique[]
@@ -250,6 +259,22 @@ model CreneauNageur {
   nageur    Nageur  @relation(fields: [nageurId], references: [id], onDelete: Cascade)
 
   @@unique([creneauId, nageurId])
+}
+
+// Rendez-vous hebdomadaire récurrent hors entraînement (réunion, forum...),
+// affiché dans la semaine type à côté des créneaux. Volontairement séparé de
+// Creneau : ni groupe de nageurs, ni présence, ni effectif à gérer ici.
+model EvenementSemaine {
+  id        String             @id @default(cuid())
+  jour      Int
+  debut     String
+  fin       String
+  categorie CategorieEvenement @default(AUTRE)
+  titre     String
+  lieu      String?
+  coachId   String?
+  coach     Coach?             @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  createdAt DateTime           @default(now())
 }
 
 model Stage {

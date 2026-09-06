@@ -59,3 +59,15 @@ export const ETAT_COLOR: Record<string, string> = {
   REMPLACE: "#F2B33D",
   A_COUVRIR: "#E8442B",
 };
+
+export const CATEGORIE_EVENEMENT_LABEL: Record<string, string> = {
+  REUNION: "Réunion",
+  FORUM: "Forum",
+  AUTRE: "Autre",
+};
+
+export const CATEGORIE_EVENEMENT_COLOR: Record<string, string> = {
+  REUNION: "#8C6BFF",
+  FORUM: "#FF9F1C",
+  AUTRE: "#61789B",
+};
