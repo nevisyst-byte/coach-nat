@@ -76,7 +76,7 @@ export default async function NageursPage({
 
       <NageursListClient
         groupesByPole={groupesByPole}
-        allGroupes={allGroupes.map((g) => ({ id: g.id, nom: g.nom }))}
+        allGroupes={allGroupes.map((g) => ({ id: g.id, nom: g.nom, categorie: g.categorie }))}
         isAdmin={session?.role === "ADMIN"}
       />
     </Card>

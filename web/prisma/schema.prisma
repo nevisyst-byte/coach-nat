@@ -118,6 +118,10 @@ model Nageur {
   nom             String
   initiales       String
   age             Int
+  // Année de naissance (saisie à la création/édition à la place d'un âge en
+  // dur, qui se périme chaque année) — l'âge stocké ci-dessus est recalculé
+  // à partir de celle-ci à chaque enregistrement.
+  anneeNaissance  Int?
   categorie       String
   specialite      String
   // Identifiant unique fédéral (IUF) sur ffn.extranat.fr, une fois relié via

@@ -8,7 +8,8 @@ type Groupe = { id: string; nom: string };
 
 export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes: Groupe[] }) {
   const router = useRouter();
-  const [form, setForm] = useState({ nom: "", age: "14", categorie: "", specialite: "", groupeId: "", membreDepuis: "" });
+  const currentYear = new Date().getFullYear();
+  const [form, setForm] = useState({ nom: "", anneeNaissance: "", categorie: "", specialite: "", groupeId: "", membreDepuis: "" });
   const [saving, setSaving] = useState(false);
 
   async function createNageur(e: React.FormEvent) {
@@ -18,9 +19,9 @@ export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes:
       await fetch("/api/admin/nageurs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, age: parseInt(form.age, 10) || 14, groupeId: form.groupeId || null, membreDepuis: form.membreDepuis || null }),
+        body: JSON.stringify({ ...form, anneeNaissance: parseInt(form.anneeNaissance, 10) || currentYear - 14, groupeId: form.groupeId || null, membreDepuis: form.membreDepuis || null }),
       });
-      setForm({ nom: "", age: "14", categorie: "", specialite: "", groupeId: "", membreDepuis: "" });
+      setForm({ nom: "", anneeNaissance: "", categorie: "", specialite: "", groupeId: "", membreDepuis: "" });
       router.refresh();
     } finally {
       setSaving(false);
@@ -41,7 +42,7 @@ export function NageursAdmin({ nageurs, groupes }: { nageurs: Nageur[]; groupes:
     <div className="flex flex-col gap-4">
       <form onSubmit={createNageur} className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))" }}>
         <input required placeholder="Nom complet" value={form.nom} onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
-        <input required type="number" placeholder="Âge" value={form.age} onChange={(e) => setForm((f) => ({ ...f, age: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
+        <input required type="number" placeholder={`Année de naissance (ex. ${currentYear - 12})`} value={form.anneeNaissance} onChange={(e) => setForm((f) => ({ ...f, anneeNaissance: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
         <input required placeholder="Catégorie" value={form.categorie} onChange={(e) => setForm((f) => ({ ...f, categorie: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
         <input required placeholder="Spécialité" value={form.specialite} onChange={(e) => setForm((f) => ({ ...f, specialite: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
         <select value={form.groupeId} onChange={(e) => setForm((f) => ({ ...f, groupeId: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}>

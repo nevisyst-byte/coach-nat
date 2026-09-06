@@ -6,6 +6,7 @@ import { upsertInscriptionActive } from "@/lib/saison";
 
 const bodySchema = z.object({
   nom: z.string().min(1).optional(),
+  anneeNaissance: z.number().int().min(1900).max(new Date().getFullYear()).optional(),
   age: z.number().int().positive().optional(),
   categorie: z.string().min(1).optional(),
   specialite: z.string().min(1).optional(),
@@ -34,10 +35,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
 
-  const { membreDepuis, ...rest } = parsed.data;
+  const { membreDepuis, anneeNaissance, ...rest } = parsed.data;
   const nageur = await prisma.nageur.update({
     where: { id },
-    data: { ...rest, ...(membreDepuis !== undefined ? { membreDepuis: membreDepuis ? new Date(membreDepuis) : null } : {}) },
+    data: {
+      ...rest,
+      ...(anneeNaissance !== undefined ? { anneeNaissance, age: new Date().getFullYear() - anneeNaissance } : {}),
+      ...(membreDepuis !== undefined ? { membreDepuis: membreDepuis ? new Date(membreDepuis) : null } : {}),
+    },
   });
   if ("groupeId" in parsed.data) await upsertInscriptionActive(id, nageur.groupeId);
   return NextResponse.json({ ok: true });
