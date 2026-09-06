@@ -7,7 +7,7 @@ import { PresenceRoster } from "@/components/portal/PresenceRoster";
 import { JOURS } from "@/lib/format";
 import { lastOccurrenceOnOrBefore, toDateInputValue } from "@/lib/week";
 import { resolveSeanceInstance } from "@/lib/seance-instance";
-import { genererSeance } from "@/lib/seance-generator";
+import { genererSeance, type Bloc } from "@/lib/seance-generator";
 
 export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string; date?: string }> }) {
   const [creneaux, creneauxStage] = await Promise.all([
@@ -68,8 +68,12 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
 
   const rosterNageurs = nageurs.map((n) => ({ nom: n.nom, initiales: n.initiales, sousTitre: n.groupe?.categorie ?? n.categorie, etat: etatMap.get(n.nom) ?? "PRESENT", nageurId: n.id }));
 
-  const seancePrevue =
-    instance.variant && instance.intensite && instance.nage && instance.volumeNage
+  const seancePrevue = instance.blocs
+    ? {
+        resume: `${instance.variant} · ${instance.intensite} · ${instance.nage} · ${instance.volumeNage} m`,
+        blocs: instance.blocs as unknown as Bloc[],
+      }
+    : instance.variant && instance.intensite && instance.nage && instance.volumeNage
       ? genererSeance(instance.variant, instance.intensite, instance.nage, instance.volumeNage)
       : null;
 

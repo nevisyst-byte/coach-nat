@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { SeanceCreator } from "@/components/portal/SeanceCreator";
+import type { Bloc } from "@/lib/seance-generator";
 
 export default async function SeancePage() {
   const [groupes, modeles] = await Promise.all([
@@ -17,6 +18,7 @@ export default async function SeancePage() {
         intensite: m.intensite,
         nage: m.nage,
         volumeCible: m.volumeCible,
+        blocs: m.blocs as unknown as Bloc[],
       }))}
     />
   );

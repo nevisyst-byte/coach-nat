@@ -320,6 +320,11 @@ model SeanceInstance {
   intensite      String?
   nage           String?
   volumeNage     Int?
+  // Contenu détaillé (échauffement/technique/principal/retour), éventuellement
+  // retouché à la main par le coach dans le créateur de séance avant de
+  // planifier. Absent (séances plus anciennes) = recalculé à l'affichage à
+  // partir de variant/intensite/nage/volumeNage.
+  blocs          Json?
   presences      Presence[]
   createdAt      DateTime      @default(now())
 
