@@ -5,6 +5,10 @@ import { requireAdmin } from "@/lib/auth";
 import { upsertInscriptionActive } from "@/lib/saison";
 
 const bodySchema = z.object({
+  nom: z.string().min(1).optional(),
+  age: z.number().int().positive().optional(),
+  categorie: z.string().min(1).optional(),
+  specialite: z.string().min(1).optional(),
   groupeId: z.string().nullable().optional(),
   pointsFFN: z.number().int().optional(),
   rangDept: z.number().int().nullable().optional(),
