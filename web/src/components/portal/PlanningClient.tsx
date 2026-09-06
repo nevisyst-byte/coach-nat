@@ -27,6 +27,7 @@ type StageJourEntry = { stageId: string; stageNom: string; color: string; crenea
 export function PlanningClient({
   creneaux,
   dayLabels,
+  dayDates,
   weekLabel,
   weekOffset,
   groupes,
@@ -40,6 +41,7 @@ export function PlanningClient({
 }: {
   creneaux: Creneau[];
   dayLabels: string[];
+  dayDates: string[];
   weekLabel: string;
   weekOffset: number;
   groupes: Option[];
@@ -190,14 +192,28 @@ export function PlanningClient({
               {byDay[i].map((c) => {
                 const enPause = Boolean(periodeVacances && c.actifHorsVacances);
                 return (
-                  <div key={c.id} className="rounded-[11px] p-3.5 group relative" style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${ETAT_COLOR[c.etat]}`, opacity: enPause ? 0.5 : 1 }}>
+                  <div
+                    key={c.id}
+                    onClick={() => router.push(`/presences?slot=reg:${c.id}&date=${dayDates[i]}`)}
+                    className="rounded-[11px] p-3.5 group relative cursor-pointer transition-colors hover:brightness-110"
+                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${ETAT_COLOR[c.etat]}`, opacity: enPause ? 0.5 : 1 }}
+                    title="Voir la feuille de présence de cette séance"
+                  >
                     <div className="flex items-center gap-2">
                       <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: ETAT_COLOR[c.etat] }} />
                       <span className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: ETAT_COLOR[c.etat] }}>
                         {enPause ? "En pause" : ETAT_LABEL[c.etat]}
                       </span>
                       {canEdit && (
-                        <button onClick={() => remove(c.id)} className="ml-auto text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            remove(c.id);
+                          }}
+                          className="ml-auto text-xs cursor-pointer"
+                          style={{ color: "var(--ink-muted)" }}
+                          title="Supprimer"
+                        >
                           ✕
                         </button>
                       )}
@@ -215,7 +231,10 @@ export function PlanningClient({
                     </div>
                     {canEdit && (
                       <button
-                        onClick={() => toggleActifHorsVacances(c.id, c.actifHorsVacances)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleActifHorsVacances(c.id, c.actifHorsVacances);
+                        }}
                         className="mt-2 text-[11px] cursor-pointer underline"
                         style={{ color: "var(--ink-muted)" }}
                         title="Bascule si ce créneau continue ou non pendant les vacances scolaires"
@@ -228,7 +247,13 @@ export function PlanningClient({
               })}
               {(stagesByDay[i] ?? []).map((stageEntry) =>
                 stageEntry.creneaux.map((c) => (
-                  <div key={c.id} className="rounded-[11px] p-3.5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${stageEntry.color}` }}>
+                  <div
+                    key={c.id}
+                    onClick={() => router.push(`/presences?slot=stage:${c.id}&date=${dayDates[i]}`)}
+                    className="rounded-[11px] p-3.5 cursor-pointer transition-colors hover:brightness-110"
+                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${stageEntry.color}` }}
+                    title="Voir la feuille de présence de cette séance"
+                  >
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: stageEntry.color }}>
                         Stage · {stageEntry.stageNom}

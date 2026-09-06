@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { initialsColor } from "@/lib/format";
@@ -11,7 +12,7 @@ const ETATS: { code: string; value: string; label: string; color: string; bg: st
   { code: "E", value: "EXCUSE", label: "Excusé", color: "#8CC4FF", bg: "rgba(30,123,255,0.16)" },
 ];
 
-export type RosterPerson = { nom: string; initiales: string; sousTitre: string; etat: string };
+export type RosterPerson = { nom: string; initiales: string; sousTitre: string; etat: string; nageurId?: string };
 
 export function PresenceRoster({ title, people, seanceInstanceId, role }: { title: string; people: RosterPerson[]; seanceInstanceId: string; role: string }) {
   const router = useRouter();
@@ -40,7 +41,13 @@ export function PresenceRoster({ title, people, seanceInstanceId, role }: { titl
               {p.initiales}
             </div>
             <div className="flex-1" style={{ minWidth: 110 }}>
-              <div className="text-sm font-semibold">{p.nom}</div>
+              {p.nageurId ? (
+                <Link href={`/nageurs/${p.nageurId}`} className="text-sm font-semibold hover:underline" style={{ color: "var(--ink)" }}>
+                  {p.nom}
+                </Link>
+              ) : (
+                <div className="text-sm font-semibold">{p.nom}</div>
+              )}
               <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
                 {p.sousTitre}
               </div>

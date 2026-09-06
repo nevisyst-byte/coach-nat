@@ -59,7 +59,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
   const presences = await prisma.presence.findMany({ where: { seanceInstanceId: instance.id } });
   const etatMap = new Map(presences.map((p) => [p.nomPersonne, p.etat]));
 
-  const rosterNageurs = nageurs.map((n) => ({ nom: n.nom, initiales: n.initiales, sousTitre: n.groupe?.categorie ?? n.categorie, etat: etatMap.get(n.nom) ?? "PRESENT" }));
+  const rosterNageurs = nageurs.map((n) => ({ nom: n.nom, initiales: n.initiales, sousTitre: n.groupe?.categorie ?? n.categorie, etat: etatMap.get(n.nom) ?? "PRESENT", nageurId: n.id }));
 
   const seancePrevue =
     instance.variant && instance.intensite && instance.nage && instance.volumeNage

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/Card";
 import { PlanningClient } from "@/components/portal/PlanningClient";
-import { fmtDayLabel, weekDates, weekRangeLabel } from "@/lib/week";
+import { fmtDayLabel, toDateInputValue, weekDates, weekRangeLabel } from "@/lib/week";
 import { getSession } from "@/lib/auth";
 import { semaineEnVacances, type ZoneScolaire } from "@/lib/vacances-scolaires";
 
@@ -66,6 +66,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
       <PlanningClient
         creneaux={creneaux}
         dayLabels={dates.map(fmtDayLabel)}
+        dayDates={dates.map(toDateInputValue)}
         weekLabel={weekRangeLabel(weekOffset)}
         weekOffset={weekOffset}
         groupes={groupes.map((g) => ({ id: g.id, nom: g.nom }))}
