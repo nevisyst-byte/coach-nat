@@ -32,7 +32,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
   const [creneaux, groupes, coachs, nageurs, settings, stagesSemaine] = await Promise.all([
     prisma.creneau.findMany({
       where: mine ? { coachId: session!.coachId! } : undefined,
-      include: { groupe: true, coach: { include: { user: true } } },
+      include: { groupe: true, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } },
     }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
@@ -71,7 +71,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
         weekOffset={weekOffset}
         groupes={groupes.map((g) => ({ id: g.id, nom: g.nom }))}
         coachs={coachs.map((c) => ({ id: c.id, nom: c.user.name }))}
-        nageurs={nageurs.map((n) => ({ id: n.id, nom: n.nom }))}
+        nageurs={nageurs.map((n) => ({ id: n.id, nom: n.nom, groupeId: n.groupeId }))}
         canEdit={mine ? true : session?.role === "ADMIN"}
         showVueToggle
         defaultCoachId={mine ? session!.coachId! : ""}

@@ -55,7 +55,14 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
   const groupeNom = kind === "reg" ? creneaux.find((c) => c.id === id)?.groupe.nom ?? null : creneauxStage.find((c) => c.id === id)?.groupe ?? null;
   const realGroupe = groupeNom && groupeNom !== "Tous groupes" ? groupeNom : null;
 
-  const nageurs = await prisma.nageur.findMany({ where: realGroupe ? { groupe: { nom: realGroupe } } : {}, include: { groupe: true } });
+  // Un créneau régulier peut restreindre son effectif à un sous-ensemble du
+  // groupe (ex. seuls les 4 nages font le créneau technique) — sinon, tout
+  // le groupe est attendu par défaut.
+  const effectifExplicite = kind === "reg" ? await prisma.creneauNageur.findMany({ where: { creneauId: id }, include: { nageur: { include: { groupe: true } } } }) : [];
+  const nageurs =
+    effectifExplicite.length > 0
+      ? effectifExplicite.map((cn) => cn.nageur)
+      : await prisma.nageur.findMany({ where: realGroupe ? { groupe: { nom: realGroupe } } : {}, include: { groupe: true } });
   const presences = await prisma.presence.findMany({ where: { seanceInstanceId: instance.id } });
   const etatMap = new Map(presences.map((p) => [p.nomPersonne, p.etat]));
 

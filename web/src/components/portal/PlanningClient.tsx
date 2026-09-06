@@ -13,13 +13,16 @@ type Creneau = {
   bassin: string;
   etat: string;
   effectifLabel: string | null;
+  groupeId: string;
   groupe: { nom: string };
   coach: { user: { name: string } } | null;
   libelleCoach: string | null;
   actifHorsVacances: boolean;
+  effectifNageurs: { nageurId: string }[];
 };
 
 type Option = { id: string; nom: string };
+type NageurOption = { id: string; nom: string; groupeId: string | null };
 
 type StageCreneauJour = { id: string; debut: string; fin: string; groupe: string; coachNom: string | null; bassin: string; theme: string };
 type StageJourEntry = { stageId: string; stageNom: string; color: string; creneaux: StageCreneauJour[] };
@@ -46,7 +49,7 @@ export function PlanningClient({
   weekOffset: number;
   groupes: Option[];
   coachs: Option[];
-  nageurs: Option[];
+  nageurs: NageurOption[];
   canEdit: boolean;
   showVueToggle?: boolean;
   defaultCoachId?: string;
@@ -122,6 +125,48 @@ export function PlanningClient({
       body: JSON.stringify({ actifHorsVacances: !current }),
     });
     router.refresh();
+  }
+
+  const [effectifCreneau, setEffectifCreneau] = useState<Creneau | null>(null);
+  const [toutLeGroupe, setToutLeGroupe] = useState(true);
+  const [effectifSelected, setEffectifSelected] = useState<Set<string>>(new Set());
+  const [savingEffectif, setSavingEffectif] = useState(false);
+
+  function openEffectif(c: Creneau) {
+    const membresGroupe = nageurs.filter((n) => n.groupeId === c.groupeId);
+    if (c.effectifNageurs.length > 0) {
+      setToutLeGroupe(false);
+      setEffectifSelected(new Set(c.effectifNageurs.map((e) => e.nageurId)));
+    } else {
+      setToutLeGroupe(true);
+      setEffectifSelected(new Set(membresGroupe.map((n) => n.id)));
+    }
+    setEffectifCreneau(c);
+  }
+
+  function toggleEffectifNageur(id: string) {
+    setEffectifSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function saveEffectif() {
+    if (!effectifCreneau) return;
+    setSavingEffectif(true);
+    try {
+      await fetch(`/api/creneaux/${effectifCreneau.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nageurIds: toutLeGroupe ? null : Array.from(effectifSelected) }),
+      });
+      setEffectifCreneau(null);
+      router.refresh();
+    } finally {
+      setSavingEffectif(false);
+    }
   }
 
   const byDay = JOURS.map((_, i) => creneaux.filter((c) => c.jour === i).sort((a, b) => a.debut.localeCompare(b.debut)));
@@ -230,17 +275,30 @@ export function PlanningClient({
                       <span>{c.bassin}</span>
                     </div>
                     {canEdit && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleActifHorsVacances(c.id, c.actifHorsVacances);
-                        }}
-                        className="mt-2 text-[11px] cursor-pointer underline"
-                        style={{ color: "var(--ink-muted)" }}
-                        title="Bascule si ce créneau continue ou non pendant les vacances scolaires"
-                      >
-                        {c.actifHorsVacances ? "En pause pendant les vacances" : "Continue pendant les vacances"}
-                      </button>
+                      <div className="mt-2 flex flex-col gap-1 items-start">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleActifHorsVacances(c.id, c.actifHorsVacances);
+                          }}
+                          className="text-[11px] cursor-pointer underline"
+                          style={{ color: "var(--ink-muted)" }}
+                          title="Bascule si ce créneau continue ou non pendant les vacances scolaires"
+                        >
+                          {c.actifHorsVacances ? "En pause pendant les vacances" : "Continue pendant les vacances"}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEffectif(c);
+                          }}
+                          className="text-[11px] cursor-pointer underline"
+                          style={{ color: "var(--ink-muted)" }}
+                          title="Choisir qui, dans le groupe, assiste à ce créneau"
+                        >
+                          {c.effectifNageurs.length > 0 ? `Effectif : ${c.effectifNageurs.length} nageur${c.effectifNageurs.length > 1 ? "s" : ""}` : "Effectif : tout le groupe"}
+                        </button>
+                      </div>
                     )}
                   </div>
                 );
@@ -484,6 +542,70 @@ export function PlanningClient({
                 style={{ background: "linear-gradient(135deg,#E8442B,#B92E19)", color: "#fff", opacity: absSaving ? 0.7 : 1 }}
               >
                 {absSaving ? "Envoi…" : "Déclarer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {effectifCreneau && (
+        <div onClick={() => setEffectifCreneau(null)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl overflow-hidden flex flex-col" style={{ maxWidth: 480, maxHeight: "82vh", background: "#101A2B", border: "1px solid var(--border-strong)" }}>
+            <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
+              <div>
+                <h2 className="font-display text-[22px] tracking-[0.05em]">Effectif — {effectifCreneau.groupe.nom}</h2>
+                <div className="text-[13px] mt-0.5" style={{ color: "var(--ink-secondary)" }}>
+                  {JOURS[effectifCreneau.jour]} {effectifCreneau.debut}–{effectifCreneau.fin}
+                </div>
+              </div>
+              <button onClick={() => setEffectifCreneau(null)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
+                ✕
+              </button>
+            </div>
+            <div className="px-6 pt-4 flex gap-1.5">
+              <button
+                onClick={() => setToutLeGroupe(true)}
+                className="rounded-[9px] px-3.5 py-2 text-[13px] font-semibold cursor-pointer"
+                style={{ border: `1px solid ${toutLeGroupe ? "#1E7BFF" : "var(--border-strong)"}`, background: toutLeGroupe ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)", color: toutLeGroupe ? "var(--ink)" : "var(--ink-body)" }}
+              >
+                Tout le groupe
+              </button>
+              <button
+                onClick={() => setToutLeGroupe(false)}
+                className="rounded-[9px] px-3.5 py-2 text-[13px] font-semibold cursor-pointer"
+                style={{ border: `1px solid ${!toutLeGroupe ? "#1E7BFF" : "var(--border-strong)"}`, background: !toutLeGroupe ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)", color: !toutLeGroupe ? "var(--ink)" : "var(--ink-body)" }}
+              >
+                Sélection personnalisée
+              </button>
+            </div>
+            {!toutLeGroupe && (
+              <div className="px-6 py-4 flex-1 overflow-y-auto flex flex-col gap-1.5">
+                {nageurs
+                  .filter((n) => n.groupeId === effectifCreneau.groupeId)
+                  .map((n) => (
+                    <label key={n.id} className="flex items-center gap-3 rounded-lg px-3 py-2 cursor-pointer" style={{ background: effectifSelected.has(n.id) ? "rgba(30,123,255,0.12)" : "transparent" }}>
+                      <input type="checkbox" checked={effectifSelected.has(n.id)} onChange={() => toggleEffectifNageur(n.id)} className="w-4 h-4 cursor-pointer" />
+                      <span className="flex-1 text-sm">{n.nom}</span>
+                    </label>
+                  ))}
+                {nageurs.filter((n) => n.groupeId === effectifCreneau.groupeId).length === 0 && (
+                  <div className="text-[13px] text-center py-6" style={{ color: "var(--ink-secondary)" }}>
+                    Aucun nageur dans ce groupe.
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="px-6 pb-5 pt-4 flex gap-2.5 justify-end" style={{ borderTop: "1px solid var(--border)" }}>
+              <button onClick={() => setEffectifCreneau(null)} className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+                Annuler
+              </button>
+              <button
+                onClick={saveEffectif}
+                disabled={savingEffectif}
+                className="rounded-[10px] px-5 py-2.5 text-[13px] font-bold cursor-pointer"
+                style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: savingEffectif ? 0.7 : 1 }}
+              >
+                {savingEffectif ? "Enregistrement…" : "Enregistrer"}
               </button>
             </div>
           </div>

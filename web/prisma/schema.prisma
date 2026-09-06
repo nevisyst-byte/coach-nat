@@ -141,6 +141,7 @@ model Nageur {
   notations       NotationTechnique[]
   absences        Absence[]
   inscriptions    Inscription[]
+  creneauxEffectif CreneauNageur[]
   createdAt       DateTime @default(now())
 }
 
@@ -225,7 +226,24 @@ model Creneau {
   // place. Mettre à faux pour un créneau qui continue toute l'année.
   actifHorsVacances Boolean         @default(true)
   instances         SeanceInstance[]
+  // Sous-ensemble explicite du groupe qui assiste à ce créneau (ex. seuls
+  // les 4 nages font le créneau technique du mardi). Aucune ligne pour ce
+  // créneau = comportement par défaut, tout le groupe est attendu.
+  effectifNageurs   CreneauNageur[]
   createdAt         DateTime        @default(now())
+}
+
+// Voir le commentaire sur Creneau.effectifNageurs : présence d'une ligne ici
+// pour (creneauId, nageurId) = ce nageur fait partie de l'effectif attendu
+// explicite du créneau, qui remplace alors "tout le groupe" par défaut.
+model CreneauNageur {
+  id        String  @id @default(cuid())
+  creneauId String
+  creneau   Creneau @relation(fields: [creneauId], references: [id], onDelete: Cascade)
+  nageurId  String
+  nageur    Nageur  @relation(fields: [nageurId], references: [id], onDelete: Cascade)
+
+  @@unique([creneauId, nageurId])
 }
 
 model Stage {

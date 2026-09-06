@@ -4,7 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
 const bodySchema = z.object({
-  actifHorsVacances: z.boolean(),
+  actifHorsVacances: z.boolean().optional(),
+  // Sous-ensemble explicite du groupe attendu à ce créneau. null = revient
+  // au comportement par défaut (tout le groupe). Absent = pas touché.
+  nageurIds: z.array(z.string()).nullable().optional(),
 });
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -15,8 +18,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
+  const { actifHorsVacances, nageurIds } = parsed.data;
 
-  await prisma.creneau.update({ where: { id }, data: parsed.data });
+  if (actifHorsVacances !== undefined) {
+    await prisma.creneau.update({ where: { id }, data: { actifHorsVacances } });
+  }
+
+  if (nageurIds !== undefined) {
+    await prisma.$transaction([
+      prisma.creneauNageur.deleteMany({ where: { creneauId: id } }),
+      ...(nageurIds && nageurIds.length > 0
+        ? [prisma.creneauNageur.createMany({ data: nageurIds.map((nageurId) => ({ creneauId: id, nageurId })) })]
+        : []),
+    ]);
+  }
+
   return NextResponse.json({ ok: true });
 }
 
