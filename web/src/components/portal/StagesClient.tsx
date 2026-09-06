@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProgressBar } from "@/components/ui/Card";
-import { JOURS, fmtKm } from "@/lib/format";
+import { ETAT_COLOR, JOURS, fmtKm } from "@/lib/format";
 
 type CreneauStage = {
   id: string;
@@ -53,6 +53,15 @@ const STATUT_STYLE: Record<string, [string, string]> = {
   EN_PREPARATION: ["rgba(242,179,61,0.15)", "#F2B33D"],
 };
 const STATUT_LABEL: Record<string, string> = { CONFIRME: "Confirmé", OUVERT: "Ouvert aux inscriptions", EN_PREPARATION: "En préparation" };
+
+// Couleur du taux de remplissage alignée sur le code couleur de statut du
+// reste de l'app (vert = complet, orange = en cours, rouge = à couvrir) —
+// plutôt que la couleur décorative propre au stage (bordure/photo).
+function remplissageColor(pct: number) {
+  if (pct >= 90) return ETAT_COLOR.ASSURE;
+  if (pct >= 50) return ETAT_COLOR.REMPLACE;
+  return ETAT_COLOR.A_COUVRIR;
+}
 
 export function StagesClient({
   stage,
@@ -257,7 +266,7 @@ export function StagesClient({
                     {st.inscrits} / {st.places} places · {remplissage}%
                   </span>
                 </div>
-                <ProgressBar value={remplissage} color={st.color} />
+                <ProgressBar value={remplissage} color={remplissageColor(remplissage)} />
               </div>
               <div className="flex justify-between items-center gap-3 mt-4 pt-3.5 flex-wrap" style={{ borderTop: "1px solid var(--border)" }}>
                 <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>

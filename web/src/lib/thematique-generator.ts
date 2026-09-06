@@ -1,11 +1,14 @@
-const BLUE = "#1E7BFF", CYAN = "#24C8FF", RED = "#E8442B", GREEN = "#2ECC8F", AMBER = "#F2B33D";
+// Palette purement décorative (identité visuelle des 5 thèmes), volontairement
+// distincte du code couleur de statut de l'app (vert/orange/rouge = assuré/
+// remplacé/à couvrir) pour ne pas laisser croire à un état d'alerte.
+const BLUE = "#1E7BFF", CYAN = "#24C8FF", VIOLET = "#8C6BFF", PINK = "#FF6FB0", TEAL = "#2DD4BF";
 
 export const THEMES = [
   { nom: "Volume aérobie", color: BLUE, charge: "Charge 1", detail: "3 séances · dominante endurance, 4 500 m", consigne: "Allure neutre, fréquence basse" },
   { nom: "Seuil", color: CYAN, charge: "Charge 2", detail: "3 séances · travail au seuil, 4 000 m", consigne: "Séries longues, récup courte" },
-  { nom: "VMA", color: GREEN, charge: "Charge 3", detail: "3 séances · intermittent court, 3 200 m", consigne: "30\"/30\" et 50 m départ 1'00" },
-  { nom: "Lactique", color: RED, charge: "Charge 3", detail: "2 séances · tolérance lactique, 2 800 m", consigne: "Répétitions maximales, récup longue" },
-  { nom: "Vitesse", color: AMBER, charge: "Affûtage", detail: "2 séances · volume réduit, qualité maximale", consigne: "Départs, coulées, 15 m lancés" },
+  { nom: "VMA", color: VIOLET, charge: "Charge 3", detail: "3 séances · intermittent court, 3 200 m", consigne: "30\"/30\" et 50 m départ 1'00" },
+  { nom: "Lactique", color: PINK, charge: "Charge 3", detail: "2 séances · tolérance lactique, 2 800 m", consigne: "Répétitions maximales, récup longue" },
+  { nom: "Vitesse", color: TEAL, charge: "Affûtage", detail: "2 séances · volume réduit, qualité maximale", consigne: "Départs, coulées, 15 m lancés" },
 ] as const;
 
 const MIX: Record<string, number[]> = {
