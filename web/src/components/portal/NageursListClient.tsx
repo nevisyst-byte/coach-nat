@@ -89,63 +89,57 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                 {g.rows.length} nageur{g.rows.length > 1 ? "s" : ""}
               </span>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse" style={{ minWidth: 760 }}>
-                <tbody>
-                  {g.rows.map((n) => {
-                    const p = n.presenceRate;
-                    const presBg = p >= 85 ? "rgba(46,204,143,0.14)" : p >= 70 ? "rgba(242,179,61,0.15)" : "rgba(232,68,43,0.16)";
-                    const presFg = p >= 85 ? "#2ECC8F" : p >= 70 ? "#F2B33D" : "#E8442B";
-                    return (
-                      <tr key={n.id} style={{ borderTop: "1px solid var(--border)" }}>
-                        <td className="px-5 py-3.5">
-                          <Link href={`/nageurs/${n.id}`} className="flex items-center gap-2.5">
-                            <div
-                              className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center text-xs font-bold shrink-0"
-                              style={{ background: initialsColor(n.nom) }}
-                            >
-                              {n.initiales}
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
-                                {n.nom}
-                              </div>
-                              <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
-                                {n.age} ans · {n.specialite}
-                              </div>
-                            </div>
-                          </Link>
-                        </td>
-                        <td className="px-3 py-3.5 text-[13px]" style={{ color: "var(--ink-body)" }}>
-                          {n.categorie}
-                        </td>
-                        <td className="px-3 py-3.5 text-[13px]" style={{ color: "var(--ink-body)" }}>
-                          {n.groupeNom ?? "—"}
-                        </td>
-                        <td className="px-3 py-3.5 text-right font-display text-xl">{n.pointsFFN || "—"}</td>
-                        <td className="px-3 py-3.5 text-right text-[13px]" style={{ color: "var(--ink-body)" }}>
-                          {n.rangDept ? `${n.rangDept} / ${n.rangReg} / ${n.rangNat}` : "— / — / —"}
-                        </td>
-                        <td className="px-3 py-3.5 text-right">
-                          <span className="text-xs font-bold px-2.5 py-1 rounded-md" style={{ background: presBg, color: presFg }}>
-                            {n.presenceRate}%
-                          </span>
-                        </td>
-                        {isAdmin && (
-                          <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                            <button onClick={() => openEdit(n)} className="rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer mr-1.5" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
-                              Modifier
-                            </button>
-                            <button onClick={() => remove(n.id, n.nom)} className="rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
-                              Supprimer
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="flex flex-col">
+              {g.rows.map((n) => {
+                const p = n.presenceRate;
+                const presBg = p >= 85 ? "rgba(46,204,143,0.14)" : p >= 70 ? "rgba(242,179,61,0.15)" : "rgba(232,68,43,0.16)";
+                const presFg = p >= 85 ? "#2ECC8F" : p >= 70 ? "#F2B33D" : "#E8442B";
+                return (
+                  <div key={n.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 sm:px-5 py-3.5" style={{ borderTop: "1px solid var(--border)" }}>
+                    <Link href={`/nageurs/${n.id}`} className="flex items-center gap-2.5" style={{ minWidth: 170 }}>
+                      <div
+                        className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center text-xs font-bold shrink-0"
+                        style={{ background: initialsColor(n.nom) }}
+                      >
+                        {n.initiales}
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
+                          {n.nom}
+                        </div>
+                        <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                          {n.age} ans · {n.specialite}
+                        </div>
+                      </div>
+                    </Link>
+                    <div className="text-[13px]" style={{ minWidth: 60, color: "var(--ink-body)" }}>
+                      {n.categorie}
+                    </div>
+                    <div className="text-[13px]" style={{ minWidth: 90, color: "var(--ink-body)" }}>
+                      {n.groupeNom ?? "—"}
+                    </div>
+                    <div className="font-display text-lg" style={{ minWidth: 40 }}>
+                      {n.pointsFFN || "—"}
+                    </div>
+                    <div className="hidden sm:block text-[13px]" style={{ color: "var(--ink-body)" }}>
+                      {n.rangDept ? `${n.rangDept} / ${n.rangReg} / ${n.rangNat}` : "— / — / —"}
+                    </div>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-md" style={{ background: presBg, color: presFg }}>
+                      {n.presenceRate}%
+                    </span>
+                    {isAdmin && (
+                      <div className="flex gap-1.5 ml-auto">
+                        <button onClick={() => openEdit(n)} className="rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+                          Modifier
+                        </button>
+                        <button onClick={() => remove(n.id, n.nom)} className="rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}

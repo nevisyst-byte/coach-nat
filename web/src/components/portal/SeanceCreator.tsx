@@ -122,7 +122,7 @@ export function SeanceCreator({ groupes, modeles: modelesInitiaux }: { groupes: 
   }
 
   return (
-    <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "260px repeat(auto-fit,minmax(330px,1fr))" }}>
+    <div className="grid gap-4 items-start grid-cols-1 lg:[grid-template-columns:260px_repeat(auto-fit,minmax(330px,1fr))]">
       <Card style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <div className="flex items-baseline justify-between">
           <h3 className="font-display text-[17px] tracking-[0.1em] uppercase">Modèles enregistrés</h3>

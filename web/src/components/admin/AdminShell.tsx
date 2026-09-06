@@ -24,7 +24,7 @@ export function AdminShell({ userName, children }: { userName: string; children:
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--bg-base)" }}>
-      <aside className="w-[240px] shrink-0 flex flex-col" style={{ background: "var(--bg-nav-top)", borderRight: "1px solid var(--border)" }}>
+      <aside className="hidden lg:flex w-[240px] shrink-0 flex-col" style={{ background: "var(--bg-nav-top)", borderRight: "1px solid var(--border)" }}>
         <div className="p-5" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="font-display text-lg tracking-[0.05em]">COACH-NAT</div>
           <div className="text-[10px] tracking-[0.2em] uppercase mt-1" style={{ color: "var(--ink-tertiary)" }}>
@@ -60,15 +60,39 @@ export function AdminShell({ userName, children }: { userName: string; children:
       </aside>
 
       <div className="flex-1 min-w-0">
-        <header className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
-          <div className="text-sm" style={{ color: "var(--ink-secondary)" }}>
-            Connecté en tant que <span style={{ color: "var(--ink)", fontWeight: 600 }}>{userName}</span>
+        <header className="flex items-center justify-between px-4 md:px-6 py-4 gap-3" style={{ borderBottom: "1px solid var(--border)" }}>
+          <div className="text-sm min-w-0 truncate" style={{ color: "var(--ink-secondary)" }}>
+            <span className="hidden sm:inline">Connecté en tant que </span>
+            <span style={{ color: "var(--ink)", fontWeight: 600 }}>{userName}</span>
           </div>
-          <button onClick={logout} className="rounded-[10px] px-3 py-2 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+          <button onClick={logout} className="rounded-[10px] px-3 py-2 text-xs font-semibold cursor-pointer shrink-0" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
             Déconnexion
           </button>
         </header>
-        <main className="p-6 flex flex-col gap-4">{children}</main>
+        <nav className="lg:hidden flex gap-1.5 px-4 py-3 overflow-x-auto" style={{ borderBottom: "1px solid var(--border)" }}>
+          {NAV.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-1.5 rounded-[9px] px-3 py-2 text-xs font-semibold whitespace-nowrap shrink-0"
+                style={{
+                  color: active ? "var(--ink)" : "var(--ink-body)",
+                  background: active ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)",
+                  border: `1px solid ${active ? "#1E7BFF" : "var(--border-strong)"}`,
+                }}
+              >
+                <span>{item.icon}</span>
+                {item.label}
+              </Link>
+            );
+          })}
+          <Link href="/general" className="flex items-center rounded-[9px] px-3 py-2 text-xs font-semibold whitespace-nowrap shrink-0" style={{ color: "var(--cyan)", border: "1px solid var(--border-strong)" }}>
+            ← Portail coach
+          </Link>
+        </nav>
+        <main className="p-4 md:p-6 flex flex-col gap-4">{children}</main>
       </div>
     </div>
   );

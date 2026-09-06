@@ -14,6 +14,7 @@ type Creneau = {
   effectifLabel: string | null;
   groupeId: string;
   groupe: { nom: string };
+  coachId: string | null;
   coach: { user: { name: string } } | null;
   libelleCoach: string | null;
   actifHorsVacances: boolean;
@@ -36,6 +37,7 @@ export function SemaineTypeClient({
 }) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ jour: 0, debut: "18:00", fin: "19:30", groupeId: groupes[0]?.id ?? "", coachId: "", bassin: "Bassin 50 m", etat: "ASSURE" });
   const [saving, setSaving] = useState(false);
 
@@ -45,18 +47,33 @@ export function SemaineTypeClient({
   const [savingEffectif, setSavingEffectif] = useState(false);
 
   function openModal(jour: number) {
-    setForm((f) => ({ ...f, jour }));
+    setEditingId(null);
+    setForm({ jour, debut: "18:00", fin: "19:30", groupeId: groupes[0]?.id ?? "", coachId: "", bassin: "Bassin 50 m", etat: "ASSURE" });
+    setModalOpen(true);
+  }
+
+  function openEditModal(c: Creneau) {
+    setEditingId(c.id);
+    setForm({ jour: c.jour, debut: c.debut, fin: c.fin, groupeId: c.groupeId, coachId: c.coachId ?? "", bassin: c.bassin, etat: c.etat });
     setModalOpen(true);
   }
 
   async function submit() {
     setSaving(true);
     try {
-      await fetch("/api/creneaux", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coachId: form.coachId || null }),
-      });
+      if (editingId) {
+        await fetch(`/api/creneaux/${editingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, coachId: form.coachId || null }),
+        });
+      } else {
+        await fetch("/api/creneaux", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, coachId: form.coachId || null }),
+        });
+      }
       setModalOpen(false);
       router.refresh();
     } finally {
@@ -150,7 +167,8 @@ export function SemaineTypeClient({
       </div>
 
       <div className="text-[12px]" style={{ color: "var(--ink-muted)" }}>
-        Astuce : glisse une carte pour la déplacer sur un autre jour.
+        Astuce : glisse une carte pour la déplacer sur un autre jour (souris) — ou utilise ✎
+        (modifier) sur mobile/tablette.
       </div>
 
       <div className="overflow-x-auto pb-1.5">
@@ -187,7 +205,10 @@ export function SemaineTypeClient({
                     <span className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: ETAT_COLOR[c.etat] }}>
                       {ETAT_LABEL[c.etat]}
                     </span>
-                    <button onClick={() => remove(c.id)} className="ml-auto text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer">
+                    <button onClick={() => openEditModal(c)} className="ml-auto text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Modifier (jour, horaire, groupe, coach…)">
+                      ✎
+                    </button>
+                    <button onClick={() => remove(c.id)} className="text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer">
                       ✕
                     </button>
                   </div>
@@ -236,7 +257,7 @@ export function SemaineTypeClient({
         <div onClick={() => setModalOpen(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
           <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl overflow-y-auto" style={{ maxWidth: 560, maxHeight: "88vh", background: "#101A2B", border: "1px solid var(--border-strong)" }}>
             <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
-              <h2 className="font-display text-[22px] tracking-[0.05em]">Nouveau créneau — {JOURS[form.jour]}</h2>
+              <h2 className="font-display text-[22px] tracking-[0.05em]">{editingId ? "Modifier le créneau" : "Nouveau créneau"} — {JOURS[form.jour]}</h2>
               <button onClick={() => setModalOpen(false)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
                 ✕
               </button>
@@ -331,7 +352,7 @@ export function SemaineTypeClient({
                 Annuler
               </button>
               <button onClick={submit} disabled={saving} className="rounded-[10px] px-5 py-2.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
-                {saving ? "Ajout…" : "Ajouter à la semaine type"}
+                {saving ? "Enregistrement…" : editingId ? "Enregistrer" : "Ajouter à la semaine type"}
               </button>
             </div>
           </div>

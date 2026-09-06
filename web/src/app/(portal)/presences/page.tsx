@@ -139,7 +139,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
         </Card>
       </div>
 
-      <div className="grid gap-4 items-start" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(400px,1fr))" }}>
+      <div className="grid gap-4 items-start grid-cols-1 md:[grid-template-columns:repeat(auto-fit,minmax(400px,1fr))]">
         <PresenceRoster title="Nageurs" people={rosterNageurs} seanceInstanceId={instance.id} role="SWIMMER" />
 
         <Card>

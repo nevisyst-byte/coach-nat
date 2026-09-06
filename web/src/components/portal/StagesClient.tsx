@@ -197,7 +197,7 @@ export function StagesClient({
         </div>
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(380px,1fr))" }}>
+      <div className="grid gap-4 grid-cols-1 md:[grid-template-columns:repeat(auto-fit,minmax(380px,1fr))]">
         {stages.map((st, i) => {
           const [bg, fg] = STATUT_STYLE[st.statut];
           const remplissage = Math.round((st.inscrits / st.places) * 100);
