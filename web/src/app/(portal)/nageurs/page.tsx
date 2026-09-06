@@ -3,11 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/Card";
 import { NageursFilterBar } from "@/components/portal/NageursFilterBar";
 import { NageursListClient } from "@/components/portal/NageursListClient";
-import { POLE_LABELS, POLE_COLORS } from "@/lib/theme";
+import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
 import { getSession } from "@/lib/auth";
 import type { Prisma } from "@/generated/prisma/client";
-
-const POLE_ORDER = ["COMPETITION", "FORMATION", "SAUVETAGE", "LOISIR"] as const;
 
 export default async function NageursPage({
   searchParams,

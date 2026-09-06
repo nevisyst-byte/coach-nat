@@ -45,6 +45,8 @@ export const MOBILE_TABS = [
   { id: "seance", href: "/seance", pathname: "/seance", icon: "✦", label: "Séance" },
 ] as const;
 
+export const POLE_ORDER = ["COMPETITION", "FORMATION", "SAUVETAGE", "LOISIR"] as const;
+
 export const POLE_LABELS: Record<string, string> = {
   FORMATION: "Formation",
   COMPETITION: "Compétition",

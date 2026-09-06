@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { POLE_LABELS } from "@/lib/theme";
+import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
 
 type Groupe = { id: string; nom: string; pole: string; categorie: string; color: string; objectif: string | null; coachId: string | null };
 type Coach = { id: string; nom: string };
@@ -11,8 +11,10 @@ type Nageur = { id: string; nom: string; groupeId: string | null };
 const POLES = ["FORMATION", "COMPETITION", "SAUVETAGE", "LOISIR"];
 
 // Grille partagée entre l'en-tête et les lignes du tableau, pour que les
-// colonnes restent alignées quelle que soit la longueur du contenu.
-const ROW_COLUMNS = "1.4fr 130px 130px 90px 170px 1.3fr 170px";
+// colonnes restent alignées quelle que soit la longueur du contenu. Le pôle
+// n'est pas une colonne : les groupes sont déjà regroupés par pôle (comme
+// sur /nageurs), la section fait déjà office d'étiquette.
+const ROW_COLUMNS = "1.4fr 130px 90px 170px 1.3fr 170px";
 const LABEL_STYLE: React.CSSProperties = { color: "#61789B", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 };
 const INPUT_STYLE: React.CSSProperties = { background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" };
 
@@ -88,6 +90,17 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
     [nageurs, query]
   );
 
+  const groupesParPole = useMemo(
+    () =>
+      POLE_ORDER.map((pole) => ({
+        pole,
+        nom: POLE_LABELS[pole] ?? pole,
+        color: POLE_COLORS[pole] ?? "#61789B",
+        groupes: groupes.filter((g) => g.pole === pole),
+      })).filter((section) => section.groupes.length > 0),
+    [groupes]
+  );
+
   return (
     <div className="flex flex-col gap-5">
       <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
@@ -138,78 +151,86 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
         </form>
       </div>
 
-      <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-        <div className="overflow-x-auto">
-          <div style={{ minWidth: 980 }}>
-            <div className="grid gap-3 px-3.5 py-2.5" style={{ gridTemplateColumns: ROW_COLUMNS, background: "rgba(255,255,255,0.03)", borderBottom: "1px solid var(--border)" }}>
-              {["Groupe", "Pôle", "Catégorie", "Effectif", "Coach responsable", "Objectif en cours", "Actions"].map((label) => (
-                <div key={label} style={{ ...LABEL_STYLE, marginBottom: 0 }}>
-                  {label}
-                </div>
-              ))}
+      <div className="flex flex-col gap-4">
+        {groupesParPole.map((section) => (
+          <div key={section.pole} className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)", borderTop: `3px solid ${section.color}` }}>
+            <div className="px-4 py-3 flex items-center gap-2.5" style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid var(--border)" }}>
+              <span className="w-2 h-2 rounded-full" style={{ background: section.color }} />
+              <span className="font-display text-[15px] tracking-[0.05em] uppercase">{section.nom}</span>
+              <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+                {section.groupes.length} groupe{section.groupes.length > 1 ? "s" : ""}
+              </span>
             </div>
-            {groupes.map((g) => {
-              const count = nageurs.filter((n) => n.groupeId === g.id).length;
-              return (
-                <div
-                  key={g.id}
-                  className="grid gap-3 items-center px-3.5 py-3"
-                  style={{ gridTemplateColumns: ROW_COLUMNS, borderLeft: `4px solid ${g.color}`, borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.015)" }}
-                >
-                  <div className="text-sm font-semibold truncate">{g.nom}</div>
-                  <div className="text-sm truncate" style={{ color: "var(--ink-body)" }}>
-                    {POLE_LABELS[g.pole] ?? g.pole}
-                  </div>
-                  <div className="text-sm truncate" style={{ color: "var(--ink-body)" }}>
-                    {g.categorie}
-                  </div>
-                  <div className="text-sm" style={{ color: "var(--ink-secondary)" }}>
-                    {count} nageur{count > 1 ? "s" : ""}
-                  </div>
-                  <select
-                    defaultValue={g.coachId ?? ""}
-                    onChange={(e) => updateGroupe(g.id, { coachId: e.target.value || null })}
-                    className="w-full rounded-[9px] px-2.5 py-2 text-sm outline-none"
-                    style={INPUT_STYLE}
-                  >
-                    <option value="" style={{ background: "#101A2B" }}>
-                      — aucun —
-                    </option>
-                    {coachs.map((c) => (
-                      <option key={c.id} value={c.id} style={{ background: "#101A2B" }}>
-                        {c.nom}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    defaultValue={g.objectif ?? ""}
-                    onBlur={(e) => updateGroupe(g.id, { objectif: e.target.value })}
-                    placeholder="—"
-                    className="w-full rounded-[9px] px-2.5 py-2 text-sm outline-none"
-                    style={INPUT_STYLE}
-                  />
-                  <div className="flex gap-1.5">
-                    <button
-                      onClick={() => openRoster(g)}
-                      className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer"
-                      style={{ border: "1px solid rgba(30,123,255,0.4)", background: "rgba(30,123,255,0.1)", color: "#7FDCFF" }}
-                    >
-                      Nageurs
-                    </button>
-                    <button onClick={() => removeGroupe(g.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
-                      Supprimer
-                    </button>
-                  </div>
+            <div className="overflow-x-auto">
+              <div style={{ minWidth: 900 }}>
+                <div className="grid gap-3 px-3.5 py-2" style={{ gridTemplateColumns: ROW_COLUMNS, background: "rgba(255,255,255,0.02)", borderBottom: "1px solid var(--border)" }}>
+                  {["Groupe", "Catégorie", "Effectif", "Coach responsable", "Objectif en cours", "Actions"].map((label) => (
+                    <div key={label} style={{ ...LABEL_STYLE, marginBottom: 0 }}>
+                      {label}
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
-            {groupes.length === 0 && (
-              <div className="text-[13px] text-center py-8" style={{ color: "var(--ink-secondary)" }}>
-                Aucun groupe pour l&apos;instant.
+                {section.groupes.map((g) => {
+                  const count = nageurs.filter((n) => n.groupeId === g.id).length;
+                  return (
+                    <div
+                      key={g.id}
+                      className="grid gap-3 items-center px-3.5 py-3"
+                      style={{ gridTemplateColumns: ROW_COLUMNS, borderLeft: `4px solid ${g.color}`, borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.015)" }}
+                    >
+                      <div className="text-sm font-semibold truncate">{g.nom}</div>
+                      <div className="text-sm truncate" style={{ color: "var(--ink-body)" }}>
+                        {g.categorie}
+                      </div>
+                      <div className="text-sm" style={{ color: "var(--ink-secondary)" }}>
+                        {count} nageur{count > 1 ? "s" : ""}
+                      </div>
+                      <select
+                        defaultValue={g.coachId ?? ""}
+                        onChange={(e) => updateGroupe(g.id, { coachId: e.target.value || null })}
+                        className="w-full rounded-[9px] px-2.5 py-2 text-sm outline-none"
+                        style={INPUT_STYLE}
+                      >
+                        <option value="" style={{ background: "#101A2B" }}>
+                          — aucun —
+                        </option>
+                        {coachs.map((c) => (
+                          <option key={c.id} value={c.id} style={{ background: "#101A2B" }}>
+                            {c.nom}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        defaultValue={g.objectif ?? ""}
+                        onBlur={(e) => updateGroupe(g.id, { objectif: e.target.value })}
+                        placeholder="—"
+                        className="w-full rounded-[9px] px-2.5 py-2 text-sm outline-none"
+                        style={INPUT_STYLE}
+                      />
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => openRoster(g)}
+                          className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer"
+                          style={{ border: "1px solid rgba(30,123,255,0.4)", background: "rgba(30,123,255,0.1)", color: "#7FDCFF" }}
+                        >
+                          Nageurs
+                        </button>
+                        <button onClick={() => removeGroupe(g.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        ))}
+        {groupes.length === 0 && (
+          <div className="text-[13px] text-center py-8 rounded-2xl" style={{ color: "var(--ink-secondary)", border: "1px solid var(--border)" }}>
+            Aucun groupe pour l&apos;instant.
+          </div>
+        )}
       </div>
 
       {managing && (
