@@ -15,29 +15,44 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
   const [confirmText, setConfirmText] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const resetConfirme = !resetDonnees || confirmText.trim().toUpperCase() === "RÉINITIALISER";
 
-  async function activer(id: string) {
-    await fetch(`/api/admin/saisons/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: true }) });
-    router.refresh();
+  async function activer(id: string, label: string) {
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch(`/api/admin/saisons/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: true }) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? `Erreur (${res.status}) en activant la saison.`);
+        return;
+      }
+      setSuccess(`Saison « ${label} » activée.`);
+      router.refresh();
+    } catch {
+      setError("Erreur réseau — la saison n'a pas été activée, réessaie.");
+    }
   }
 
   async function creer() {
     if (!label.trim() || !dateDebut || !dateFin || !resetConfirme) return;
     setSaving(true);
     setError(null);
+    setSuccess(null);
     try {
       const res = await fetch("/api/admin/saisons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ label: label.trim(), dateDebut, dateFin, activer: true, resetDonnees }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "Erreur");
+        setError(data.error ?? `Erreur (${res.status}) — la saison n'a pas été créée.`);
         return;
       }
+      setSuccess(`Saison « ${label.trim()} » créée et activée${resetDonnees ? " — nageurs, groupes, créneaux et stages réinitialisés" : ""}.`);
       setFormOpen(false);
       setLabel("");
       setDateDebut("");
@@ -45,6 +60,8 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
       setResetDonnees(false);
       setConfirmText("");
       router.refresh();
+    } catch {
+      setError("Erreur réseau — la saison n'a pas été créée, réessaie.");
     } finally {
       setSaving(false);
     }
@@ -66,7 +83,7 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
                 Active
               </span>
             ) : (
-              <button onClick={() => activer(s.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+              <button onClick={() => activer(s.id, s.label)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
                 Activer
               </button>
             )}
@@ -78,6 +95,17 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
           </div>
         )}
       </div>
+
+      {success && (
+        <div className="text-[13px] rounded-lg px-3 py-2" style={{ background: "rgba(46,204,143,0.12)", color: "#2ECC8F", border: "1px solid rgba(46,204,143,0.35)" }}>
+          ✓ {success}
+        </div>
+      )}
+      {error && !formOpen && (
+        <div className="text-[13px] rounded-lg px-3 py-2" style={{ background: "rgba(232,68,43,0.12)", color: "#FF9179", border: "1px solid rgba(232,68,43,0.35)" }}>
+          {error}
+        </div>
+      )}
 
       {!formOpen ? (
         <button
@@ -119,10 +147,10 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
           <label className="flex items-start gap-2.5 text-[13px] cursor-pointer" style={{ color: "var(--ink-body)" }}>
             <input type="checkbox" checked={resetDonnees} onChange={(e) => setResetDonnees(e.target.checked)} className="mt-0.5" />
             <span>
-              Réinitialiser nageurs, groupes, créneaux et stages pour repartir de zéro sur cette saison.
+              Réinitialiser nageurs, créneaux et stages pour repartir de zéro sur cette saison.
               <br />
-              <span style={{ color: "#FF9179" }}>Irréversible — supprime tous les nageurs, groupes, créneaux et stages actuels.</span> Les
-              séances et présences déjà pointées restent conservées comme historique.
+              <span style={{ color: "#FF9179" }}>Irréversible — supprime tous les nageurs, créneaux et stages actuels.</span> Les groupes
+              (structure du club) sont conservés, tout comme les séances et présences déjà pointées, gardées comme historique.
             </span>
           </label>
 

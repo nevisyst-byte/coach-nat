@@ -8,6 +8,14 @@ const bodySchema = z.object({
   // Sous-ensemble explicite du groupe attendu à ce créneau. null = revient
   // au comportement par défaut (tout le groupe). Absent = pas touché.
   nageurIds: z.array(z.string()).nullable().optional(),
+  // Édition libre (glisser-déposer sur un autre jour, ou modale d'édition).
+  jour: z.number().int().min(0).max(6).optional(),
+  debut: z.string().optional(),
+  fin: z.string().optional(),
+  groupeId: z.string().optional(),
+  coachId: z.string().nullable().optional(),
+  bassin: z.string().optional(),
+  etat: z.enum(["ASSURE", "REMPLACE", "A_COUVRIR"]).optional(),
 });
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -18,10 +26,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
-  const { actifHorsVacances, nageurIds } = parsed.data;
+  const { actifHorsVacances, nageurIds, ...fields } = parsed.data;
 
   if (actifHorsVacances !== undefined) {
     await prisma.creneau.update({ where: { id }, data: { actifHorsVacances } });
+  }
+
+  const { jour, debut, fin, groupeId, coachId, bassin, etat } = fields;
+  if (jour !== undefined || debut !== undefined || fin !== undefined || groupeId !== undefined || coachId !== undefined || bassin !== undefined || etat !== undefined) {
+    await prisma.creneau.update({ where: { id }, data: { jour, debut, fin, groupeId, coachId, bassin, etat } });
   }
 
   if (nageurIds !== undefined) {

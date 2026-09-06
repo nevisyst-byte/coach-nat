@@ -30,13 +30,15 @@ export async function POST(request: Request) {
 
   if (activer || resetDonnees) await setActiveSaison(saison.id);
 
-  // Repart de zéro sur le roster et la structure du club pour la nouvelle
-  // saison : les séances/présences déjà pointées (SeanceInstance/Presence)
-  // ne sont pas concernées, elles restent comme trace de l'historique passé.
+  // Repart de zéro sur le roster et les créneaux pour la nouvelle saison —
+  // mais garde les groupes (structure stable du club d'une saison à
+  // l'autre : nom, pôle, couleur, coach responsable). Les séances/présences
+  // déjà pointées (SeanceInstance/Presence) ne sont pas concernées non plus,
+  // elles restent comme trace de l'historique passé.
   if (resetDonnees) {
     await prisma.$transaction([
+      prisma.creneau.deleteMany(),
       prisma.stage.deleteMany(),
-      prisma.groupe.deleteMany(),
       prisma.nageur.deleteMany(),
     ]);
   }

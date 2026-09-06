@@ -162,9 +162,10 @@ chaque resynchro — l'onglet « Évolution » peut ainsi montrer le temps d'un 
 donnée, saison après saison.
 
 Démarrer une nouvelle saison se fait depuis `/admin` → section Saisons → « Nouvelle saison », avec
-une case à cocher optionnelle « Réinitialiser nageurs, groupes, créneaux et stages » (confirmation
-par saisie du mot RÉINITIALISER) pour repartir de zéro sur le roster et la structure du club en
-gardant les comptes utilisateurs et l'historique des séances/présences déjà pointées.
+une case à cocher optionnelle « Réinitialiser nageurs, créneaux et stages » (confirmation par
+saisie du mot RÉINITIALISER) pour repartir de zéro sur le roster et le planning en gardant les
+groupes (structure stable du club), les comptes utilisateurs et l'historique des séances/présences
+déjà pointées.
 
 ## Simplifications restantes
 

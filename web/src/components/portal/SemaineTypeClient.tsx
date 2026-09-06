@@ -69,6 +69,29 @@ export function SemaineTypeClient({
     router.refresh();
   }
 
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<number | null>(null);
+
+  async function moveToDay(id: string, jour: number) {
+    await fetch(`/api/creneaux/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jour }),
+    });
+    router.refresh();
+  }
+
+  function onDrop(e: React.DragEvent, jourCible: number) {
+    e.preventDefault();
+    setDragOverDay(null);
+    const id = e.dataTransfer.getData("text/plain") || draggedId;
+    setDraggedId(null);
+    if (!id) return;
+    const c = creneaux.find((cr) => cr.id === id);
+    if (!c || c.jour === jourCible) return;
+    moveToDay(id, jourCible);
+  }
+
   async function toggleActifHorsVacances(id: string, current: boolean) {
     await fetch(`/api/creneaux/${id}`, {
       method: "PATCH",
@@ -126,15 +149,39 @@ export function SemaineTypeClient({
         stages ».
       </div>
 
+      <div className="text-[12px]" style={{ color: "var(--ink-muted)" }}>
+        Astuce : glisse une carte pour la déplacer sur un autre jour.
+      </div>
+
       <div className="overflow-x-auto pb-1.5">
         <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(7,minmax(178px,1fr))", minWidth: 1180 }}>
           {JOURS.map((nom, i) => (
-            <div key={nom} className="flex flex-col gap-2.5">
+            <div
+              key={nom}
+              className="flex flex-col gap-2.5 rounded-[11px]"
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverDay(i);
+              }}
+              onDragLeave={() => setDragOverDay((d) => (d === i ? null : d))}
+              onDrop={(e) => onDrop(e, i)}
+              style={{ outline: dragOverDay === i ? "2px dashed #1E7BFF" : "2px dashed transparent", outlineOffset: 3 }}
+            >
               <div className="text-center rounded-[11px] p-2.5" style={{ background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
                 <div className="font-display text-[15px] tracking-[0.12em] uppercase">{nom}</div>
               </div>
               {byDay[i].map((c) => (
-                <div key={c.id} className="rounded-[11px] p-3.5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${ETAT_COLOR[c.etat]}` }}>
+                <div
+                  key={c.id}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("text/plain", c.id);
+                    setDraggedId(c.id);
+                  }}
+                  onDragEnd={() => setDraggedId(null)}
+                  className="rounded-[11px] p-3.5 cursor-grab active:cursor-grabbing"
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${ETAT_COLOR[c.etat]}`, opacity: draggedId === c.id ? 0.4 : 1 }}
+                >
                   <div className="flex items-center gap-2">
                     <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: ETAT_COLOR[c.etat] }} />
                     <span className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: ETAT_COLOR[c.etat] }}>
