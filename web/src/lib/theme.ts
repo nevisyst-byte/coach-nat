@@ -24,7 +24,10 @@ export const NAV_GROUPS = [
   },
   {
     label: "Nageurs",
-    items: [{ id: "nageurs", href: "/nageurs", icon: "⚑", label: "Nageurs" }],
+    items: [
+      { id: "nageurs", href: "/nageurs", icon: "⚑", label: "Nageurs" },
+      { id: "groupes", href: "/groupes", icon: "▤", label: "Groupes" },
+    ],
   },
   {
     label: "Entraînement",
