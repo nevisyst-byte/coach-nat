@@ -74,7 +74,9 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
   }
 
   async function searchFfn() {
-    const q = `${prenom.trim()} ${nomFamille.trim()}`.trim();
+    // FFN cherche sur "Nom Prénom", pas "Prénom Nom" (ordre inverse de notre
+    // affichage interne) — sinon la recherche ne matche rien.
+    const q = `${nomFamille.trim()} ${prenom.trim()}`.trim();
     if (q.length < 4) return;
     setFfnSearching(true);
     setFfnError(null);
