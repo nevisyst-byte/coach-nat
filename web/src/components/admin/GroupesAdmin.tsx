@@ -2,12 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { POLE_LABELS } from "@/lib/theme";
 
 type Groupe = { id: string; nom: string; pole: string; categorie: string; color: string; objectif: string | null; coachId: string | null };
 type Coach = { id: string; nom: string };
 type Nageur = { id: string; nom: string; groupeId: string | null };
 
 const POLES = ["FORMATION", "COMPETITION", "SAUVETAGE", "LOISIR"];
+
+// Grille partagée entre l'en-tête et les lignes du tableau, pour que les
+// colonnes restent alignées quelle que soit la longueur du contenu.
+const ROW_COLUMNS = "1.4fr 130px 130px 90px 170px 1.3fr 170px";
+const LABEL_STYLE: React.CSSProperties = { color: "#61789B", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 };
+const INPUT_STYLE: React.CSSProperties = { background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" };
 
 export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; coachs: Coach[]; nageurs: Nageur[] }) {
   const router = useRouter();
@@ -82,80 +89,127 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <form onSubmit={createGroupe} className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))" }}>
-        <input required placeholder="Nom du groupe" value={form.nom} onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
-        <select value={form.pole} onChange={(e) => setForm((f) => ({ ...f, pole: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
-          {POLES.map((p) => (
-            <option key={p} value={p} style={{ background: "#101A2B" }}>
-              {p}
-            </option>
-          ))}
-        </select>
-        <input required placeholder="Catégorie" value={form.categorie} onChange={(e) => setForm((f) => ({ ...f, categorie: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
-        <input type="color" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="rounded-[9px] h-[42px] cursor-pointer" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }} />
-        <select value={form.coachId} onChange={(e) => setForm((f) => ({ ...f, coachId: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
-          <option value="" style={{ background: "#101A2B" }}>
-            — coach —
-          </option>
-          {coachs.map((c) => (
-            <option key={c.id} value={c.id} style={{ background: "#101A2B" }}>
-              {c.nom}
-            </option>
-          ))}
-        </select>
-        <input placeholder="Objectif en cours" value={form.objectif} onChange={(e) => setForm((f) => ({ ...f, objectif: e.target.value }))} className="rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
-        <button type="submit" disabled={saving} className="rounded-[9px] px-4 py-2.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
-          {saving ? "Création…" : "Créer le groupe"}
-        </button>
-      </form>
-
-      <div className="flex flex-col gap-2.5">
-        {groupes.map((g) => {
-          const count = nageurs.filter((n) => n.groupeId === g.id).length;
-          return (
-            <div key={g.id} className="flex items-center gap-3 rounded-xl px-3.5 py-3 flex-wrap" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", borderLeft: `4px solid ${g.color}` }}>
-              <div style={{ minWidth: 160 }}>
-                <div className="text-sm font-semibold">{g.nom}</div>
-                <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
-                  {g.pole} · {g.categorie} · {count} nageur{count > 1 ? "s" : ""}
-                </div>
-              </div>
-              <select
-                defaultValue={g.coachId ?? ""}
-                onChange={(e) => updateGroupe(g.id, { coachId: e.target.value || null })}
-                className="rounded-[9px] px-2.5 py-2 text-sm outline-none"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-              >
-                <option value="" style={{ background: "#101A2B" }}>
-                  — coach —
+    <div className="flex flex-col gap-5">
+      <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
+        <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>Nouveau groupe</div>
+        <form onSubmit={createGroupe} className="grid gap-3.5 items-end" style={{ gridTemplateColumns: "1.4fr 130px 130px 60px 170px 1.3fr auto" }}>
+          <div>
+            <div style={LABEL_STYLE}>Nom du groupe</div>
+            <input required placeholder="ex. Compétition Élite" value={form.nom} onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE} />
+          </div>
+          <div>
+            <div style={LABEL_STYLE}>Pôle</div>
+            <select value={form.pole} onChange={(e) => setForm((f) => ({ ...f, pole: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE}>
+              {POLES.map((p) => (
+                <option key={p} value={p} style={{ background: "#101A2B" }}>
+                  {POLE_LABELS[p] ?? p}
                 </option>
-                {coachs.map((c) => (
-                  <option key={c.id} value={c.id} style={{ background: "#101A2B" }}>
-                    {c.nom}
-                  </option>
-                ))}
-              </select>
-              <input
-                defaultValue={g.objectif ?? ""}
-                onBlur={(e) => updateGroupe(g.id, { objectif: e.target.value })}
-                placeholder="Objectif en cours"
-                className="flex-1 rounded-[9px] px-2.5 py-2 text-sm outline-none"
-                style={{ minWidth: 160, background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-              />
-              <button
-                onClick={() => openRoster(g)}
-                className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer"
-                style={{ border: "1px solid rgba(30,123,255,0.4)", background: "rgba(30,123,255,0.1)", color: "#7FDCFF" }}
-              >
-                Nageurs
-              </button>
-              <button onClick={() => removeGroupe(g.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
-                Supprimer
-              </button>
+              ))}
+            </select>
+          </div>
+          <div>
+            <div style={LABEL_STYLE}>Catégorie</div>
+            <input required placeholder="ex. Élite" value={form.categorie} onChange={(e) => setForm((f) => ({ ...f, categorie: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE} />
+          </div>
+          <div>
+            <div style={LABEL_STYLE}>Couleur</div>
+            <input type="color" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="w-full rounded-[9px] h-[42px] cursor-pointer" style={INPUT_STYLE} />
+          </div>
+          <div>
+            <div style={LABEL_STYLE}>Coach responsable</div>
+            <select value={form.coachId} onChange={(e) => setForm((f) => ({ ...f, coachId: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE}>
+              <option value="" style={{ background: "#101A2B" }}>
+                — aucun —
+              </option>
+              {coachs.map((c) => (
+                <option key={c.id} value={c.id} style={{ background: "#101A2B" }}>
+                  {c.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <div style={LABEL_STYLE}>Objectif en cours</div>
+            <input placeholder="ex. Allure 200" value={form.objectif} onChange={(e) => setForm((f) => ({ ...f, objectif: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE} />
+          </div>
+          <button type="submit" disabled={saving} className="rounded-[9px] px-4 py-2.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1, height: 42 }}>
+            {saving ? "Création…" : "Créer"}
+          </button>
+        </form>
+      </div>
+
+      <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+        <div className="overflow-x-auto">
+          <div style={{ minWidth: 980 }}>
+            <div className="grid gap-3 px-3.5 py-2.5" style={{ gridTemplateColumns: ROW_COLUMNS, background: "rgba(255,255,255,0.03)", borderBottom: "1px solid var(--border)" }}>
+              {["Groupe", "Pôle", "Catégorie", "Effectif", "Coach responsable", "Objectif en cours", "Actions"].map((label) => (
+                <div key={label} style={{ ...LABEL_STYLE, marginBottom: 0 }}>
+                  {label}
+                </div>
+              ))}
             </div>
-          );
-        })}
+            {groupes.map((g) => {
+              const count = nageurs.filter((n) => n.groupeId === g.id).length;
+              return (
+                <div
+                  key={g.id}
+                  className="grid gap-3 items-center px-3.5 py-3"
+                  style={{ gridTemplateColumns: ROW_COLUMNS, borderLeft: `4px solid ${g.color}`, borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.015)" }}
+                >
+                  <div className="text-sm font-semibold truncate">{g.nom}</div>
+                  <div className="text-sm truncate" style={{ color: "var(--ink-body)" }}>
+                    {POLE_LABELS[g.pole] ?? g.pole}
+                  </div>
+                  <div className="text-sm truncate" style={{ color: "var(--ink-body)" }}>
+                    {g.categorie}
+                  </div>
+                  <div className="text-sm" style={{ color: "var(--ink-secondary)" }}>
+                    {count} nageur{count > 1 ? "s" : ""}
+                  </div>
+                  <select
+                    defaultValue={g.coachId ?? ""}
+                    onChange={(e) => updateGroupe(g.id, { coachId: e.target.value || null })}
+                    className="w-full rounded-[9px] px-2.5 py-2 text-sm outline-none"
+                    style={INPUT_STYLE}
+                  >
+                    <option value="" style={{ background: "#101A2B" }}>
+                      — aucun —
+                    </option>
+                    {coachs.map((c) => (
+                      <option key={c.id} value={c.id} style={{ background: "#101A2B" }}>
+                        {c.nom}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    defaultValue={g.objectif ?? ""}
+                    onBlur={(e) => updateGroupe(g.id, { objectif: e.target.value })}
+                    placeholder="—"
+                    className="w-full rounded-[9px] px-2.5 py-2 text-sm outline-none"
+                    style={INPUT_STYLE}
+                  />
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => openRoster(g)}
+                      className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer"
+                      style={{ border: "1px solid rgba(30,123,255,0.4)", background: "rgba(30,123,255,0.1)", color: "#7FDCFF" }}
+                    >
+                      Nageurs
+                    </button>
+                    <button onClick={() => removeGroupe(g.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            {groupes.length === 0 && (
+              <div className="text-[13px] text-center py-8" style={{ color: "var(--ink-secondary)" }}>
+                Aucun groupe pour l&apos;instant.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {managing && (
