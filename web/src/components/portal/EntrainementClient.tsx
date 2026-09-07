@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Chip } from "@/components/ui/Card";
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
-import { genererSeance } from "@/lib/seance-generator";
-import { nouvelleSection, volumeTotalManuel, fmtDistance, type SectionManuelle } from "@/lib/seance-manual";
+import { genererSeance, type Bloc } from "@/lib/seance-generator";
+import { nouvelleSection, buildManualBlocs, volumeTotalManuel, fmtDistance, type SectionManuelle } from "@/lib/seance-manual";
 import { SectionsEditor } from "./SectionsEditor";
 import { mondayOf, toDateInputValue } from "@/lib/week";
+import { JOURS } from "@/lib/format";
 
 const SEMAINES_AFFICHEES = 16;
 const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
@@ -21,6 +23,7 @@ const AXES = [
 
 type Groupe = { id: string; nom: string };
 type Section = { pole: string; nom: string; color: string; groupes: Groupe[] };
+type CreneauLite = { id: string; jour: number; debut: string };
 type Plan = {
   id: string;
   nom: string;
@@ -42,7 +45,6 @@ type Form = {
   dateDebut: string;
   dureeSemaines: number;
   groupeIds: string[];
-  detailOuvert: boolean;
   mode: "auto" | "manuel";
   heureDebut: string;
   variant: string;
@@ -69,8 +71,36 @@ function dureeEnSemaines(dateDebut: string, dateFin: string) {
 function estDetaille(p: Plan) {
   return !!p.sections || !!(p.variant && p.intensite && p.nage && p.volumeNage);
 }
+function contenuPourPlan(plan: Plan): Bloc[] | null {
+  if (plan.sections && plan.sections.length > 0) return buildManualBlocs(plan.heureDebut ?? "17:00", plan.sections);
+  if (plan.variant && plan.intensite && plan.nage && plan.volumeNage) return genererSeance(plan.variant, plan.intensite, plan.nage, plan.volumeNage).blocs;
+  return null;
+}
+// Occurrences réelles d'un créneau (jour+heure) sur une période donnée —
+// une par semaine, à partir de la première dont la date tombe à/après le
+// début de la période.
+function occurrences(creneau: CreneauLite, dateDebut: string, dureeSemaines: number): Date[] {
+  const debut = new Date(`${dateDebut}T00:00:00`);
+  const dates: Date[] = [];
+  for (let w = 0; w < dureeSemaines; w++) {
+    const occ = ajouterJours(ajouterJours(mondayOf(debut), w * 7), creneau.jour);
+    if (occ >= debut) dates.push(occ);
+  }
+  return dates;
+}
+function fmtDateCourte(d: Date) {
+  return `${JOURS[(d.getDay() + 6) % 7]} ${d.getDate()} ${MOIS[d.getMonth()]}`;
+}
 
-export function EntrainementClient({ groupesParPole, plans }: { groupesParPole: Section[]; plans: Plan[] }) {
+export function EntrainementClient({
+  groupesParPole,
+  plans,
+  creneauxParGroupe,
+}: {
+  groupesParPole: Section[];
+  plans: Plan[];
+  creneauxParGroupe: Record<string, CreneauLite[]>;
+}) {
   const router = useRouter();
   const lundiCourant = mondayOf(new Date());
   const semaines = Array.from({ length: SEMAINES_AFFICHEES }, (_, i) => ajouterJours(lundiCourant, i * 7));
@@ -91,8 +121,7 @@ export function EntrainementClient({ groupesParPole, plans }: { groupesParPole: 
       dateDebut: toDateInputValue(presetDate ?? lundiCourant),
       dureeSemaines: 4,
       groupeIds: groupeId ? [groupeId] : [],
-      detailOuvert: false,
-      mode: "manuel",
+      mode: "auto",
       heureDebut: "18:00",
       variant: AXES[0].options[0],
       intensite: AXES[1].options[0],
@@ -122,7 +151,6 @@ export function EntrainementClient({ groupesParPole, plans }: { groupesParPole: 
       dateDebut: toDateInputValue(new Date(plan.dateDebut)),
       dureeSemaines: dureeEnSemaines(plan.dateDebut, plan.dateFin),
       groupeIds: plan.groupes.map((g) => g.id),
-      detailOuvert: estDetaille(plan),
       mode: aSections ? "manuel" : "auto",
       heureDebut: plan.heureDebut ?? "18:00",
       variant: plan.variant ?? AXES[0].options[0],
@@ -149,34 +177,22 @@ export function EntrainementClient({ groupesParPole, plans }: { groupesParPole: 
         dateDebut: form.dateDebut,
         dureeSemaines: form.dureeSemaines,
         groupeIds: form.groupeIds,
+        heureDebut: form.heureDebut,
       };
-      // En édition, les champs nullable permettent de basculer d'un mode à
-      // l'autre (ex. manuel -> auto efface `sections`) ; en création, il n'y
-      // a rien à effacer et l'API n'accepte pas explicitement `null` pour ces
-      // champs (seulement `undefined`, donc simplement omis).
-      if (form.detailOuvert) {
-        payload.heureDebut = form.heureDebut;
-        if (form.mode === "manuel") {
-          payload.sections = form.sections;
-          if (isEdit) {
-            payload.variant = null;
-            payload.intensite = null;
-            payload.nage = null;
-            payload.volumeNage = null;
-          }
-        } else {
-          payload.variant = form.variant;
-          payload.intensite = form.intensite;
-          payload.nage = form.nage;
-          payload.volumeNage = form.volume;
-          if (isEdit) payload.sections = null;
+      if (form.mode === "manuel") {
+        payload.sections = form.sections;
+        if (isEdit) {
+          payload.variant = null;
+          payload.intensite = null;
+          payload.nage = null;
+          payload.volumeNage = null;
         }
-      } else if (isEdit) {
-        payload.sections = null;
-        payload.variant = null;
-        payload.intensite = null;
-        payload.nage = null;
-        payload.volumeNage = null;
+      } else {
+        payload.variant = form.variant;
+        payload.intensite = form.intensite;
+        payload.nage = form.nage;
+        payload.volumeNage = form.volume;
+        if (isEdit) payload.sections = null;
       }
 
       if (modal?.mode === "edit" && modal.planId) {
@@ -198,15 +214,42 @@ export function EntrainementClient({ groupesParPole, plans }: { groupesParPole: 
     setModal(null);
   }
 
-  const previewAuto = form.detailOuvert && form.mode === "auto" ? genererSeance(form.variant, form.intensite, form.nage, form.volume || 0) : null;
+  // Aperçu concret du plan en cours de saisie : les vraies dates de créneaux
+  // des groupes choisis sur la période, avec le contenu qui y apparaîtra —
+  // pour qu'un plan ne reste jamais une coquille abstraite.
+  const blocsApercu = form.mode === "auto" ? genererSeance(form.variant, form.intensite, form.nage, form.volume || 0).blocs : buildManualBlocs(form.heureDebut, form.sections);
+  const seancesApercu = form.groupeIds
+    .flatMap((gid) => (creneauxParGroupe[gid] ?? []).map((c) => ({ gid, c })))
+    .flatMap(({ gid, c }) => occurrences(c, form.dateDebut, form.dureeSemaines).map((date) => ({ date, creneau: c, groupeNom: toutGroupes.find((g) => g.id === gid)?.nom ?? "" })))
+    .sort((a, b) => a.date.getTime() - b.date.getTime() || a.creneau.debut.localeCompare(b.creneau.debut));
+
+  // Prochaines séances réelles du groupe sélectionné, à partir des plans déjà
+  // enregistrés — pour voir concrètement ce qui est programmé sans avoir à
+  // ouvrir Présences créneau par créneau.
+  const aujourdhui = new Date();
+  aujourdhui.setHours(0, 0, 0, 0);
+  const prochainesSeances = selected
+    ? (creneauxParGroupe[selected.id] ?? [])
+        .flatMap((c) =>
+          Array.from({ length: SEMAINES_AFFICHEES }, (_, w) => ajouterJours(ajouterJours(lundiCourant, w * 7), c.jour))
+            .filter((date) => date >= aujourdhui)
+            .map((date) => ({ date, creneau: c }))
+        )
+        .map(({ date, creneau }) => ({
+          date,
+          creneau,
+          plan: plansDuGroupe.find((p) => new Date(p.dateDebut) <= date && date <= new Date(p.dateFin)) ?? null,
+        }))
+        .sort((a, b) => a.date.getTime() - b.date.getTime() || a.creneau.debut.localeCompare(b.creneau.debut))
+        .slice(0, 12)
+    : [];
 
   return (
     <div className="flex flex-col gap-4">
       <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
         Choisis un groupe, puis clique une semaine sur la ligne de l&apos;objectif voulu pour y planifier un plan
-        d&apos;entraînement — il s&apos;applique automatiquement à tous les créneaux réels du groupe sur la période. Le
-        détail (variant/intensité/nage ou saisie manuelle) est optionnel : sans lui, seul le badge objectif s&apos;affiche
-        tant qu&apos;il n&apos;est pas précisé.
+        d&apos;entraînement — variant, intensité et nage (ou une saisie manuelle) définissent le contenu, appliqué
+        automatiquement à chaque créneau réel du groupe sur la période.
       </div>
 
       <div className="flex flex-col gap-2.5">
@@ -302,9 +345,53 @@ export function EntrainementClient({ groupesParPole, plans }: { groupesParPole: 
         </div>
       )}
 
+      {selected && (
+        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+          <div className="px-3.5 py-2.5" style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.03)" }}>
+            <span className="font-display text-[15px] tracking-[0.03em]">Prochaines séances — {selected.nom}</span>
+          </div>
+          <div className="flex flex-col" style={{ maxHeight: 360, overflowY: "auto" }}>
+            {prochainesSeances.length === 0 && (
+              <div className="px-3.5 py-4 text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+                Aucun créneau régulier pour ce groupe.
+              </div>
+            )}
+            {prochainesSeances.map(({ date, creneau, plan }, i) => {
+              const blocs = plan ? contenuPourPlan(plan) : null;
+              return (
+                <Link
+                  key={i}
+                  href={`/presences?slot=reg:${creneau.id}&date=${toDateInputValue(date)}`}
+                  className="flex items-center gap-3 px-3.5 py-2.5"
+                  style={{ borderBottom: "1px solid var(--border)" }}
+                >
+                  <div className="text-[12px] font-semibold shrink-0" style={{ width: 130, color: "var(--ink-body)" }}>
+                    {fmtDateCourte(date)} · {creneau.debut}
+                  </div>
+                  <div className="flex-1 min-w-0 text-[12px] truncate" style={{ color: plan ? "var(--ink-secondary)" : "var(--ink-muted)" }}>
+                    {plan ? (
+                      blocs ? (
+                        blocs.map((b) => b.phase).join(" · ")
+                      ) : (
+                        <span style={{ color: couleurObjectif(plan.theme) }}>{plan.theme} (pas encore détaillé)</span>
+                      )
+                    ) : (
+                      "Aucun plan programmé"
+                    )}
+                  </div>
+                  <span className="text-[11px] shrink-0" style={{ color: "#7FDCFF" }}>
+                    Voir →
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {modal && (
         <div onClick={() => setModal(null)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl overflow-hidden flex flex-col" style={{ maxWidth: 720, maxHeight: "90vh", background: "#101A2B", border: "1px solid var(--border-strong)" }}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl overflow-hidden flex flex-col" style={{ maxWidth: 780, maxHeight: "90vh", background: "#101A2B", border: "1px solid var(--border-strong)" }}>
             <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
               <h2 className="font-display text-[20px] tracking-[0.05em]">{modal.mode === "new" ? "Nouveau plan d'entraînement" : "Modifier le plan"}</h2>
               <button onClick={() => setModal(null)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
@@ -402,100 +489,98 @@ export function EntrainementClient({ groupesParPole, plans }: { groupesParPole: 
                 </div>
               </div>
 
-              <button
-                onClick={() => setForm((f) => ({ ...f, detailOuvert: !f.detailOuvert }))}
-                className="self-start text-[12px] font-semibold cursor-pointer underline"
-                style={{ color: "var(--cyan)" }}
-              >
-                {form.detailOuvert ? "− Replier le détail" : "+ Détailler le contenu (optionnel)"}
-              </button>
-
-              {form.detailOuvert && (
-                <div className="flex flex-col gap-3.5 rounded-xl p-3.5" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="flex gap-2">
-                      <Chip active={form.mode === "auto"} onClick={() => setForm((f) => ({ ...f, mode: "auto" }))}>
-                        Génération auto
-                      </Chip>
-                      <Chip active={form.mode === "manuel"} onClick={() => setForm((f) => ({ ...f, mode: "manuel" }))}>
-                        Saisie manuelle
-                      </Chip>
-                    </div>
-                    <div className="flex items-center gap-1.5 ml-auto">
-                      <span className="text-[11px]" style={{ color: "#61789B" }}>
-                        Heure de début
-                      </span>
-                      <input
-                        type="time"
-                        value={form.heureDebut}
-                        onChange={(e) => setForm((f) => ({ ...f, heureDebut: e.target.value }))}
-                        className="rounded-[9px] px-2.5 py-1.5 text-sm outline-none"
-                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                      />
-                    </div>
+              <div className="flex flex-col gap-3.5 rounded-xl p-3.5" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex gap-2">
+                    <Chip active={form.mode === "auto"} onClick={() => setForm((f) => ({ ...f, mode: "auto" }))}>
+                      Variant · Intensité · Nage
+                    </Chip>
+                    <Chip active={form.mode === "manuel"} onClick={() => setForm((f) => ({ ...f, mode: "manuel" }))}>
+                      Saisie manuelle
+                    </Chip>
                   </div>
+                  <div className="flex items-center gap-1.5 ml-auto">
+                    <span className="text-[11px]" style={{ color: "#61789B" }}>
+                      Heure de début
+                    </span>
+                    <input
+                      type="time"
+                      value={form.heureDebut}
+                      onChange={(e) => setForm((f) => ({ ...f, heureDebut: e.target.value }))}
+                      className="rounded-[9px] px-2.5 py-1.5 text-sm outline-none"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                    />
+                  </div>
+                </div>
 
-                  {form.mode === "auto" ? (
-                    <>
-                      {AXES.map((ax) => (
-                        <div key={ax.key}>
-                          <div className="flex items-baseline justify-between mb-1.5">
-                            <span className="text-[11px] tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
-                              {ax.titre}
-                            </span>
-                            <span className="text-[11px]" style={{ color: "#61789B" }}>
-                              {ax.aide}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {ax.options.map((o) => (
-                              <Chip key={o} active={form[ax.key] === o} onClick={() => setForm((f) => ({ ...f, [ax.key]: o }))}>
-                                {o}
-                              </Chip>
-                            ))}
-                          </div>
+                {form.mode === "auto" ? (
+                  <>
+                    {AXES.map((ax) => (
+                      <div key={ax.key}>
+                        <div className="flex items-baseline justify-between mb-1.5">
+                          <span className="text-[11px] tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
+                            {ax.titre}
+                          </span>
+                          <span className="text-[11px]" style={{ color: "#61789B" }}>
+                            {ax.aide}
+                          </span>
                         </div>
-                      ))}
-                      <div>
-                        <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
-                          Volume cible (m)
-                        </div>
-                        <input
-                          type="number"
-                          min={100}
-                          step={50}
-                          value={form.volume}
-                          onChange={(e) => setForm((f) => ({ ...f, volume: parseInt(e.target.value, 10) || 0 }))}
-                          className="rounded-[9px] px-3 py-2.5 text-sm outline-none"
-                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)", width: 160 }}
-                        />
-                      </div>
-                      {previewAuto && (
-                        <div className="flex flex-col gap-1.5">
-                          <div className="text-[11px] tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
-                            Aperçu ({previewAuto.resume})
-                          </div>
-                          {previewAuto.blocs.map((b) => (
-                            <div key={b.phase} className="text-[12px] rounded-lg px-3 py-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
-                              <span className="font-semibold">
-                                {b.phase} — {b.distance}
-                              </span>{" "}
-                              <span style={{ color: "var(--ink-secondary)" }}>{b.contenu}</span>
-                            </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {ax.options.map((o) => (
+                            <Chip key={o} active={form[ax.key] === o} onClick={() => setForm((f) => ({ ...f, [ax.key]: o }))}>
+                              {o}
+                            </Chip>
                           ))}
                         </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <SectionsEditor sections={form.sections} onChange={(sections) => setForm((f) => ({ ...f, sections }))} />
-                      <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
-                        Total : <strong style={{ color: "var(--ink)" }}>{fmtDistance(volumeTotalManuel(form.sections))}</strong>
                       </div>
-                    </>
-                  )}
+                    ))}
+                    <div>
+                      <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                        Volume cible (m)
+                      </div>
+                      <input
+                        type="number"
+                        min={100}
+                        step={50}
+                        value={form.volume}
+                        onChange={(e) => setForm((f) => ({ ...f, volume: parseInt(e.target.value, 10) || 0 }))}
+                        className="rounded-[9px] px-3 py-2.5 text-sm outline-none"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)", width: 160 }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <SectionsEditor sections={form.sections} onChange={(sections) => setForm((f) => ({ ...f, sections }))} />
+                    <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+                      Total : <strong style={{ color: "var(--ink)" }}>{fmtDistance(volumeTotalManuel(form.sections))}</strong>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div>
+                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  Aperçu — les séances que ce plan va générer
                 </div>
-              )}
+                <div className="flex flex-col gap-1.5 rounded-xl p-2" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", maxHeight: 260, overflowY: "auto" }}>
+                  {seancesApercu.length === 0 && (
+                    <div className="text-[12px] px-2 py-2" style={{ color: "var(--ink-secondary)" }}>
+                      Sélectionne au moins un groupe ayant un créneau régulier pour voir l&apos;aperçu.
+                    </div>
+                  )}
+                  {seancesApercu.map((s, i) => (
+                    <div key={i} className="flex items-center gap-3 rounded-lg px-2.5 py-2" style={{ background: "rgba(255,255,255,0.03)" }}>
+                      <div className="text-[11px] font-semibold shrink-0" style={{ width: 150, color: "var(--ink-body)" }}>
+                        {fmtDateCourte(s.date)} · {s.creneau.debut} · {s.groupeNom}
+                      </div>
+                      <div className="flex-1 min-w-0 text-[11px] truncate" style={{ color: "var(--ink-secondary)" }}>
+                        {blocsApercu.map((b) => `${b.phase} (${b.distance})`).join(" · ")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="px-6 py-4 flex gap-2.5" style={{ borderTop: "1px solid var(--border)" }}>

@@ -63,7 +63,7 @@ async function main() {
     { nom: "EN3", pole: Pole.FORMATION, count: 34 },
     { nom: "Ado", pole: Pole.FORMATION, count: 27 },
     { nom: "Avenir", pole: Pole.COMPETITION, count: 24 },
-    { nom: "Espoir", pole: Pole.COMPETITION, count: 18 },
+    { nom: "Benjamin", pole: Pole.COMPETITION, count: 18 },
     { nom: "Élite", pole: Pole.COMPETITION, count: 9 },
     { nom: "Master compét.", pole: Pole.COMPETITION, count: 11 },
     { nom: "Sauv. natation", pole: Pole.SAUVETAGE, count: 22 },
@@ -79,7 +79,7 @@ async function main() {
   type GroupeDef = { nom: string; pole: Pole; categorie: string; color: string; coach?: string; objectif?: string };
   const groupeDefs: GroupeDef[] = [
     { nom: "Compétition Élite", pole: Pole.COMPETITION, categorie: "Élite", color: "#E8442B", coach: "Marie Lefort", objectif: "Allure 200" },
-    { nom: "Compétition Espoir", pole: Pole.COMPETITION, categorie: "Espoir", color: "#1E7BFF", coach: "Marie Lefort", objectif: "Seuil aérobie" },
+    { nom: "Compétition Benjamin", pole: Pole.COMPETITION, categorie: "Benjamin", color: "#1E7BFF", coach: "Marie Lefort", objectif: "Seuil aérobie" },
     { nom: "Compétition Avenir", pole: Pole.COMPETITION, categorie: "Avenir", color: "#1E7BFF", coach: "Paul Nadal", objectif: "Technique 4 nages" },
     { nom: "Masters", pole: Pole.COMPETITION, categorie: "Master compét.", color: "#8C6BFF", coach: "Marie Lefort", objectif: "Technique brasse" },
     { nom: "École Natation 3", pole: Pole.FORMATION, categorie: "EN3", color: "#F2B33D", coach: "Thomas Girard", objectif: "Autonomie 4 nages" },
@@ -125,7 +125,7 @@ async function main() {
   };
   const nageurDefs: NageurDef[] = [
     { nom: "Sarah Blanc", initiales: "SB", age: 16, categorie: "Élite", specialite: "4 nages", groupe: "Compétition Élite", pointsFFN: 1024, rank: "1 / 3 / 42", presence: 94 },
-    { nom: "Antoine Rey", initiales: "AR", age: 17, categorie: "Espoir", specialite: "Nage libre", groupe: "Compétition Espoir", pointsFFN: 968, rank: "2 / 7 / 118", presence: 58 },
+    { nom: "Antoine Rey", initiales: "AR", age: 17, categorie: "Benjamin", specialite: "Nage libre", groupe: "Compétition Benjamin", pointsFFN: 968, rank: "2 / 7 / 118", presence: 58 },
     { nom: "Nathalie Cord", initiales: "NC", age: 15, categorie: "Avenir", specialite: "Dos", groupe: "Compétition Avenir", pointsFFN: 842, rank: "4 / 14 / 260", presence: 88 },
     { nom: "Léo Marchand", initiales: "LM", age: 14, categorie: "Avenir", specialite: "Brasse", groupe: "Compétition Avenir", pointsFFN: 790, rank: "6 / 21 / 391", presence: 91 },
     { nom: "Inès Fabre", initiales: "IF", age: 18, categorie: "Élite", specialite: "Papillon", groupe: "Compétition Élite", pointsFFN: 1002, rank: "1 / 4 / 61", presence: 96 },
@@ -246,11 +246,11 @@ async function main() {
   type CreneauDef = { jour: number; debut: string; fin: string; groupe: string; coach?: string; libelleCoach?: string; bassin: string; effectif: string; etat: EtatEncadrement };
   const creneauDefs: CreneauDef[] = [
     { jour: 0, debut: "17:00", fin: "18:00", groupe: "École Natation 3", coach: "Thomas Girard", bassin: "Bassin 25 m", effectif: "12 nageurs", etat: EtatEncadrement.ASSURE },
-    { jour: 0, debut: "18:00", fin: "20:00", groupe: "Compétition Espoir", coach: "Marie Lefort", bassin: "Bassin 50 m", effectif: "14 nageurs", etat: EtatEncadrement.ASSURE },
+    { jour: 0, debut: "18:00", fin: "20:00", groupe: "Compétition Benjamin", coach: "Marie Lefort", bassin: "Bassin 50 m", effectif: "14 nageurs", etat: EtatEncadrement.ASSURE },
     { jour: 1, debut: "20:00", fin: "21:30", groupe: "Masters", coach: "Marie Lefort", libelleCoach: "Marie Lefort (rempl.)", bassin: "Bassin 25 m", effectif: "9 nageurs", etat: EtatEncadrement.REMPLACE },
     { jour: 2, debut: "18:00", fin: "20:00", groupe: "Compétition Élite", coach: "Marie Lefort", bassin: "Bassin 50 m", effectif: "14 nageurs", etat: EtatEncadrement.ASSURE },
     { jour: 3, debut: "18:00", fin: "19:00", groupe: "Sauvetage sportif", coach: "Léa Morel", bassin: "Bassin 25 m", effectif: "8 nageurs", etat: EtatEncadrement.A_COUVRIR },
-    { jour: 4, debut: "18:00", fin: "20:00", groupe: "Compétition Espoir", coach: "Marie Lefort", bassin: "Bassin 50 m", effectif: "14 nageurs", etat: EtatEncadrement.ASSURE },
+    { jour: 4, debut: "18:00", fin: "20:00", groupe: "Compétition Benjamin", coach: "Marie Lefort", bassin: "Bassin 50 m", effectif: "14 nageurs", etat: EtatEncadrement.ASSURE },
     { jour: 5, debut: "09:00", fin: "11:00", groupe: "École Natation 1-2", coach: "Thomas Girard", bassin: "Bassin 25 m", effectif: "16 nageurs", etat: EtatEncadrement.ASSURE },
   ];
   // ---- Historique de séances (8 dernières occurrences) + présence réelle ----
@@ -260,7 +260,7 @@ async function main() {
   const INTENSITES_SEANCE = ["Allure neutre", "Négatif split", "Progressif", "Allure 400", "Allure 200", "Vitesse"];
   const NAGES_SEANCE = ["4 nages", "Spécialité", "Papillon", "Dos", "Brasse", "Crawl"];
   const VOLUME_BASE: Record<string, number> = {
-    "Compétition Élite": 4800, "Compétition Espoir": 4000, "Compétition Avenir": 3200,
+    "Compétition Élite": 4800, "Compétition Benjamin": 4000, "Compétition Avenir": 3200,
     "Masters": 2600, "École Natation 3": 1500, "École Natation 1-2": 1200,
     "Ado": 2000, "Sauvetage sportif": 2400,
   };
@@ -327,19 +327,19 @@ async function main() {
     {
       nom: "Stage Toussaint · Élite", periodeLabel: "19 → 24 oct. 2026",
       dateDebut: new Date(2026, 9, 19), dateFin: new Date(2026, 9, 24), lieu: "CREPS Font-Romeu",
-      groupesLabel: "Élite · Espoir", coachsLabel: "Marie Lefort, Paul Nadal", statut: StatutStage.CONFIRME, color: "#E8442B",
+      groupesLabel: "Élite · Benjamin", coachsLabel: "Marie Lefort, Paul Nadal", statut: StatutStage.CONFIRME, color: "#E8442B",
       inscrits: 19, places: 22, budgetLabel: "8 400 €", regleLabel: "85%",
       dates: ["19 oct.", "20 oct.", "21 oct.", "22 oct.", "23 oct.", "24 oct.", ""],
       creneaux: [
         { jour: 0, debut: "07:00", fin: "09:00", type: TypeCreneau.EAU, groupe: "Élite", coach: "Marie Lefort", bassin: "Bassin 50 m", theme: "Volume aérobie", volume: 5000 },
         { jour: 0, debut: "10:00", fin: "11:00", type: TypeCreneau.PHYSIQUE, groupe: "Élite", coach: "Paul Nadal", bassin: "Salle", theme: "Technique", volume: 0 },
-        { jour: 0, debut: "17:00", fin: "19:00", type: TypeCreneau.EAU, groupe: "Espoir", coach: "Paul Nadal", bassin: "Bassin 50 m", theme: "Seuil", volume: 4000 },
+        { jour: 0, debut: "17:00", fin: "19:00", type: TypeCreneau.EAU, groupe: "Benjamin", coach: "Paul Nadal", bassin: "Bassin 50 m", theme: "Seuil", volume: 4000 },
         { jour: 1, debut: "07:00", fin: "09:00", type: TypeCreneau.EAU, groupe: "Tous groupes", coach: "Marie Lefort", bassin: "Bassin 50 m", theme: "VMA", volume: 4500 },
         { jour: 1, debut: "17:00", fin: "18:30", type: TypeCreneau.EAU, groupe: "Élite", coach: "Marie Lefort", bassin: "Bassin 25 m", theme: "Technique", volume: 3000 },
         { jour: 2, debut: "09:00", fin: "11:00", type: TypeCreneau.EAU, groupe: "Tous groupes", coach: "Paul Nadal", bassin: "Bassin 50 m", theme: "Lactique", volume: 3500 },
         { jour: 2, debut: "15:00", fin: "16:00", type: TypeCreneau.VIDEO, groupe: "Élite", coach: "Marie Lefort", bassin: "Salle vidéo", theme: "Technique", volume: 0 },
         { jour: 3, debut: "07:00", fin: "09:00", type: TypeCreneau.EAU, groupe: "Élite", coach: "Marie Lefort", bassin: "Bassin 50 m", theme: "Volume aérobie", volume: 5000 },
-        { jour: 3, debut: "17:00", fin: "19:00", type: TypeCreneau.EAU, groupe: "Espoir", coach: "Paul Nadal", bassin: "Bassin 50 m", theme: "Seuil", volume: 4000 },
+        { jour: 3, debut: "17:00", fin: "19:00", type: TypeCreneau.EAU, groupe: "Benjamin", coach: "Paul Nadal", bassin: "Bassin 50 m", theme: "Seuil", volume: 4000 },
         { jour: 4, debut: "08:00", fin: "09:30", type: TypeCreneau.RECUP, groupe: "Tous groupes", coach: "Paul Nadal", bassin: "Bassin 25 m", theme: "Récupération", volume: 1500 },
         { jour: 4, debut: "17:00", fin: "19:00", type: TypeCreneau.EAU, groupe: "Tous groupes", coach: "Marie Lefort", bassin: "Bassin 50 m", theme: "Vitesse", volume: 3000 },
         { jour: 5, debut: "09:00", fin: "11:00", type: TypeCreneau.EAU, groupe: "Tous groupes", coach: "Marie Lefort", bassin: "Bassin 50 m", theme: "Vitesse", volume: 3500 },
@@ -401,10 +401,10 @@ async function main() {
   const currentYear = new Date().getFullYear();
   await prisma.echeance.createMany({
     data: [
-      { date: new Date(currentYear, 5, 13), titre: "Interclubs régionaux", detail: "Élite + Espoir · bassin 50 m", color: "#E8442B" },
+      { date: new Date(currentYear, 5, 13), titre: "Interclubs régionaux", detail: "Élite + Benjamin · bassin 50 m", color: "#E8442B" },
       { date: new Date(currentYear, 5, 22), titre: "Congés Léa Morel", detail: "5 créneaux Sauvetage à couvrir", color: "#2ECC8F" },
       { date: new Date(currentYear, 5, 28), titre: "Tests de cotation FFN", detail: "Tous groupes compétition", color: "#1E7BFF" },
-      { date: new Date(currentYear, 6, 5), titre: "Championnats départementaux", detail: "Avenir · Espoir · Élite", color: "#F2B33D" },
+      { date: new Date(currentYear, 6, 5), titre: "Championnats départementaux", detail: "Avenir · Benjamin · Élite", color: "#F2B33D" },
     ],
   });
 

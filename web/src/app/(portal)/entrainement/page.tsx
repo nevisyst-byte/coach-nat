@@ -5,9 +5,10 @@ import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
 import type { SectionManuelle } from "@/lib/seance-manual";
 
 export default async function EntrainementPage() {
-  const [groupes, plans] = await Promise.all([
+  const [groupes, plans, creneaux] = await Promise.all([
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.planEntrainement.findMany({ include: { groupes: { select: { id: true, nom: true } } }, orderBy: { dateDebut: "desc" } }),
+    prisma.creneau.findMany({ orderBy: [{ jour: "asc" }, { debut: "asc" }] }),
   ]);
 
   const groupesParPole = POLE_ORDER.map((pole) => ({
@@ -17,10 +18,14 @@ export default async function EntrainementPage() {
     groupes: groupes.filter((g) => g.pole === pole).map((g) => ({ id: g.id, nom: g.nom })),
   })).filter((s) => s.groupes.length > 0);
 
+  const creneauxParGroupe: Record<string, { id: string; jour: number; debut: string }[]> = {};
+  for (const c of creneaux) (creneauxParGroupe[c.groupeId] ??= []).push({ id: c.id, jour: c.jour, debut: c.debut });
+
   return (
     <Card>
       <EntrainementClient
         groupesParPole={groupesParPole}
+        creneauxParGroupe={creneauxParGroupe}
         plans={plans.map((p) => ({
           id: p.id,
           nom: p.nom,
