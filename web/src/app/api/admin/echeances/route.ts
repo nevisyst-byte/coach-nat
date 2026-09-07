@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { requireCoachOrAdmin } from "@/lib/auth";
 
 const bodySchema = z.object({
   date: z.string(),
@@ -12,7 +12,7 @@ const bodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    await requireAdmin();
+    await requireCoachOrAdmin();
   } catch {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }

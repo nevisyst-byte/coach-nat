@@ -19,7 +19,7 @@ export const NAV_GROUPS = [
     items: [
       { id: "planning", href: "/planning", icon: "▦", label: "Planning" },
       { id: "stages", href: "/stages", icon: "⛭", label: "Stages" },
-      { id: "calendrier", href: "/calendrier", icon: "▣", label: "Calendrier" },
+      { id: "calendrier", href: "/calendrier", icon: "▣", label: "Calendrier saison" },
     ],
   },
   {

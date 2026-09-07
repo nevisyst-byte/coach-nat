@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ETAT_COLOR, ETAT_LABEL, JOURS } from "@/lib/format";
 import { couleurObjectif } from "@/lib/objectifs";
+import { parseHeureMin, disposerParColonnes } from "@/lib/disposition-horaire";
 import { ViewToggle } from "./ViewToggle";
 
 type Creneau = {
@@ -33,45 +34,6 @@ type EvenementJour =
   | { kind: "stage"; id: string; debutMin: number; finMin: number; creneau: StageCreneauJour; stageNom: string; stageColor: string };
 
 const PX_PAR_MIN = 1.5;
-
-function parseHeureMin(v: string) {
-  const [h, m] = v.split(":").map((x) => parseInt(x, 10));
-  return h * 60 + (m || 0);
-}
-
-// Dispose les créneaux d'une journée en colonnes côte à côte quand ils se
-// chevauchent (même logique qu'un calendrier jour Google/Outlook) : les
-// créneaux qui se suivent sans jamais se recouvrir restent seuls sur toute
-// la largeur, ceux qui se recouvrent dans le temps se partagent la largeur
-// en colonnes égales.
-function disposerParColonnes(evenements: EvenementJour[]): (EvenementJour & { col: number; nbCols: number })[] {
-  const tries = [...evenements].sort((a, b) => a.debutMin - b.debutMin || a.finMin - b.finMin);
-  const resultat: (EvenementJour & { col: number; nbCols: number })[] = [];
-  let cluster: (EvenementJour & { col: number; nbCols: number })[] = [];
-  let finCluster = -Infinity;
-
-  function clore() {
-    if (cluster.length === 0) return;
-    const nbCols = Math.max(...cluster.map((e) => e.col)) + 1;
-    for (const e of cluster) e.nbCols = nbCols;
-    resultat.push(...cluster);
-    cluster = [];
-  }
-
-  for (const e of tries) {
-    if (cluster.length > 0 && e.debutMin >= finCluster) {
-      clore();
-      finCluster = -Infinity;
-    }
-    const colonnesOccupees = new Set(cluster.filter((x) => x.finMin > e.debutMin).map((x) => x.col));
-    let col = 0;
-    while (colonnesOccupees.has(col)) col++;
-    cluster.push({ ...e, col, nbCols: 1 });
-    finCluster = Math.max(finCluster, e.finMin);
-  }
-  clore();
-  return resultat;
-}
 
 export function PlanningClient({
   creneaux,

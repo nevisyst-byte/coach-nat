@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card, SectionTitle } from "@/components/ui/Card";
-import { ETAT_COLOR } from "@/lib/format";
-import { getSession } from "@/lib/auth";
 import { SemaineTypeClient } from "@/components/portal/SemaineTypeClient";
 import { CalendrierClient } from "@/components/portal/CalendrierClient";
 import { EcheancesAdmin } from "@/components/admin/EcheancesAdmin";
+import { VueEnsembleClient, type JourDetail } from "@/components/portal/VueEnsembleClient";
 import { objectifActuel } from "@/lib/objectifs";
+import { parseHeureMin } from "@/lib/disposition-horaire";
+import { estEnVacances, type ZoneScolaire } from "@/lib/vacances-scolaires";
+import { toDateInputValue } from "@/lib/week";
 
-type Evt = { label: string; color: string };
+type Evt = { label: string; color: string; detail: string };
 
 const MOIS_LONG = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -16,8 +18,7 @@ const MOIS_LONG = [
 ];
 
 export default async function CalendrierPage() {
-  const session = await getSession();
-  const [creneaux, groupes, coachs, nageurs, echeances, stages, evenementsSemaine] = await Promise.all([
+  const [creneaux, groupes, coachs, nageurs, echeances, stages, evenementsSemaine, settings] = await Promise.all([
     prisma.creneau.findMany({ include: { groupe: { include: { plansEntrainement: { select: { theme: true, dateDebut: true, dateFin: true } } } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } } }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
@@ -25,6 +26,7 @@ export default async function CalendrierPage() {
     prisma.echeance.findMany({ orderBy: { date: "asc" } }),
     prisma.stage.findMany({ orderBy: { dateDebut: "asc" } }),
     prisma.evenementSemaine.findMany({ include: { coach: { include: { user: true } } } }),
+    prisma.appSettings.findUnique({ where: { id: "singleton" } }),
   ]);
 
   const today = new Date();
@@ -33,75 +35,87 @@ export default async function CalendrierPage() {
   const firstDay = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const startWeekday = (firstDay.getDay() + 6) % 7; // 0 = lundi
+  const zone = (settings?.zoneScolaire ?? "B") as ZoneScolaire;
 
   const echeancesByDay = new Map<number, Evt[]>();
   for (const e of echeances) {
     const d = new Date(e.date);
     if (d.getFullYear() === year && d.getMonth() === month) {
       const list = echeancesByDay.get(d.getDate()) ?? [];
-      list.push({ label: e.titre, color: e.color });
+      list.push({ label: e.titre, color: e.color, detail: e.detail });
       echeancesByDay.set(d.getDate(), list);
     }
   }
 
-  const cells: { n: number | null; evts: Evt[] }[] = Array.from({ length: startWeekday }, () => ({ n: null, evts: [] }));
+  // Créneaux de stage tombant exactement dans le mois affiché (pour le détail
+  // jour par jour) — requête à part de la liste "stages" ci-dessous (plus
+  // légère, utilisée par l'onglet Vacances).
+  const moisDebut = new Date(year, month, 1);
+  const moisFin = new Date(year, month, daysInMonth);
+  const stagesMoisDetail = await prisma.stage.findMany({
+    where: { dateDebut: { lte: moisFin }, dateFin: { gte: moisDebut } },
+    include: { jours: true, creneaux: { include: { coach: { include: { user: true } } } } },
+  });
+
+  const cellsDetail: (JourDetail | null)[] = Array.from({ length: startWeekday }, () => null);
   for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
     const weekday = (startWeekday + d - 1) % 7;
-    const evts: Evt[] = [];
-    for (const c of creneaux) if (c.jour === weekday) evts.push({ label: c.groupe.nom, color: ETAT_COLOR[c.etat] });
-    evts.push(...(echeancesByDay.get(d) ?? []));
-    cells.push({ n: d, evts: evts.slice(0, 3) });
+    const dateIso = toDateInputValue(date);
+    const vac = estEnVacances(date, zone);
+
+    const evenements: JourDetail["evenements"] = [];
+    for (const c of creneaux) {
+      if (c.jour !== weekday) continue;
+      evenements.push({
+        kind: "reg",
+        id: c.id,
+        debut: c.debut,
+        fin: c.fin,
+        debutMin: parseHeureMin(c.debut),
+        finMin: parseHeureMin(c.fin),
+        groupeNom: c.groupe.nom,
+        coachNom: c.libelleCoach ?? c.coach?.user.name ?? null,
+        bassin: c.bassin,
+        etat: c.etat,
+        enPause: Boolean(vac && c.actifHorsVacances),
+        presenceHref: `/presences?slot=reg:${c.id}&date=${dateIso}`,
+      });
+    }
+    for (const stage of stagesMoisDetail) {
+      for (const j of stage.jours) {
+        if (!j.date || j.date.getFullYear() !== year || j.date.getMonth() !== month || j.date.getDate() !== d) continue;
+        for (const c of stage.creneaux.filter((cc) => cc.jour === j.jour)) {
+          evenements.push({
+            kind: "stage",
+            id: c.id,
+            debut: c.debut,
+            fin: c.fin,
+            debutMin: parseHeureMin(c.debut),
+            finMin: parseHeureMin(c.fin),
+            groupeNom: c.groupe,
+            coachNom: c.coach?.user.name ?? null,
+            bassin: c.bassin,
+            stageNom: stage.nom,
+            stageColor: stage.color,
+            presenceHref: `/presences?slot=stage:${c.id}&date=${dateIso}`,
+          });
+        }
+      }
+    }
+
+    cellsDetail.push({
+      n: d,
+      dateIso,
+      evenements,
+      echeances: (echeancesByDay.get(d) ?? []).map((e) => ({ titre: e.label, detail: e.detail, color: e.color })),
+    });
   }
 
   const vueEnsemble = (
     <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(330px,1fr))" }}>
       <Card>
-        <div className="flex justify-between items-center mb-3.5">
-          <h2 className="font-display text-[19px] tracking-[0.06em]">
-            {MOIS_LONG[month]} {year}
-          </h2>
-          <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
-            Séances · échéances
-          </span>
-        </div>
-        <div className="grid grid-cols-7 gap-1.5 text-[11px] uppercase tracking-[0.08em] mb-1.5 text-center" style={{ color: "#61789B" }}>
-          {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
-            <div key={i}>{d}</div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1.5">
-          {cells.map((c, i) => {
-            const isToday = c.n === today.getDate();
-            return (
-              <div
-                key={i}
-                className="rounded-[9px] p-1.5 flex flex-col gap-0.5"
-                style={{
-                  minHeight: 74,
-                  border: `1px solid ${isToday ? "#24C8FF" : "var(--border)"}`,
-                  background: isToday ? "rgba(30,123,255,0.22)" : c.n ? "rgba(255,255,255,0.03)" : "transparent",
-                }}
-              >
-                {c.n && (
-                  <>
-                    <span className="text-xs font-semibold" style={{ color: isToday ? "var(--ink)" : "var(--ink-body)" }}>
-                      {c.n}
-                    </span>
-                    {c.evts.map((e, j) => (
-                      <span
-                        key={j}
-                        className="text-[9px] font-bold leading-tight px-1 py-0.5 rounded whitespace-nowrap overflow-hidden text-ellipsis"
-                        style={{ background: "rgba(255,255,255,0.08)", color: e.color }}
-                      >
-                        {e.label}
-                      </span>
-                    ))}
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <VueEnsembleClient mois={MOIS_LONG[month]} annee={year} cells={cellsDetail} aujourdhui={today.getDate()} />
       </Card>
       <Card>
         <SectionTitle>Échéances de la saison</SectionTitle>
@@ -211,39 +225,7 @@ export default async function CalendrierPage() {
   const datesSpecifiques = (
     <Card>
       <SectionTitle>Dates spécifiques (compétitions, réunions…)</SectionTitle>
-      {session?.role === "ADMIN" ? (
-        <EcheancesAdmin echeances={echeances.map((e) => ({ id: e.id, date: e.date.toISOString(), titre: e.titre, detail: e.detail, color: e.color }))} />
-      ) : (
-        <div className="flex flex-col gap-2.5">
-          {echeances.map((e) => {
-            const d = new Date(e.date);
-            return (
-              <div key={e.id} className="flex gap-3.5 items-center rounded-xl px-3.5 py-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", borderLeft: `4px solid ${e.color}` }}>
-                <div className="text-center" style={{ minWidth: 46 }}>
-                  <div className="font-display text-2xl leading-none">{d.getDate()}</div>
-                  <div className="text-[11px] uppercase" style={{ color: "var(--ink-secondary)" }}>
-                    {MOIS_LONG[d.getMonth()].slice(0, 4)}
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-semibold">{e.titre}</div>
-                  <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
-                    {e.detail}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          {echeances.length === 0 && (
-            <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
-              Aucune échéance enregistrée.
-            </div>
-          )}
-          <div className="text-[12px] mt-1" style={{ color: "var(--ink-muted)" }}>
-            Seul un administrateur peut ajouter ou modifier ces dates.
-          </div>
-        </div>
-      )}
+      <EcheancesAdmin echeances={echeances.map((e) => ({ id: e.id, date: e.date.toISOString(), titre: e.titre, detail: e.detail, color: e.color }))} />
     </Card>
   );
 

@@ -9,7 +9,7 @@ const SCREENS = [
   { label: "Mon planning", href: "/planning?vue=moi" },
   { label: "Stages", href: "/stages" },
   { label: "Présences", href: "/presences" },
-  { label: "Calendrier", href: "/calendrier" },
+  { label: "Calendrier saison", href: "/calendrier" },
   { label: "Absences & congés", href: "/absences" },
   { label: "Entraînement", href: "/entrainement" },
 ];

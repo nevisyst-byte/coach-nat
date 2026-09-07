@@ -14,7 +14,7 @@ export const TITLES: Record<string, [string, string, string]> = {
   "/planning": ["Planning", "Vue globale ou personnelle · code couleur par état d'encadrement", "Planning"],
   "/stages": ["Stages", "Sessions hors saison · effectif, encadrement et budget", "Planning"],
   "/presences": ["Présences", "Pointage nageurs et coachs par séance", "Planning"],
-  "/calendrier": ["Calendrier", "Séances, compétitions et congés de la saison", "Planning"],
+  "/calendrier": ["Calendrier saison", "Séances, compétitions et congés de la saison", "Planning"],
   "/absences": ["Absences & congés", "Indisponibilités coach et absences nageurs", "Planning"],
   "/nageurs": ["Nageurs", "Effectif suivi · cotation FFN et rankings", "Nageurs"],
   "/entrainement": ["Entraînement", "Un plan par groupe, du thème macro au contenu chiffré", "Entraînement"],
