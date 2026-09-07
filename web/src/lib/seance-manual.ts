@@ -12,6 +12,7 @@ export type SetLigne = {
 export type SectionManuelle = {
   id: string;
   nom: string;
+  objectif: string;
   sets: SetLigne[];
 };
 
@@ -24,7 +25,7 @@ export function nouvelleSet(): SetLigne {
 }
 
 export function nouvelleSection(nom = ""): SectionManuelle {
-  return { id: uid(), nom, sets: [nouvelleSet()] };
+  return { id: uid(), nom, objectif: "", sets: [nouvelleSet()] };
 }
 
 // "3:40" ou "0:40" -> secondes. Tolérant : entrée vide ou invalide -> 0
@@ -98,6 +99,7 @@ export function buildManualBlocs(heureDebut: string, sections: SectionManuelle[]
         distance: fmtDistance(distanceBloc),
         contenu: lignes.join("\n"),
         consigne: `${fmtDistance(distanceBloc)} ce bloc · ${fmtDistance(cumule)} cumulés depuis ${heureDebut}`,
+        objectif: section.objectif || undefined,
       } satisfies Bloc;
     });
 }

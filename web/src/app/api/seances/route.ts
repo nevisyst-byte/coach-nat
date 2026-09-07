@@ -10,7 +10,7 @@ const bodySchema = z.object({
   intensite: z.string(),
   nage: z.string(),
   volumeCible: z.number().int(),
-  blocs: z.array(z.object({ phase: z.string(), distance: z.string(), contenu: z.string(), consigne: z.string() })),
+  blocs: z.array(z.object({ phase: z.string(), distance: z.string(), contenu: z.string(), consigne: z.string(), objectif: z.string().optional() })),
 });
 
 export async function GET() {

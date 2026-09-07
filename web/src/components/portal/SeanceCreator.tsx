@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, Chip } from "@/components/ui/Card";
 import { genererSeance, type Bloc } from "@/lib/seance-generator";
 import { nouvelleSection, nouvelleSet, buildManualBlocs, volumeTotalManuel, distanceSection, fmtDistance, type SectionManuelle } from "@/lib/seance-manual";
+import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
 
 const AXES = [
   { key: "variant" as const, titre: "Variant", aide: "Support technique", options: ["Nage complète", "Bras", "Jambes", "Éducatif"] },
@@ -77,7 +78,7 @@ export function SeanceCreator({ groupes, modeles: modelesInitiaux }: { groupes: 
     setSaved(null);
   }
 
-  function updateBloc(index: number, field: "distance" | "contenu" | "consigne", value: string) {
+  function updateBloc(index: number, field: "distance" | "contenu" | "consigne" | "objectif", value: string) {
     setBlocs((prev) => (prev ? prev.map((b, i) => (i === index ? { ...b, [field]: value } : b)) : prev));
   }
 
@@ -91,6 +92,10 @@ export function SeanceCreator({ groupes, modeles: modelesInitiaux }: { groupes: 
 
   function renommerSection(id: string, nom: string) {
     setSections((prev) => prev.map((s) => (s.id === id ? { ...s, nom } : s)));
+  }
+
+  function assignerObjectifSection(id: string, objectif: string) {
+    setSections((prev) => prev.map((s) => (s.id === id ? { ...s, objectif } : s)));
   }
 
   function ajouterSet(sectionId: string) {
@@ -322,15 +327,34 @@ export function SeanceCreator({ groupes, modeles: modelesInitiaux }: { groupes: 
 
             <div className="flex flex-col gap-3">
               {sections.map((section) => (
-                <div key={section.id} className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
-                  <div className="flex items-center gap-2 mb-2.5">
+                <div
+                  key={section.id}
+                  className="rounded-xl p-3"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", borderLeft: `3px solid ${section.objectif ? couleurObjectif(section.objectif) : "var(--border-strong)"}` }}
+                >
+                  <div className="flex items-center gap-2 mb-2.5 flex-wrap">
                     <input
                       value={section.nom}
                       onChange={(e) => renommerSection(section.id, e.target.value)}
                       placeholder="Nom de la section (ex. Échauffement)"
                       className="flex-1 font-display text-sm tracking-[0.04em] uppercase bg-transparent outline-none"
-                      style={{ color: "var(--ink)" }}
+                      style={{ color: "var(--ink)", minWidth: 120 }}
                     />
+                    <select
+                      value={section.objectif}
+                      onChange={(e) => assignerObjectifSection(section.id, e.target.value)}
+                      className="rounded-md px-2 py-1 text-[11px] font-semibold outline-none shrink-0"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: section.objectif ? couleurObjectif(section.objectif) : "var(--ink-secondary)" }}
+                    >
+                      <option value="" style={{ background: "#101A2B", color: "var(--ink)" }}>
+                        — objectif —
+                      </option>
+                      {OBJECTIFS.map((o) => (
+                        <option key={o.nom} value={o.nom} style={{ background: "#101A2B", color: o.color }}>
+                          {o.nom}
+                        </option>
+                      ))}
+                    </select>
                     <span className="text-xs shrink-0" style={{ color: "var(--ink-secondary)" }}>
                       {fmtDistance(distanceSection(section))}
                     </span>
@@ -435,8 +459,12 @@ export function SeanceCreator({ groupes, modeles: modelesInitiaux }: { groupes: 
             </div>
             <div className="flex flex-col gap-2.5">
               {blocs.map((b, i) => (
-                <div key={i} className="flex gap-3.5 rounded-xl px-3.5 py-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)" }}>
-                  <div style={{ minWidth: 84 }}>
+                <div
+                  key={i}
+                  className="flex gap-3.5 rounded-xl px-3.5 py-3"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", borderLeft: `3px solid ${b.objectif ? couleurObjectif(b.objectif) : "var(--border)"}` }}
+                >
+                  <div style={{ minWidth: 100 }}>
                     <div className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
                       {b.phase}
                     </div>
@@ -446,6 +474,21 @@ export function SeanceCreator({ groupes, modeles: modelesInitiaux }: { groupes: 
                       className="font-display text-lg bg-transparent outline-none w-full"
                       style={{ color: "var(--ink)" }}
                     />
+                    <select
+                      value={b.objectif ?? ""}
+                      onChange={(e) => updateBloc(i, "objectif", e.target.value)}
+                      className="rounded px-1 py-0.5 text-[10px] font-semibold outline-none w-full mt-0.5"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: b.objectif ? couleurObjectif(b.objectif) : "var(--ink-muted)" }}
+                    >
+                      <option value="" style={{ background: "#101A2B", color: "var(--ink)" }}>
+                        — objectif —
+                      </option>
+                      {OBJECTIFS.map((o) => (
+                        <option key={o.nom} value={o.nom} style={{ background: "#101A2B", color: o.color }}>
+                          {o.nom}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
                     <textarea

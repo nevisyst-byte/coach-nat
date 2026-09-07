@@ -1,4 +1,7 @@
-export type Bloc = { phase: string; distance: string; contenu: string; consigne: string };
+// objectif optionnel : filière travaillée sur cette zone (Volume aérobie,
+// Vitesse, Technique...) — voir lib/objectifs.ts. Absent sur les séances
+// générées automatiquement ou créées avant l'ajout de ce champ.
+export type Bloc = { phase: string; distance: string; contenu: string; consigne: string; objectif?: string };
 
 const DEPARTS: Record<number, string> = { 100: "1'40", 200: "3'15", 300: "4'45", 400: "6'10" };
 

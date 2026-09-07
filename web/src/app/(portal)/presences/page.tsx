@@ -8,6 +8,7 @@ import { JOURS } from "@/lib/format";
 import { lastOccurrenceOnOrBefore, toDateInputValue } from "@/lib/week";
 import { resolveSeanceInstance } from "@/lib/seance-instance";
 import { genererSeance, type Bloc } from "@/lib/seance-generator";
+import { couleurObjectif } from "@/lib/objectifs";
 
 export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string; date?: string }> }) {
   const [creneaux, creneauxStage] = await Promise.all([
@@ -151,12 +152,21 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
               </div>
               <div className="flex flex-col gap-2.5">
                 {seancePrevue.blocs.map((b) => (
-                  <div key={b.phase} className="flex gap-3.5 rounded-xl px-3.5 py-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)" }}>
+                  <div
+                    key={b.phase}
+                    className="flex gap-3.5 rounded-xl px-3.5 py-3"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", borderLeft: `3px solid ${b.objectif ? couleurObjectif(b.objectif) : "var(--border)"}` }}
+                  >
                     <div style={{ minWidth: 64 }}>
                       <div className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
                         {b.phase}
                       </div>
                       <div className="font-display text-lg">{b.distance}</div>
+                      {b.objectif && (
+                        <div className="text-[10px] font-semibold mt-0.5" style={{ color: couleurObjectif(b.objectif) }}>
+                          {b.objectif}
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="text-sm font-semibold whitespace-pre-line">{b.contenu}</div>
