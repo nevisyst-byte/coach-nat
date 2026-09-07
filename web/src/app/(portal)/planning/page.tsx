@@ -4,6 +4,7 @@ import { PlanningClient } from "@/components/portal/PlanningClient";
 import { fmtDayLabel, toDateInputValue, weekDates, weekRangeLabel } from "@/lib/week";
 import { getSession } from "@/lib/auth";
 import { semaineEnVacances, type ZoneScolaire } from "@/lib/vacances-scolaires";
+import { objectifActuel } from "@/lib/objectifs";
 
 function sameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -32,7 +33,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
   const [creneaux, groupes, coachs, nageurs, settings, stagesSemaine] = await Promise.all([
     prisma.creneau.findMany({
       where: mine ? { coachId: session!.coachId! } : undefined,
-      include: { groupe: true, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } },
+      include: { groupe: { include: { phasesObjectif: true } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } },
     }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
@@ -61,10 +62,16 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
     }
   }
 
+  const aujourdhui = new Date();
+  const creneauxAvecObjectif = creneaux.map((c) => ({
+    ...c,
+    groupe: { ...c.groupe, objectif: objectifActuel(c.groupe.phasesObjectif, c.groupe.objectif, aujourdhui) },
+  }));
+
   return (
     <Card>
       <PlanningClient
-        creneaux={creneaux}
+        creneaux={creneauxAvecObjectif}
         dayLabels={dates.map(fmtDayLabel)}
         dayDates={dates.map(toDateInputValue)}
         weekLabel={weekRangeLabel(weekOffset)}

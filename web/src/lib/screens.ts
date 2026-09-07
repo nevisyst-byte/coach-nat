@@ -19,6 +19,7 @@ export const TITLES: Record<string, [string, string, string]> = {
   "/nageurs": ["Nageurs", "Effectif suivi · cotation FFN et rankings", "Nageurs"],
   "/seance": ["Créateur de séance", "Variant · intensité · nage", "Entraînement"],
   "/thematiques": ["Thématiques d'entraînement", "Un objectif → un cycle de séances généré", "Entraînement"],
+  "/planning-objectifs": ["Planning objectifs", "L'objectif en cours de chaque groupe, dans le temps", "Entraînement"],
 };
 
 function titleForGeneral(vue?: string | null): [string, string, string] {
@@ -93,6 +94,12 @@ export const HERO: Record<string, Hero> = {
     kicker: "Cycle d'entraînement", title: "Une thématique, un cycle entier",
     text: "Volume aérobie, seuil, VMA, lactique, vitesse : choisis la dominante, le cycle se génère.",
     cta1: { label: "Créateur de séance", href: "/seance" },
+  },
+  "/planning-objectifs": {
+    img: "/assets/pool-lanes.jpg", pos: "center 42%", veil: "corner",
+    kicker: "Planning global", title: "L'objectif de chaque groupe, semaine après semaine",
+    text: "Configure des phases (ex. 4 semaines Vitesse puis Volume aérobie) : l'objectif affiché sur le planning suit automatiquement.",
+    cta1: { label: "Thématiques", href: "/thematiques" },
   },
 };
 

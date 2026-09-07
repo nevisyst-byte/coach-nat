@@ -15,3 +15,15 @@ export const OBJECTIFS: { nom: string; color: string }[] = [
 export function couleurObjectif(nom: string | null | undefined): string {
   return OBJECTIFS.find((o) => o.nom === nom)?.color ?? "#61789B";
 }
+
+export type PhaseObjectifLite = { theme: string; dateDebut: Date; dateFin: Date };
+
+// Objectif réellement affiché pour un groupe à une date donnée : la phase
+// planifiée qui couvre cette date si elle existe, sinon le champ manuel de
+// repli (Groupe.objectif) — pour ne rien casser pour les groupes qui
+// n'utilisent pas (encore) le planning de phases.
+export function objectifActuel(phases: PhaseObjectifLite[], objectifManuel: string | null, date: Date = new Date()): string | null {
+  const t = date.getTime();
+  const phase = phases.find((p) => p.dateDebut.getTime() <= t && t <= p.dateFin.getTime());
+  return phase?.theme ?? objectifManuel;
+}

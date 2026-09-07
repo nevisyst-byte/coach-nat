@@ -127,13 +127,32 @@ model Groupe {
   pole       Pole
   categorie  String
   color      String
+  // Objectif manuel de repli, utilisé tant qu'aucune phase planifiée
+  // (phasesObjectif) ne couvre la date du jour pour ce groupe.
   objectif   String?
+  phasesObjectif PhaseObjectif[]
   coachId    String?
   coach      Coach?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
   nageurs    Nageur[]
   creneaux   Creneau[]
   inscriptions Inscription[]
   createdAt  DateTime @default(now())
+}
+
+// Planning des objectifs d'entraînement d'un groupe dans le temps (ex. 4
+// semaines Vitesse à partir du 15/09, puis Volume aérobie) — l'objectif
+// affiché sur les créneaux du groupe (Planning, Semaine type) suit
+// automatiquement la phase dont la période couvre la date du jour.
+model PhaseObjectif {
+  id        String   @id @default(cuid())
+  groupeId  String
+  groupe    Groupe   @relation(fields: [groupeId], references: [id], onDelete: Cascade)
+  theme     String
+  dateDebut DateTime
+  dateFin   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([groupeId, dateDebut])
 }
 
 model Nageur {

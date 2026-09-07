@@ -6,6 +6,7 @@ import { getSession } from "@/lib/auth";
 import { SemaineTypeClient } from "@/components/portal/SemaineTypeClient";
 import { CalendrierClient } from "@/components/portal/CalendrierClient";
 import { EcheancesAdmin } from "@/components/admin/EcheancesAdmin";
+import { objectifActuel } from "@/lib/objectifs";
 
 type Evt = { label: string; color: string };
 
@@ -17,7 +18,7 @@ const MOIS_LONG = [
 export default async function CalendrierPage() {
   const session = await getSession();
   const [creneaux, groupes, coachs, nageurs, echeances, stages, evenementsSemaine] = await Promise.all([
-    prisma.creneau.findMany({ include: { groupe: true, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } } }),
+    prisma.creneau.findMany({ include: { groupe: { include: { phasesObjectif: true } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } } }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
     prisma.nageur.findMany({ orderBy: { nom: "asc" } }),
@@ -138,9 +139,14 @@ export default async function CalendrierPage() {
     .filter((e) => e.date.getTime() >= new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime())
     .map((e) => ({ id: e.id, titre: e.titre, detail: e.detail, color: e.color, date: e.date.toISOString(), jour: (new Date(e.date).getDay() + 6) % 7 }));
 
+  const creneauxAvecObjectif = creneaux.map((c) => ({
+    ...c,
+    groupe: { ...c.groupe, objectif: objectifActuel(c.groupe.phasesObjectif, c.groupe.objectif, today) },
+  }));
+
   const semaineType = (
     <SemaineTypeClient
-      creneaux={creneaux}
+      creneaux={creneauxAvecObjectif}
       groupes={groupes.map((g) => ({ id: g.id, nom: g.nom }))}
       coachs={coachs.map((c) => ({ id: c.id, nom: c.user.name }))}
       nageurs={nageurs.map((n) => ({ id: n.id, nom: n.nom, groupeId: n.groupeId }))}

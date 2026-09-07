@@ -34,6 +34,7 @@ export const NAV_GROUPS = [
     items: [
       { id: "seance", href: "/seance", icon: "✦", label: "Créateur de séance" },
       { id: "thematique", href: "/thematiques", icon: "⟳", label: "Thématiques" },
+      { id: "planning-objectifs", href: "/planning-objectifs", icon: "◫", label: "Planning objectifs" },
     ],
   },
 ] as const;
