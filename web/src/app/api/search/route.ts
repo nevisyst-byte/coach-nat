@@ -11,8 +11,7 @@ const SCREENS = [
   { label: "Présences", href: "/presences" },
   { label: "Calendrier", href: "/calendrier" },
   { label: "Absences & congés", href: "/absences" },
-  { label: "Créateur de séance", href: "/seance" },
-  { label: "Thématiques d'entraînement", href: "/thematiques" },
+  { label: "Entraînement", href: "/entrainement" },
 ];
 
 export async function GET(request: Request) {

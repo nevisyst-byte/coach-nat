@@ -18,7 +18,7 @@ const MOIS_LONG = [
 export default async function CalendrierPage() {
   const session = await getSession();
   const [creneaux, groupes, coachs, nageurs, echeances, stages, evenementsSemaine] = await Promise.all([
-    prisma.creneau.findMany({ include: { groupe: { include: { phasesObjectif: true } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } } }),
+    prisma.creneau.findMany({ include: { groupe: { include: { plansEntrainement: { select: { theme: true, dateDebut: true, dateFin: true } } } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } } }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
     prisma.nageur.findMany({ orderBy: { nom: "asc" } }),
@@ -141,7 +141,7 @@ export default async function CalendrierPage() {
 
   const creneauxAvecObjectif = creneaux.map((c) => ({
     ...c,
-    groupe: { ...c.groupe, objectif: objectifActuel(c.groupe.phasesObjectif, c.groupe.objectif, today) },
+    groupe: { ...c.groupe, objectif: objectifActuel(c.groupe.plansEntrainement, c.groupe.objectif, today) },
   }));
 
   const semaineType = (

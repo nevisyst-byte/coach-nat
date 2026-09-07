@@ -33,7 +33,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
   const [creneaux, groupes, coachs, nageurs, settings, stagesSemaine] = await Promise.all([
     prisma.creneau.findMany({
       where: mine ? { coachId: session!.coachId! } : undefined,
-      include: { groupe: { include: { phasesObjectif: true } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } },
+      include: { groupe: { include: { plansEntrainement: { select: { theme: true, dateDebut: true, dateFin: true } } } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } },
     }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
@@ -65,7 +65,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
   const aujourdhui = new Date();
   const creneauxAvecObjectif = creneaux.map((c) => ({
     ...c,
-    groupe: { ...c.groupe, objectif: objectifActuel(c.groupe.phasesObjectif, c.groupe.objectif, aujourdhui) },
+    groupe: { ...c.groupe, objectif: objectifActuel(c.groupe.plansEntrainement, c.groupe.objectif, aujourdhui) },
   }));
 
   return (

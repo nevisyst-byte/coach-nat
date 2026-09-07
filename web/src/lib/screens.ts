@@ -17,10 +17,7 @@ export const TITLES: Record<string, [string, string, string]> = {
   "/calendrier": ["Calendrier", "Séances, compétitions et congés de la saison", "Planning"],
   "/absences": ["Absences & congés", "Indisponibilités coach et absences nageurs", "Planning"],
   "/nageurs": ["Nageurs", "Effectif suivi · cotation FFN et rankings", "Nageurs"],
-  "/seance": ["Créateur de séance", "Variant · intensité · nage", "Entraînement"],
-  "/plans-entrainement": ["Plans d'entraînement", "Un plan chiffré, appliqué à un ou plusieurs groupes sur une période", "Entraînement"],
-  "/thematiques": ["Thématiques d'entraînement", "Un objectif → un cycle de séances généré", "Entraînement"],
-  "/planning-objectifs": ["Planning objectifs", "L'objectif en cours de chaque groupe, dans le temps", "Entraînement"],
+  "/entrainement": ["Entraînement", "Un plan par groupe, du thème macro au contenu chiffré", "Entraînement"],
 };
 
 function titleForGeneral(vue?: string | null): [string, string, string] {
@@ -36,7 +33,7 @@ export const HERO: Record<string, Hero> = {
     img: "/assets/swimmer.jpg", pos: "right center", veil: "left",
     kicker: "Saison 2025 / 2026", title: "Le club en un coup d'œil",
     text: "Licenciés, coachs et créneaux hebdomadaires. Suis les alertes et les progressions du club.",
-    cta1: { label: "Créer une séance", href: "/seance" },
+    cta1: { label: "Créer une séance", href: "/entrainement" },
     cta2: { label: "Absences & congés", href: "/absences" },
   },
   "general-coach": {
@@ -82,31 +79,13 @@ export const HERO: Record<string, Hero> = {
     img: "/assets/swimmer.jpg", pos: "center 35%", veil: "left",
     kicker: "Effectif suivi", title: "Tous les nageurs, toutes les cotations",
     text: "Points FFN, rangs départemental, régional et national, et assiduité.",
-    cta1: { label: "Créer une séance", href: "/seance" },
+    cta1: { label: "Créer une séance", href: "/entrainement" },
   },
-  "/seance": {
-    img: "/assets/flip-turn.jpg", pos: "center 45%", veil: "corner",
-    kicker: "Variant · intensité · nage", title: "Construire une séance",
-    text: "Trois axes à combiner, un volume cible jusqu'à 10 km, et la séance se rédige toute seule.",
-    cta1: { label: "Thématiques", href: "/thematiques" },
-  },
-  "/plans-entrainement": {
+  "/entrainement": {
     img: "/assets/flip-turn.jpg", pos: "center 40%", veil: "corner",
-    kicker: "Plan chiffré", title: "Un plan, plusieurs groupes, plusieurs semaines",
-    text: "Sections et séries en distances libres, appliquées automatiquement sur une période à un ou plusieurs groupes — ajustables au cas par cas en %.",
-    cta1: { label: "Créateur de séance", href: "/seance" },
-  },
-  "/thematiques": {
-    img: "/assets/flip-turn.jpg", pos: "center 30%", veil: "corner",
-    kicker: "Cycle d'entraînement", title: "Une thématique, un cycle entier",
-    text: "Volume aérobie, seuil, VMA, lactique, vitesse : choisis la dominante, le cycle se génère.",
-    cta1: { label: "Créateur de séance", href: "/seance" },
-  },
-  "/planning-objectifs": {
-    img: "/assets/pool-lanes.jpg", pos: "center 42%", veil: "corner",
-    kicker: "Planning global", title: "L'objectif de chaque groupe, semaine après semaine",
-    text: "Configure des phases (ex. 4 semaines Vitesse puis Volume aérobie) : l'objectif affiché sur le planning suit automatiquement.",
-    cta1: { label: "Thématiques", href: "/thematiques" },
+    kicker: "Macro → micro", title: "Un plan par groupe, semaine après semaine",
+    text: "Choisis un groupe, planifie un objectif sur une période, détaille-le (variant/intensité/nage ou saisie manuelle) — appliqué automatiquement à chaque créneau, modifiable au cas par cas.",
+    cta1: { label: "Planning", href: "/planning" },
   },
 };
 

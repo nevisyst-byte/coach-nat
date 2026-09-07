@@ -15,8 +15,13 @@ const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.st
 
 const bodySchema = z.object({
   nom: z.string().min(1),
+  theme: z.string().min(1),
   heureDebut: z.string().optional(),
-  sections: z.array(sectionSchema).min(1),
+  variant: z.string().optional(),
+  intensite: z.string().optional(),
+  nage: z.string().optional(),
+  volumeNage: z.number().int().optional(),
+  sections: z.array(sectionSchema).optional(),
   dateDebut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   dureeSemaines: z.number().int().min(1),
   groupeIds: z.array(z.string()).min(1),
@@ -39,13 +44,18 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
-  const { nom, heureDebut, sections, dateDebut, dureeSemaines, groupeIds } = parsed.data;
+  const { nom, theme, heureDebut, variant, intensite, nage, volumeNage, sections, dateDebut, dureeSemaines, groupeIds } = parsed.data;
 
   const plan = await prisma.planEntrainement.create({
     data: {
       nom,
+      theme,
       heureDebut: heureDebut || null,
-      sections,
+      variant: variant || null,
+      intensite: intensite || null,
+      nage: nage || null,
+      volumeNage: volumeNage ?? null,
+      sections: sections ?? undefined,
       dateDebut: new Date(`${dateDebut}T00:00:00`),
       dateFin: dateFinDe(dateDebut, dureeSemaines),
       groupes: { connect: groupeIds.map((id) => ({ id })) },

@@ -11,7 +11,9 @@ import { genererSeance, type Bloc } from "@/lib/seance-generator";
 import { couleurObjectif } from "@/lib/objectifs";
 import { seanceDepuisPlan } from "@/lib/plan-entrainement";
 import { AjustementBloc } from "@/components/portal/AjustementBloc";
+import { EditerSeanceInstance } from "@/components/portal/EditerSeanceInstance";
 import { getSession } from "@/lib/auth";
+import type { SectionManuelle } from "@/lib/seance-manual";
 
 export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string; date?: string }> }) {
   const [creneaux, creneauxStage] = await Promise.all([
@@ -73,7 +75,8 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
 
   const rosterNageurs = nageurs.map((n) => ({ nom: n.nom, initiales: n.initiales, sousTitre: n.groupe?.categorie ?? n.categorie, etat: etatMap.get(n.nom) ?? "PRESENT", nageurId: n.id }));
 
-  const groupeId = kind === "reg" ? creneaux.find((c) => c.id === id)?.groupeId ?? null : null;
+  const creneauReg = kind === "reg" ? creneaux.find((c) => c.id === id) : null;
+  const groupeId = creneauReg?.groupeId ?? null;
   const planContenu = !instance.blocs && groupeId ? await seanceDepuisPlan(groupeId, new Date(`${date}T00:00:00`)) : null;
 
   const seancePrevue = instance.blocs
@@ -86,6 +89,13 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
       : instance.variant && instance.intensite && instance.nage && instance.volumeNage
         ? { resume: `${instance.variant} · ${instance.intensite} · ${instance.nage} · ${instance.volumeNage} m`, items: genererSeance(instance.variant, instance.intensite, instance.nage, instance.volumeNage).blocs.map((bloc) => ({ bloc, sectionId: null, pourcentage: null })) }
         : null;
+
+  // Pré-remplissage de l'éditeur ponctuel : la surcharge déjà enregistrée
+  // pour cette date si elle existe, sinon le détail structuré du plan actif
+  // (rien si le plan est en génération auto ou si aucun plan ne couvre cette
+  // date — l'éditeur démarre alors d'une section vide).
+  const sectionsInitiales = (instance.sections as unknown as SectionManuelle[] | null) ?? planContenu?.sections ?? [];
+  const heureDebutInitiale = instance.heureDebut ?? planContenu?.heureDebut ?? creneauReg?.debut ?? "17:00";
 
   const compte = { PRESENT: 0, RETARD: 0, ABSENT: 0, EXCUSE: 0 } as Record<string, number>;
   for (const p of rosterNageurs) compte[p.etat]++;
@@ -153,7 +163,10 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
         <PresenceRoster title="Nageurs" people={rosterNageurs} seanceInstanceId={instance.id} role="SWIMMER" />
 
         <Card>
-          <h2 className="font-display text-[19px] tracking-[0.06em] mb-1">Séance prévue</h2>
+          <div className="flex items-baseline justify-between mb-1 gap-3 flex-wrap">
+            <h2 className="font-display text-[19px] tracking-[0.06em]">Séance prévue</h2>
+            {session && kind === "reg" && <EditerSeanceInstance instanceId={instance.id} heureDebutInitial={heureDebutInitiale} sectionsInitiales={sectionsInitiales} />}
+          </div>
           {seancePrevue ? (
             <>
               <div className="text-[13px] mb-3.5" style={{ color: "#7FDCFF" }}>
@@ -183,7 +196,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
                         {b.consigne}
                       </div>
                     </div>
-                    {sectionId && planContenu && session && (
+                    {sectionId && planContenu?.editable && session && (
                       <AjustementBloc planId={planContenu.planId} groupeId={groupeId!} date={date} sectionId={sectionId} pourcentageActuel={pourcentage} />
                     )}
                   </div>
@@ -192,11 +205,12 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
             </>
           ) : (
             <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
-              Aucun contenu de séance planifié pour cette date. Utilise le{" "}
-              <Link href="/seance" style={{ color: "#7FDCFF" }}>
-                créateur de séance
+              Aucun contenu de séance planifié pour cette date — ni plan d&apos;entraînement actif pour ce groupe, ni
+              contenu saisi pour ce créneau. Utilise « ✎ Modifier cette séance » ci-dessus pour la saisir, ou{" "}
+              <Link href="/entrainement" style={{ color: "#7FDCFF" }}>
+                planifie un plan d&apos;entraînement
               </Link>{" "}
-              pour la préparer.
+              pour ce groupe.
             </div>
           )}
         </Card>

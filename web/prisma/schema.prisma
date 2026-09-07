@@ -127,10 +127,9 @@ model Groupe {
   pole       Pole
   categorie  String
   color      String
-  // Objectif manuel de repli, utilisé tant qu'aucune phase planifiée
-  // (phasesObjectif) ne couvre la date du jour pour ce groupe.
+  // Objectif manuel de repli, utilisé tant qu'aucun plan d'entraînement
+  // (plansEntrainement) ne couvre la date du jour pour ce groupe.
   objectif   String?
-  phasesObjectif PhaseObjectif[]
   coachId    String?
   coach      Coach?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
   nageurs    Nageur[]
@@ -139,22 +138,6 @@ model Groupe {
   plansEntrainement PlanEntrainement[] @relation("PlanEntrainementGroupes")
   ajustementsPlan   AjustementPlan[]
   createdAt  DateTime @default(now())
-}
-
-// Planning des objectifs d'entraînement d'un groupe dans le temps (ex. 4
-// semaines Vitesse à partir du 15/09, puis Volume aérobie) — l'objectif
-// affiché sur les créneaux du groupe (Planning, Semaine type) suit
-// automatiquement la phase dont la période couvre la date du jour.
-model PhaseObjectif {
-  id        String   @id @default(cuid())
-  groupeId  String
-  groupe    Groupe   @relation(fields: [groupeId], references: [id], onDelete: Cascade)
-  theme     String
-  dateDebut DateTime
-  dateFin   DateTime
-  createdAt DateTime @default(now())
-
-  @@index([groupeId, dateDebut])
 }
 
 model Nageur {
@@ -391,6 +374,12 @@ model SeanceInstance {
   // planifier. Absent (séances plus anciennes) = recalculé à l'affichage à
   // partir de variant/intensite/nage/volumeNage.
   blocs          Json?
+  // Override structuré (SectionManuelle[], cf. lib/seance-manual.ts) pour
+  // cette occurrence précise uniquement — prioritaire sur le plan
+  // d'entraînement du groupe le temps qu'il couvre cette date ; `blocs` est
+  // alors recompilé à partir de ces sections plutôt que saisi séparément.
+  sections       Json?
+  heureDebut     String?
   presences      Presence[]
   createdAt      DateTime      @default(now())
 
@@ -442,21 +431,36 @@ model SeancePlan {
   createdAt    DateTime @default(now())
 }
 
-// Plan d'entraînement chiffré (sections/sets saisis à la main, cf.
-// lib/seance-manual.ts) appliqué automatiquement à un ou plusieurs groupes
-// sur une plage de dates — chaque créneau réel de ces groupes affiche ce
-// contenu tant qu'aucune séance n'a été saisie spécifiquement pour cette
-// date (cf. lib/plan-entrainement.ts), sans tâche de fond ni recalcul manuel.
+// Plan d'entraînement d'un ou plusieurs groupes sur une période — point
+// d'entrée unique qui remplace l'ancien PhaseObjectif (badge seul) et
+// l'ancien contenu chiffré séparé : `theme` est le niveau macro, toujours
+// renseigné et affiché comme badge sur les créneaux (Planning, Semaine
+// type) tant que la période couvre la date du jour ; `sections` est le
+// détail chiffré (cf. lib/seance-manual.ts), optionnel — un plan peut
+// rester macro (thème seul) puis être détaillé plus tard sans rien
+// recréer. Calculé à la lecture (cf. lib/objectifs.ts, lib/plan-entrainement.ts),
+// sans tâche de fond.
 model PlanEntrainement {
   id          String   @id @default(cuid())
   nom         String
+  theme       String
   heureDebut  String?
-  sections    Json
+  // Génération auto (cf. lib/seance-generator.ts) : alternative à `sections`
+  // pour détailler le plan autour des 3 familles variant/intensité/nage —
+  // recompilée à la lecture, sans ajustement en % possible (contenu texte,
+  // pas de distances discrètes à l'inverse de `sections`).
+  variant     String?
+  intensite   String?
+  nage        String?
+  volumeNage  Int?
+  sections    Json?
   dateDebut   DateTime
   dateFin     DateTime
   groupes     Groupe[] @relation("PlanEntrainementGroupes")
   ajustements AjustementPlan[]
   createdAt   DateTime @default(now())
+
+  @@index([dateDebut])
 }
 
 // Ajustement ponctuel d'une section du plan pour un groupe et une date

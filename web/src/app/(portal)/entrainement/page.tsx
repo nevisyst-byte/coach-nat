@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/Card";
-import { PlanEntrainementClient } from "@/components/portal/PlanEntrainementClient";
+import { EntrainementClient } from "@/components/portal/EntrainementClient";
 import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
 import type { SectionManuelle } from "@/lib/seance-manual";
 
-export default async function PlansEntrainementPage() {
+export default async function EntrainementPage() {
   const [groupes, plans] = await Promise.all([
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.planEntrainement.findMany({ include: { groupes: { select: { id: true, nom: true } } }, orderBy: { dateDebut: "desc" } }),
@@ -19,13 +19,18 @@ export default async function PlansEntrainementPage() {
 
   return (
     <Card>
-      <PlanEntrainementClient
+      <EntrainementClient
         groupesParPole={groupesParPole}
         plans={plans.map((p) => ({
           id: p.id,
           nom: p.nom,
+          theme: p.theme,
           heureDebut: p.heureDebut,
-          sections: p.sections as unknown as SectionManuelle[],
+          variant: p.variant,
+          intensite: p.intensite,
+          nage: p.nage,
+          volumeNage: p.volumeNage,
+          sections: p.sections as unknown as SectionManuelle[] | null,
           dateDebut: p.dateDebut.toISOString(),
           dateFin: p.dateFin.toISOString(),
           groupes: p.groupes,

@@ -352,18 +352,18 @@ async function CoachDashboard({ coachId, periode }: { coachId: string | null; pe
           <div>
             <h2 className="font-display text-[19px] tracking-[0.06em]">Répartition de la charge</h2>
             <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
-              Volume réellement planifié via le créateur de séance
+              Volume réellement planifié via Entraînement
             </div>
           </div>
           <PeriodeToggle current={periode} />
         </div>
         {camemberts.length === 0 ? (
           <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
-            Aucune séance planifiée sur cette période. Utilise le{" "}
-            <Link href="/seance" style={{ color: "#7FDCFF" }}>
-              créateur de séance
+            Aucune séance planifiée sur cette période. Utilise{" "}
+            <Link href="/entrainement" style={{ color: "#7FDCFF" }}>
+              Entraînement
             </Link>{" "}
-            (bouton « Planifier la séance ») pour commencer à alimenter cette charge.
+            pour planifier un plan sur un groupe et commencer à alimenter cette charge.
           </div>
         ) : (
           <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))" }}>
@@ -473,7 +473,7 @@ async function CoachDashboard({ coachId, periode }: { coachId: string | null; pe
                   Générer le prochain cycle thématique
                 </div>
               </div>
-              <Link href="/thematiques" className="rounded-lg px-3 py-1.5 text-xs font-bold" style={{ color: "var(--ink)", border: "1px solid var(--border-strong)" }}>
+              <Link href="/entrainement" className="rounded-lg px-3 py-1.5 text-xs font-bold" style={{ color: "var(--ink)", border: "1px solid var(--border-strong)" }}>
                 Générer
               </Link>
             </div>

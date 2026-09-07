@@ -31,12 +31,7 @@ export const NAV_GROUPS = [
   },
   {
     label: "Entraînement",
-    items: [
-      { id: "seance", href: "/seance", icon: "✦", label: "Créateur de séance" },
-      { id: "plans-entrainement", href: "/plans-entrainement", icon: "▨", label: "Plans d'entraînement" },
-      { id: "thematique", href: "/thematiques", icon: "⟳", label: "Thématiques" },
-      { id: "planning-objectifs", href: "/planning-objectifs", icon: "◫", label: "Planning objectifs" },
-    ],
+    items: [{ id: "entrainement", href: "/entrainement", icon: "✦", label: "Entraînement" }],
   },
 ] as const;
 
@@ -44,7 +39,7 @@ export const MOBILE_TABS = [
   { id: "accueil", href: "/general?vue=coach", pathname: "/general", vueParam: "coach", icon: "◉", label: "Accueil" },
   { id: "planning", href: "/planning?vue=moi", pathname: "/planning", vueParam: "moi", icon: "▤", label: "Planning" },
   { id: "nageurs", href: "/nageurs", pathname: "/nageurs", icon: "⚑", label: "Nageurs" },
-  { id: "seance", href: "/seance", pathname: "/seance", icon: "✦", label: "Séance" },
+  { id: "entrainement", href: "/entrainement", pathname: "/entrainement", icon: "✦", label: "Entraînement" },
 ] as const;
 
 export const POLE_ORDER = ["COMPETITION", "FORMATION", "SAUVETAGE", "LOISIR"] as const;
