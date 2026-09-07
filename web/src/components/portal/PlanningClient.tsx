@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ETAT_COLOR, ETAT_LABEL, JOURS } from "@/lib/format";
+import { couleurObjectif } from "@/lib/objectifs";
 import { ViewToggle } from "./ViewToggle";
 
 type Creneau = {
@@ -14,7 +15,7 @@ type Creneau = {
   etat: string;
   effectifLabel: string | null;
   groupeId: string;
-  groupe: { nom: string };
+  groupe: { nom: string; objectif: string | null };
   coach: { user: { name: string } } | null;
   libelleCoach: string | null;
   actifHorsVacances: boolean;
@@ -273,6 +274,15 @@ export function PlanningClient({
                       )}
                     </div>
                     <div className="mt-2.5 text-[15px] font-semibold leading-tight">{c.groupe.nom}</div>
+                    {c.groupe.objectif && (
+                      <span
+                        className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded"
+                        style={{ background: `${couleurObjectif(c.groupe.objectif)}26`, color: couleurObjectif(c.groupe.objectif) }}
+                        title="Objectif en cours du groupe"
+                      >
+                        {c.groupe.objectif}
+                      </span>
+                    )}
                     <div className="mt-0.5 text-[13px]">{c.libelleCoach ?? c.coach?.user.name ?? "—"}</div>
                     <div className="mt-2.5 pt-2.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px]" style={{ borderTop: "1px solid var(--border)", color: "#7D91AE" }}>
                       <span>

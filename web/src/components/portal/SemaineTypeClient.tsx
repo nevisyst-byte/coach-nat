@@ -13,7 +13,7 @@ type Creneau = {
   etat: string;
   effectifLabel: string | null;
   groupeId: string;
-  groupe: { nom: string };
+  groupe: { nom: string; objectif: string | null };
   coachId: string | null;
   coach: { user: { name: string } } | null;
   libelleCoach: string | null;
@@ -267,7 +267,7 @@ export function SemaineTypeClient({
         debut: c.debut,
         fin: c.fin,
         label: c.groupe.nom,
-        sousLabel: c.libelleCoach ?? c.coach?.user.name ?? "—",
+        sousLabel: [c.libelleCoach ?? c.coach?.user.name ?? "—", c.groupe.objectif].filter(Boolean).join(" · "),
         color: ETAT_COLOR[c.etat],
         onClick: () => openEditCreneau(c),
         draggable: true,

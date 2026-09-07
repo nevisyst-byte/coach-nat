@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
+import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
 
 type Groupe = { id: string; nom: string; pole: string; categorie: string; color: string; objectif: string | null; coachId: string | null };
 type Coach = { id: string; nom: string };
@@ -35,7 +36,7 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
       await fetch("/api/admin/groupes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coachId: form.coachId || null }),
+        body: JSON.stringify({ ...form, coachId: form.coachId || null, objectif: form.objectif || undefined }),
       });
       setForm({ nom: "", pole: "COMPETITION", categorie: "", color: "#1E7BFF", objectif: "", coachId: "" });
       router.refresh();
@@ -143,7 +144,16 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
           </div>
           <div>
             <div style={LABEL_STYLE}>Objectif en cours</div>
-            <input placeholder="ex. Allure 200" value={form.objectif} onChange={(e) => setForm((f) => ({ ...f, objectif: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE} />
+            <select value={form.objectif} onChange={(e) => setForm((f) => ({ ...f, objectif: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ ...INPUT_STYLE, color: form.objectif ? couleurObjectif(form.objectif) : INPUT_STYLE.color }}>
+              <option value="" style={{ background: "#101A2B", color: "var(--ink)" }}>
+                — aucun —
+              </option>
+              {OBJECTIFS.map((o) => (
+                <option key={o.nom} value={o.nom} style={{ background: "#101A2B", color: o.color }}>
+                  {o.nom}
+                </option>
+              ))}
+            </select>
           </div>
           <button type="submit" disabled={saving} className="rounded-[9px] px-4 py-2.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1, height: 42 }}>
             {saving ? "Création…" : "Créer"}
@@ -200,13 +210,29 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
                           </option>
                         ))}
                       </select>
-                      <input
+                      <select
                         defaultValue={g.objectif ?? ""}
-                        onBlur={(e) => updateGroupe(g.id, { objectif: e.target.value })}
-                        placeholder="—"
+                        onChange={(e) => updateGroupe(g.id, { objectif: e.target.value || null })}
                         className="w-full rounded-[9px] px-2.5 py-2 text-sm outline-none"
-                        style={INPUT_STYLE}
-                      />
+                        style={{ ...INPUT_STYLE, color: g.objectif ? couleurObjectif(g.objectif) : INPUT_STYLE.color }}
+                      >
+                        <option value="" style={{ background: "#101A2B", color: "var(--ink)" }}>
+                          — aucun —
+                        </option>
+                        {/* Objectif existant en base (texte libre, saisi avant le passage à cette
+                            liste contrôlée) : gardé sélectionnable pour ne pas le faire disparaître
+                            silencieusement du sélecteur. Choisir un objectif de la liste le remplace. */}
+                        {g.objectif && !OBJECTIFS.some((o) => o.nom === g.objectif) && (
+                          <option value={g.objectif} style={{ background: "#101A2B", color: "var(--ink-secondary)" }}>
+                            {g.objectif} (existant)
+                          </option>
+                        )}
+                        {OBJECTIFS.map((o) => (
+                          <option key={o.nom} value={o.nom} style={{ background: "#101A2B", color: o.color }}>
+                            {o.nom}
+                          </option>
+                        ))}
+                      </select>
                       <div className="flex gap-1.5">
                         <button
                           onClick={() => openRoster(g)}

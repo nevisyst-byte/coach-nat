@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 
 const bodySchema = z.object({
   coachId: z.string().nullable().optional(),
-  objectif: z.string().optional(),
+  objectif: z.string().nullable().optional(),
   color: z.string().optional(),
 });
 

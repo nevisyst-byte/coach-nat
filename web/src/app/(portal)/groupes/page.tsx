@@ -3,6 +3,7 @@ import { Card, SectionTitle } from "@/components/ui/Card";
 import { GroupesAdmin } from "@/components/admin/GroupesAdmin";
 import { getSession } from "@/lib/auth";
 import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
+import { couleurObjectif } from "@/lib/objectifs";
 
 export default async function GroupesPage() {
   const session = await getSession();
@@ -79,7 +80,7 @@ export default async function GroupesPage() {
                       <div className="text-sm truncate" style={{ color: "var(--ink-body)" }}>
                         {g.coach?.user.name ?? "— aucun —"}
                       </div>
-                      <div className="text-sm truncate" style={{ color: "var(--ink-secondary)" }}>
+                      <div className="text-sm font-semibold truncate" style={{ color: g.objectif ? couleurObjectif(g.objectif) : "var(--ink-secondary)" }}>
                         {g.objectif ?? "—"}
                       </div>
                     </div>
