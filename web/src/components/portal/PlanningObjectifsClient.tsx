@@ -7,6 +7,7 @@ import { mondayOf, toDateInputValue } from "@/lib/week";
 
 const SEMAINES_AFFICHEES = 16;
 const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const LARGEUR_COLONNE = 180;
 
 type Phase = { id: string; theme: string; dateDebut: string; dateFin: string };
 type Groupe = { id: string; nom: string; objectifManuel: string | null; phases: Phase[] };
@@ -32,24 +33,22 @@ export function PlanningObjectifsClient({ groupesParPole, isAdmin }: { groupesPa
   const lundiCourant = useMemo(() => mondayOf(new Date()), []);
   const semaines = useMemo(() => Array.from({ length: SEMAINES_AFFICHEES }, (_, i) => ajouterJours(lundiCourant, i * 7)), [lundiCourant]);
 
+  const toutGroupes = useMemo(() => groupesParPole.flatMap((s) => s.groupes), [groupesParPole]);
+  const [selectedId, setSelectedId] = useState<string | null>(toutGroupes[0]?.id ?? null);
+  const selected = toutGroupes.find((g) => g.id === selectedId) ?? null;
+
   const [editing, setEditing] = useState<Groupe | null>(null);
   const [form, setForm] = useState({ theme: OBJECTIFS[0].nom, dateDebut: toDateInputValue(lundiCourant), dureeSemaines: 4 });
   const [saving, setSaving] = useState(false);
 
-  function couleurSemaine(groupe: Groupe, semaine: Date) {
-    const phase = groupe.phases.find((p) => new Date(p.dateDebut) <= semaine && semaine <= new Date(p.dateFin));
-    return phase ? couleurObjectif(phase.theme) : null;
+  function phaseDansSemaine(groupe: Groupe, semaine: Date, themeNom: string) {
+    return groupe.phases.find((p) => p.theme === themeNom && new Date(p.dateDebut) <= semaine && semaine <= new Date(p.dateFin));
   }
 
-  function libelleSemaine(groupe: Groupe, semaine: Date) {
-    const phase = groupe.phases.find((p) => new Date(p.dateDebut) <= semaine && semaine <= new Date(p.dateFin));
-    return phase ? phase.theme : "Aucune phase planifiée";
-  }
-
-  function ouvrirEdition(groupe: Groupe) {
+  function ouvrirEdition(groupe: Groupe, presetTheme?: string, presetDate?: Date) {
     const derniere = groupe.phases[groupe.phases.length - 1];
-    const debutParDefaut = derniere ? ajouterJours(new Date(derniere.dateFin), 1) : lundiCourant;
-    setForm({ theme: OBJECTIFS[0].nom, dateDebut: toDateInputValue(debutParDefaut), dureeSemaines: 4 });
+    const debutParDefaut = presetDate ?? (derniere ? ajouterJours(new Date(derniere.dateFin), 1) : lundiCourant);
+    setForm({ theme: presetTheme ?? OBJECTIFS[0].nom, dateDebut: toDateInputValue(debutParDefaut), dureeSemaines: 4 });
     setEditing(groupe);
   }
 
@@ -77,77 +76,117 @@ export function PlanningObjectifsClient({ groupesParPole, isAdmin }: { groupesPa
   return (
     <div className="flex flex-col gap-4">
       <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
-        Configure, pour chaque groupe, une suite de phases (ex. 4 semaines Vitesse puis Volume aérobie) — l&apos;objectif
-        affiché sur ses créneaux (Planning, Semaine type) suit automatiquement la phase en cours, sans rien à retoucher
-        à la main une fois planifié.
+        Sélectionne un groupe puis planifie ses phases par objectif — l&apos;objectif affiché sur ses créneaux
+        (Planning, Semaine type) suit automatiquement la phase en cours, sans rien à retoucher à la main une fois
+        planifié.
       </div>
 
-      <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-        <div className="overflow-x-auto">
-          <div style={{ minWidth: 220 + SEMAINES_AFFICHEES * 56 }}>
-            <div className="flex" style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.03)" }}>
-              <div className="shrink-0 px-3.5 py-2.5 text-[10px] tracking-[0.1em] uppercase" style={{ width: 220, color: "#61789B" }}>
-                Groupe
-              </div>
-              {semaines.map((s, i) => (
-                <div
-                  key={i}
-                  className="shrink-0 text-center py-2.5 text-[10px]"
-                  style={{ width: 56, color: memeJour(s, lundiCourant) ? "#24C8FF" : "#61789B", fontWeight: memeJour(s, lundiCourant) ? 700 : 400 }}
-                >
-                  {s.getDate()} {MOIS[s.getMonth()]}
-                </div>
-              ))}
+      <div className="flex flex-col gap-2.5">
+        {groupesParPole.map((section) => (
+          <div key={section.pole} className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2 px-1">
+              <span className="w-2 h-2 rounded-full" style={{ background: section.color }} />
+              <span className="font-display text-[12px] tracking-[0.08em] uppercase" style={{ color: "#61789B" }}>
+                {section.nom}
+              </span>
             </div>
-
-            {groupesParPole.map((section) => (
-              <div key={section.pole}>
-                <div className="flex items-center gap-2 px-3.5 py-2" style={{ background: "rgba(255,255,255,0.02)", borderBottom: "1px solid var(--border)", borderLeft: `3px solid ${section.color}` }}>
-                  <span className="w-2 h-2 rounded-full" style={{ background: section.color }} />
-                  <span className="font-display text-[13px] tracking-[0.05em] uppercase">{section.nom}</span>
-                </div>
-                {section.groupes.map((groupe) => (
-                  <div key={groupe.id} className="flex items-stretch" style={{ borderBottom: "1px solid var(--border)" }}>
-                    <div style={{ width: 220 }} className="shrink-0 px-3.5 py-2.5 flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold truncate">{groupe.nom}</span>
-                      {isAdmin && (
-                        <button onClick={() => ouvrirEdition(groupe)} className="text-xs cursor-pointer shrink-0" style={{ color: "var(--cyan)" }} title="Planifier une phase">
-                          + phase
-                        </button>
-                      )}
-                    </div>
-                    {semaines.map((s, i) => {
-                      const color = couleurSemaine(groupe, s);
-                      return (
-                        <div key={i} className="shrink-0 flex items-center justify-center" style={{ width: 56, padding: "6px 3px" }}>
-                          <div
-                            className="w-full rounded"
-                            style={{
-                              height: 22,
-                              background: color ? `${color}55` : "rgba(255,255,255,0.03)",
-                              border: `1px solid ${memeJour(s, lundiCourant) ? "#24C8FF" : color ?? "var(--border)"}`,
-                            }}
-                            title={`${libelleSemaine(groupe, s)} — semaine du ${s.getDate()}/${s.getMonth() + 1}`}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex gap-3 flex-wrap">
-        {OBJECTIFS.map((o) => (
-          <div key={o.nom} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--ink-body)" }}>
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: o.color }} />
-            {o.nom}
+            <div className="flex flex-wrap gap-1.5">
+              {section.groupes.map((groupe) => {
+                const actif = groupe.id === selectedId;
+                return (
+                  <button
+                    key={groupe.id}
+                    onClick={() => setSelectedId(groupe.id)}
+                    className="rounded-full px-3.5 py-1.5 text-[13px] font-semibold cursor-pointer"
+                    style={{
+                      background: actif ? "linear-gradient(135deg,#1E7BFF,#0F5FD6)" : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${actif ? "transparent" : "var(--border)"}`,
+                      color: actif ? "#fff" : "var(--ink-body)",
+                    }}
+                  >
+                    {groupe.nom}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         ))}
       </div>
+
+      {!selected && (
+        <div className="text-[13px] py-8 text-center" style={{ color: "var(--ink-secondary)" }}>
+          Sélectionne un groupe ci-dessus pour voir sa planification.
+        </div>
+      )}
+
+      {selected && (
+        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+          <div className="flex items-center justify-between px-3.5 py-2.5" style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.03)" }}>
+            <span className="font-display text-[15px] tracking-[0.03em]">{selected.nom}</span>
+            {isAdmin && (
+              <button onClick={() => ouvrirEdition(selected)} className="text-xs cursor-pointer shrink-0" style={{ color: "var(--cyan)" }} title="Gérer les phases">
+                + Ajouter une phase
+              </button>
+            )}
+          </div>
+
+          {selected.phases.length === 0 && (
+            <div className="px-3.5 py-2.5 text-[12px]" style={{ color: "var(--ink-secondary)" }}>
+              Aucune phase planifiée — l&apos;objectif affiché reste celui réglé à la main sur Groupes
+              {selected.objectifManuel ? ` (« ${selected.objectifManuel} »)` : ""}.
+            </div>
+          )}
+
+          <div className="overflow-x-auto">
+            <div style={{ minWidth: LARGEUR_COLONNE + SEMAINES_AFFICHEES * 56 }}>
+              <div className="flex" style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}>
+                <div className="shrink-0 px-3.5 py-2.5 text-[10px] tracking-[0.1em] uppercase" style={{ width: LARGEUR_COLONNE, color: "#61789B" }}>
+                  Objectif
+                </div>
+                {semaines.map((s, i) => (
+                  <div
+                    key={i}
+                    className="shrink-0 text-center py-2.5 text-[10px]"
+                    style={{ width: 56, color: memeJour(s, lundiCourant) ? "#24C8FF" : "#61789B", fontWeight: memeJour(s, lundiCourant) ? 700 : 400 }}
+                  >
+                    {s.getDate()} {MOIS[s.getMonth()]}
+                  </div>
+                ))}
+              </div>
+
+              {OBJECTIFS.map((objectif) => (
+                <div key={objectif.nom} className="flex items-stretch" style={{ borderBottom: "1px solid var(--border)" }}>
+                  <div style={{ width: LARGEUR_COLONNE }} className="shrink-0 px-3.5 py-2.5 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: objectif.color }} />
+                    <span className="text-sm font-semibold truncate">{objectif.nom}</span>
+                  </div>
+                  {semaines.map((s, i) => {
+                    const phase = phaseDansSemaine(selected, s, objectif.nom);
+                    return (
+                      <div
+                        key={i}
+                        className="shrink-0 flex items-center justify-center"
+                        style={{ width: 56, padding: "6px 3px", cursor: isAdmin ? "pointer" : "default" }}
+                        onClick={() => isAdmin && ouvrirEdition(selected, objectif.nom, s)}
+                        title={phase ? `${objectif.nom} — semaine du ${s.getDate()}/${s.getMonth() + 1}` : isAdmin ? `Planifier « ${objectif.nom} » sur cette semaine` : undefined}
+                      >
+                        <div
+                          className="w-full rounded"
+                          style={{
+                            height: 22,
+                            background: phase ? `${objectif.color}55` : "rgba(255,255,255,0.03)",
+                            border: `1px solid ${memeJour(s, lundiCourant) ? "#24C8FF" : phase ? objectif.color : "var(--border)"}`,
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {editing && (
         <div onClick={() => setEditing(null)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
