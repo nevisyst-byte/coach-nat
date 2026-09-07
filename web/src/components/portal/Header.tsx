@@ -88,8 +88,60 @@ export function Header({
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 flex-wrap">
-        <div className="relative min-w-[200px] md:min-w-[250px]" ref={boxRef}>
+      {/* Rond profil mobile : sur la ligne du titre, jamais accolé à la barre de
+          recherche qui, elle, passe systématiquement à la ligne suivante. */}
+      <div className="relative md:hidden shrink-0" ref={profileRef}>
+        <button
+          onClick={() => setProfileOpen((o) => !o)}
+          className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm cursor-pointer shrink-0"
+          style={{ background: "linear-gradient(135deg,#1E7BFF,#E8442B)", color: "#fff" }}
+          title={userName}
+        >
+          {userName
+            .split(" ")
+            .map((p) => p[0])
+            .slice(0, 2)
+            .join("")
+            .toUpperCase()}
+        </button>
+        {profileOpen && (
+          <div
+            className="absolute top-[48px] right-0 z-40 rounded-xl overflow-hidden"
+            style={{ width: 220, background: "#101A2B", border: "1px solid var(--border-strong)", boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}
+          >
+            <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+              <div className="text-sm font-bold" style={{ color: "var(--ink)" }}>
+                {userName}
+              </div>
+              {roleLabel && (
+                <div className="text-[12px]" style={{ color: "var(--ink-secondary)" }}>
+                  {roleLabel}
+                </div>
+              )}
+            </div>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setProfileOpen(false)}
+                className="block px-4 py-3 text-sm font-semibold"
+                style={{ color: "#8CC4FF", borderBottom: "1px solid var(--border)" }}
+              >
+                ⚙ Administration COACH-NAT
+              </Link>
+            )}
+            <button
+              onClick={logout}
+              className="w-full text-left px-4 py-3 text-sm font-semibold cursor-pointer"
+              style={{ color: "var(--ink-secondary)" }}
+            >
+              Déconnexion
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2.5 flex-wrap w-full md:w-auto">
+        <div className="relative min-w-[200px] flex-1 md:flex-none md:min-w-[250px]" ref={boxRef}>
           <div
             className="flex items-center gap-2 rounded-[10px] px-3 h-10"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }}
@@ -162,56 +214,6 @@ export function Header({
         >
           Déconnexion
         </button>
-
-        <div className="relative md:hidden" ref={profileRef}>
-          <button
-            onClick={() => setProfileOpen((o) => !o)}
-            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm cursor-pointer shrink-0"
-            style={{ background: "linear-gradient(135deg,#1E7BFF,#E8442B)", color: "#fff" }}
-            title={userName}
-          >
-            {userName
-              .split(" ")
-              .map((p) => p[0])
-              .slice(0, 2)
-              .join("")
-              .toUpperCase()}
-          </button>
-          {profileOpen && (
-            <div
-              className="absolute top-[48px] right-0 z-40 rounded-xl overflow-hidden"
-              style={{ width: 220, background: "#101A2B", border: "1px solid var(--border-strong)", boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}
-            >
-              <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
-                <div className="text-sm font-bold" style={{ color: "var(--ink)" }}>
-                  {userName}
-                </div>
-                {roleLabel && (
-                  <div className="text-[12px]" style={{ color: "var(--ink-secondary)" }}>
-                    {roleLabel}
-                  </div>
-                )}
-              </div>
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  onClick={() => setProfileOpen(false)}
-                  className="block px-4 py-3 text-sm font-semibold"
-                  style={{ color: "#8CC4FF", borderBottom: "1px solid var(--border)" }}
-                >
-                  ⚙ Administration COACH-NAT
-                </Link>
-              )}
-              <button
-                onClick={logout}
-                className="w-full text-left px-4 py-3 text-sm font-semibold cursor-pointer"
-                style={{ color: "var(--ink-secondary)" }}
-              >
-                Déconnexion
-              </button>
-            </div>
-          )}
-        </div>
       </div>
     </header>
   );
