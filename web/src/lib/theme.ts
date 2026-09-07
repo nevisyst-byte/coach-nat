@@ -30,8 +30,8 @@ export const NAV_GROUPS = [
     ],
   },
   {
-    label: "Entraînement",
-    items: [{ id: "entrainement", href: "/entrainement", icon: "✦", label: "Entraînement" }],
+    label: "Plan d'entraînement",
+    items: [{ id: "entrainement", href: "/entrainement", icon: "✦", label: "Plan d'entraînement" }],
   },
 ] as const;
 
@@ -39,7 +39,7 @@ export const MOBILE_TABS = [
   { id: "accueil", href: "/general?vue=coach", pathname: "/general", vueParam: "coach", icon: "◉", label: "Accueil" },
   { id: "planning", href: "/planning?vue=moi", pathname: "/planning", vueParam: "moi", icon: "▤", label: "Planning" },
   { id: "nageurs", href: "/nageurs", pathname: "/nageurs", icon: "⚑", label: "Nageurs" },
-  { id: "entrainement", href: "/entrainement", pathname: "/entrainement", icon: "✦", label: "Entraînement" },
+  { id: "entrainement", href: "/entrainement", pathname: "/entrainement", icon: "✦", label: "Plan d'entraînement" },
 ] as const;
 
 export const POLE_ORDER = ["COMPETITION", "FORMATION", "SAUVETAGE", "LOISIR"] as const;
