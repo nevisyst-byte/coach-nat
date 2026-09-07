@@ -24,6 +24,7 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
   const [form, setForm] = useState({ nom: "", pole: "COMPETITION", categorie: "", color: "#1E7BFF", objectif: "", coachId: "" });
   const [saving, setSaving] = useState(false);
 
+  const [creating, setCreating] = useState(false);
   const [managing, setManaging] = useState<Groupe | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
@@ -39,6 +40,7 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
         body: JSON.stringify({ ...form, coachId: form.coachId || null, objectif: form.objectif || undefined }),
       });
       setForm({ nom: "", pole: "COMPETITION", categorie: "", color: "#1E7BFF", objectif: "", coachId: "" });
+      setCreating(false);
       router.refresh();
     } finally {
       setSaving(false);
@@ -104,62 +106,13 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
-        <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>Nouveau groupe</div>
-        <form onSubmit={createGroupe} className="grid gap-3.5 items-end" style={{ gridTemplateColumns: "1.4fr 130px 130px 60px 170px 1.3fr auto" }}>
-          <div>
-            <div style={LABEL_STYLE}>Nom du groupe</div>
-            <input required placeholder="ex. Compétition Élite" value={form.nom} onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE} />
-          </div>
-          <div>
-            <div style={LABEL_STYLE}>Pôle</div>
-            <select value={form.pole} onChange={(e) => setForm((f) => ({ ...f, pole: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE}>
-              {POLES.map((p) => (
-                <option key={p} value={p} style={{ background: "#101A2B" }}>
-                  {POLE_LABELS[p] ?? p}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <div style={LABEL_STYLE}>Catégorie</div>
-            <input required placeholder="ex. Élite" value={form.categorie} onChange={(e) => setForm((f) => ({ ...f, categorie: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE} />
-          </div>
-          <div>
-            <div style={LABEL_STYLE}>Couleur</div>
-            <input type="color" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="w-full rounded-[9px] h-[42px] cursor-pointer" style={INPUT_STYLE} />
-          </div>
-          <div>
-            <div style={LABEL_STYLE}>Coach responsable</div>
-            <select value={form.coachId} onChange={(e) => setForm((f) => ({ ...f, coachId: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE}>
-              <option value="" style={{ background: "#101A2B" }}>
-                — aucun —
-              </option>
-              {coachs.map((c) => (
-                <option key={c.id} value={c.id} style={{ background: "#101A2B" }}>
-                  {c.nom}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <div style={LABEL_STYLE}>Objectif en cours</div>
-            <select value={form.objectif} onChange={(e) => setForm((f) => ({ ...f, objectif: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ ...INPUT_STYLE, color: form.objectif ? couleurObjectif(form.objectif) : INPUT_STYLE.color }}>
-              <option value="" style={{ background: "#101A2B", color: "var(--ink)" }}>
-                — aucun —
-              </option>
-              {OBJECTIFS.map((o) => (
-                <option key={o.nom} value={o.nom} style={{ background: "#101A2B", color: o.color }}>
-                  {o.nom}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button type="submit" disabled={saving} className="rounded-[9px] px-4 py-2.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1, height: 42 }}>
-            {saving ? "Création…" : "Créer"}
-          </button>
-        </form>
-      </div>
+      <button
+        onClick={() => setCreating(true)}
+        className="self-start rounded-[10px] px-4 py-2.5 text-[13px] font-bold cursor-pointer"
+        style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff" }}
+      >
+        + Créer un groupe
+      </button>
 
       <div className="flex flex-col gap-4">
         {groupesParPole.map((section) => (
@@ -188,10 +141,26 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
                       className="grid gap-3 items-center px-3.5 py-3"
                       style={{ gridTemplateColumns: ROW_COLUMNS, borderLeft: `4px solid ${g.color}`, borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.015)" }}
                     >
-                      <div className="text-sm font-semibold truncate">{g.nom}</div>
-                      <div className="text-sm truncate" style={{ color: "var(--ink-body)" }}>
-                        {g.categorie}
-                      </div>
+                      <input
+                        key={`${g.id}-nom-${g.nom}`}
+                        defaultValue={g.nom}
+                        onBlur={(e) => {
+                          const v = e.target.value.trim();
+                          if (v && v !== g.nom) updateGroupe(g.id, { nom: v });
+                        }}
+                        className="w-full rounded-[9px] px-2.5 py-2 text-sm font-semibold outline-none"
+                        style={INPUT_STYLE}
+                      />
+                      <input
+                        key={`${g.id}-categorie-${g.categorie}`}
+                        defaultValue={g.categorie}
+                        onBlur={(e) => {
+                          const v = e.target.value.trim();
+                          if (v && v !== g.categorie) updateGroupe(g.id, { categorie: v });
+                        }}
+                        className="w-full rounded-[9px] px-2.5 py-2 text-sm outline-none"
+                        style={INPUT_STYLE}
+                      />
                       <div className="text-sm" style={{ color: "var(--ink-secondary)" }}>
                         {count} nageur{count > 1 ? "s" : ""}
                       </div>
@@ -258,6 +227,76 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
           </div>
         )}
       </div>
+
+      {creating && (
+        <div onClick={() => setCreating(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl overflow-hidden flex flex-col" style={{ maxWidth: 480, maxHeight: "88vh", background: "#101A2B", border: "1px solid var(--border-strong)" }}>
+            <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
+              <h2 className="font-display text-[20px] tracking-[0.05em]">Nouveau groupe</h2>
+              <button onClick={() => setCreating(false)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
+                ✕
+              </button>
+            </div>
+            <form onSubmit={createGroupe} className="px-6 py-4 flex flex-col gap-3.5">
+              <div>
+                <div style={LABEL_STYLE}>Nom du groupe</div>
+                <input required placeholder="ex. Compétition Élite" value={form.nom} onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE} />
+              </div>
+              <div className="grid grid-cols-2 gap-3.5">
+                <div>
+                  <div style={LABEL_STYLE}>Pôle</div>
+                  <select value={form.pole} onChange={(e) => setForm((f) => ({ ...f, pole: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE}>
+                    {POLES.map((p) => (
+                      <option key={p} value={p} style={{ background: "#101A2B" }}>
+                        {POLE_LABELS[p] ?? p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <div style={LABEL_STYLE}>Catégorie</div>
+                  <input required placeholder="ex. Élite" value={form.categorie} onChange={(e) => setForm((f) => ({ ...f, categorie: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3.5">
+                <div>
+                  <div style={LABEL_STYLE}>Couleur</div>
+                  <input type="color" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="w-full rounded-[9px] h-[42px] cursor-pointer" style={INPUT_STYLE} />
+                </div>
+                <div>
+                  <div style={LABEL_STYLE}>Coach responsable</div>
+                  <select value={form.coachId} onChange={(e) => setForm((f) => ({ ...f, coachId: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={INPUT_STYLE}>
+                    <option value="" style={{ background: "#101A2B" }}>
+                      — aucun —
+                    </option>
+                    {coachs.map((c) => (
+                      <option key={c.id} value={c.id} style={{ background: "#101A2B" }}>
+                        {c.nom}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <div style={LABEL_STYLE}>Objectif en cours</div>
+                <select value={form.objectif} onChange={(e) => setForm((f) => ({ ...f, objectif: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ ...INPUT_STYLE, color: form.objectif ? couleurObjectif(form.objectif) : INPUT_STYLE.color }}>
+                  <option value="" style={{ background: "#101A2B", color: "var(--ink)" }}>
+                    — aucun —
+                  </option>
+                  {OBJECTIFS.map((o) => (
+                    <option key={o.nom} value={o.nom} style={{ background: "#101A2B", color: o.color }}>
+                      {o.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" disabled={saving} className="rounded-[9px] px-4 py-2.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
+                {saving ? "Création…" : "Créer le groupe"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {managing && (
         <div onClick={() => setManaging(null)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>

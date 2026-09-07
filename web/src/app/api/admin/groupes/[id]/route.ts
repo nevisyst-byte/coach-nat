@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { requireCoachOrAdmin } from "@/lib/auth";
 
 const bodySchema = z.object({
+  nom: z.string().min(1).optional(),
+  categorie: z.string().min(1).optional(),
+  pole: z.enum(["FORMATION", "COMPETITION", "SAUVETAGE", "LOISIR"]).optional(),
   coachId: z.string().nullable().optional(),
   objectif: z.string().nullable().optional(),
   color: z.string().optional(),
