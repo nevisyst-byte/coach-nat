@@ -8,7 +8,17 @@ import { useNavState } from "./NavState";
 
 type SearchResult = { kind: string; label: string; href: string; meta: string };
 
-export function Header({ userName, saisonLabel }: { userName: string; saisonLabel: string | null }) {
+export function Header({
+  userName,
+  roleLabel,
+  isAdmin = false,
+  saisonLabel,
+}: {
+  userName: string;
+  roleLabel?: string;
+  isAdmin?: boolean;
+  saisonLabel: string | null;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,6 +28,8 @@ export function Header({ userName, saisonLabel }: { userName: string; saisonLabe
   const [q, setQ] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const boxRef = useRef<HTMLDivElement>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!q.trim()) return;
@@ -37,6 +49,7 @@ export function Header({ userName, saisonLabel }: { userName: string; saisonLabe
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (boxRef.current && !boxRef.current.contains(e.target as Node)) setResults([]);
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
     }
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
@@ -144,11 +157,61 @@ export function Header({ userName, saisonLabel }: { userName: string; saisonLabe
         )}
         <button
           onClick={logout}
-          className="rounded-[10px] px-3 py-2 text-xs font-semibold cursor-pointer"
+          className="hidden md:block rounded-[10px] px-3 py-2 text-xs font-semibold cursor-pointer"
           style={{ border: "1px solid var(--border-strong)", background: "transparent", color: "var(--ink-secondary)" }}
         >
           Déconnexion
         </button>
+
+        <div className="relative md:hidden" ref={profileRef}>
+          <button
+            onClick={() => setProfileOpen((o) => !o)}
+            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm cursor-pointer shrink-0"
+            style={{ background: "linear-gradient(135deg,#1E7BFF,#E8442B)", color: "#fff" }}
+            title={userName}
+          >
+            {userName
+              .split(" ")
+              .map((p) => p[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase()}
+          </button>
+          {profileOpen && (
+            <div
+              className="absolute top-[48px] right-0 z-40 rounded-xl overflow-hidden"
+              style={{ width: 220, background: "#101A2B", border: "1px solid var(--border-strong)", boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}
+            >
+              <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+                <div className="text-sm font-bold" style={{ color: "var(--ink)" }}>
+                  {userName}
+                </div>
+                {roleLabel && (
+                  <div className="text-[12px]" style={{ color: "var(--ink-secondary)" }}>
+                    {roleLabel}
+                  </div>
+                )}
+              </div>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => setProfileOpen(false)}
+                  className="block px-4 py-3 text-sm font-semibold"
+                  style={{ color: "#8CC4FF", borderBottom: "1px solid var(--border)" }}
+                >
+                  ⚙ Administration COACH-NAT
+                </Link>
+              )}
+              <button
+                onClick={logout}
+                className="w-full text-left px-4 py-3 text-sm font-semibold cursor-pointer"
+                style={{ color: "var(--ink-secondary)" }}
+              >
+                Déconnexion
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

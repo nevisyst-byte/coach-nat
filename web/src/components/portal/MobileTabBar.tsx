@@ -4,15 +4,31 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { MOBILE_TABS } from "@/lib/theme";
 
-export function MobileTabBar() {
+export function MobileTabBar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const vue = searchParams.get("vue");
 
+  // Les onglets « Accueil »/« Planning » pointent par défaut vers la vue
+  // personnelle du coach (vue=coach / vue=moi), qui n'existe pas pour un
+  // compte admin (pas de coachId) — pour un admin, on retombe sur la vue
+  // globale (celle déjà utilisée sur desktop) plutôt que sur un écran
+  // « réservé aux comptes coach ».
+  function vueParamFor(tab: (typeof MOBILE_TABS)[number]) {
+    if (isAdmin) return undefined;
+    return "vueParam" in tab ? tab.vueParam : undefined;
+  }
+
+  function hrefFor(tab: (typeof MOBILE_TABS)[number]) {
+    const vp = vueParamFor(tab);
+    return vp ? `${tab.pathname}?vue=${vp}` : tab.pathname;
+  }
+
   const isActive = (tab: (typeof MOBILE_TABS)[number]) => {
     const pathMatches = tab.pathname === "/nageurs" ? pathname === "/nageurs" || pathname.startsWith("/nageurs/") : pathname === tab.pathname;
     if (!pathMatches) return false;
-    if ("vueParam" in tab && tab.vueParam) return vue === tab.vueParam;
+    const vp = vueParamFor(tab);
+    if (vp) return vue === vp;
     return !vue;
   };
 
@@ -26,7 +42,7 @@ export function MobileTabBar() {
         return (
           <Link
             key={tab.id}
-            href={tab.href}
+            href={hrefFor(tab)}
             className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5"
             style={{ color: active ? "var(--cyan)" : "var(--ink-secondary)", minHeight: 56 }}
           >

@@ -28,14 +28,19 @@ export default async function PortalLayout({ children }: { children: React.React
           isAdmin={session.role === "ADMIN"}
         />
         <div className="flex-1 min-w-0 flex flex-col">
-          <Header userName={session.name} saisonLabel={activeSaison ? shortLabel(activeSaison.label) : null} />
+          <Header
+            userName={session.name}
+            roleLabel={session.role === "ADMIN" ? "Administrateur" : "Coach · Accès total"}
+            isAdmin={session.role === "ADMIN"}
+            saisonLabel={activeSaison ? shortLabel(activeSaison.label) : null}
+          />
           <div className="p-4 md:p-6 flex flex-col gap-5 pb-24 md:pb-6">
             <HeroBanner />
             {children}
           </div>
         </div>
       </div>
-      <MobileTabBar />
+      <MobileTabBar isAdmin={session.role === "ADMIN"} />
     </NavStateProvider>
   );
 }
