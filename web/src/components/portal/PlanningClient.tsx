@@ -28,6 +28,51 @@ type NageurOption = { id: string; nom: string; groupeId: string | null };
 type StageCreneauJour = { id: string; debut: string; fin: string; groupe: string; coachNom: string | null; bassin: string; theme: string };
 type StageJourEntry = { stageId: string; stageNom: string; color: string; creneaux: StageCreneauJour[] };
 
+type EvenementJour =
+  | { kind: "reg"; id: string; debutMin: number; finMin: number; creneau: Creneau }
+  | { kind: "stage"; id: string; debutMin: number; finMin: number; creneau: StageCreneauJour; stageNom: string; stageColor: string };
+
+const PX_PAR_MIN = 1.5;
+
+function parseHeureMin(v: string) {
+  const [h, m] = v.split(":").map((x) => parseInt(x, 10));
+  return h * 60 + (m || 0);
+}
+
+// Dispose les créneaux d'une journée en colonnes côte à côte quand ils se
+// chevauchent (même logique qu'un calendrier jour Google/Outlook) : les
+// créneaux qui se suivent sans jamais se recouvrir restent seuls sur toute
+// la largeur, ceux qui se recouvrent dans le temps se partagent la largeur
+// en colonnes égales.
+function disposerParColonnes(evenements: EvenementJour[]): (EvenementJour & { col: number; nbCols: number })[] {
+  const tries = [...evenements].sort((a, b) => a.debutMin - b.debutMin || a.finMin - b.finMin);
+  const resultat: (EvenementJour & { col: number; nbCols: number })[] = [];
+  let cluster: (EvenementJour & { col: number; nbCols: number })[] = [];
+  let finCluster = -Infinity;
+
+  function clore() {
+    if (cluster.length === 0) return;
+    const nbCols = Math.max(...cluster.map((e) => e.col)) + 1;
+    for (const e of cluster) e.nbCols = nbCols;
+    resultat.push(...cluster);
+    cluster = [];
+  }
+
+  for (const e of tries) {
+    if (cluster.length > 0 && e.debutMin >= finCluster) {
+      clore();
+      finCluster = -Infinity;
+    }
+    const colonnesOccupees = new Set(cluster.filter((x) => x.finMin > e.debutMin).map((x) => x.col));
+    let col = 0;
+    while (colonnesOccupees.has(col)) col++;
+    cluster.push({ ...e, col, nbCols: 1 });
+    finCluster = Math.max(finCluster, e.finMin);
+  }
+  clore();
+  return resultat;
+}
+
 export function PlanningClient({
   creneaux,
   dayLabels,
@@ -165,6 +210,23 @@ export function PlanningClient({
 
   const byDay = JOURS.map((_, i) => creneaux.filter((c) => c.jour === i).sort((a, b) => a.debut.localeCompare(b.debut)));
 
+  const evenementsParJour: EvenementJour[][] = JOURS.map((_, i) => [
+    ...byDay[i].map((c) => ({ kind: "reg" as const, id: c.id, debutMin: parseHeureMin(c.debut), finMin: parseHeureMin(c.fin), creneau: c })),
+    ...(stagesByDay[i] ?? []).flatMap((entry) =>
+      entry.creneaux.map((c) => ({ kind: "stage" as const, id: c.id, debutMin: parseHeureMin(c.debut), finMin: parseHeureMin(c.fin), creneau: c, stageNom: entry.stageNom, stageColor: entry.color }))
+    ),
+  ]);
+  const tousDebuts = evenementsParJour.flat().map((e) => e.debutMin);
+  const tousFins = evenementsParJour.flat().map((e) => e.finMin);
+  // Échelle horaire ajustée aux créneaux réels de la semaine (avec un
+  // repli sur une plage type "fin de journée" si la semaine est vide),
+  // plutôt qu'une plage fixe qui gâcherait de la hauteur pour rien.
+  const rangeDebut = tousDebuts.length ? Math.floor(Math.min(...tousDebuts) / 60) * 60 : 16 * 60;
+  const rangeFin = tousFins.length ? Math.ceil(Math.max(...tousFins) / 60) * 60 : 21 * 60;
+  const hauteurGrille = (rangeFin - rangeDebut) * PX_PAR_MIN;
+  const heures = Array.from({ length: (rangeFin - rangeDebut) / 60 + 1 }, (_, k) => rangeDebut / 60 + k);
+  const dispositionParJour = evenementsParJour.map((evts) => disposerParColonnes(evts));
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 flex-wrap">
@@ -219,122 +281,136 @@ export function PlanningClient({
       )}
 
       <div className="overflow-x-auto pb-1.5">
-        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(7,minmax(178px,1fr))", minWidth: 1180 }}>
+        <div className="grid gap-3" style={{ gridTemplateColumns: "44px repeat(7,minmax(178px,1fr))", minWidth: 1224 }}>
+          <div className="flex flex-col gap-2.5">
+            <div style={{ height: 60 }} />
+            <div style={{ position: "relative", height: hauteurGrille }}>
+              {heures.map((h) => (
+                <div
+                  key={h}
+                  className="absolute right-1 text-[10px] text-right"
+                  style={{ top: (h * 60 - rangeDebut) * PX_PAR_MIN - 6, color: "#61789B" }}
+                >
+                  {String(Math.floor(h) % 24).padStart(2, "0")}:00
+                </div>
+              ))}
+            </div>
+          </div>
+
           {JOURS.map((nom, i) => (
             <div key={nom} className="flex flex-col gap-2.5">
-              <div className="text-center rounded-[11px] p-2.5" style={{ background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
+              <div className="text-center rounded-[11px] p-2.5" style={{ background: "var(--bg-panel)", border: "1px solid var(--border)", height: 60, boxSizing: "border-box" }}>
                 <div className="font-display text-[15px] tracking-[0.12em] uppercase">{nom}</div>
                 <div className="text-[11px]" style={{ color: "var(--ink-secondary)" }}>
                   {dayLabels[i]}
                 </div>
               </div>
-              {byDay[i].map((c) => {
-                const enPause = Boolean(periodeVacances && c.actifHorsVacances);
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => router.push(`/presences?slot=reg:${c.id}&date=${dayDates[i]}`)}
-                    className="rounded-[11px] p-3.5 group relative cursor-pointer transition-colors hover:brightness-110"
-                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${ETAT_COLOR[c.etat]}`, opacity: enPause ? 0.5 : 1 }}
-                    title="Voir la feuille de présence de cette séance"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: ETAT_COLOR[c.etat] }} />
-                      <span className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: ETAT_COLOR[c.etat] }}>
-                        {enPause ? "En pause" : ETAT_LABEL[c.etat]}
-                      </span>
-                      {canEdit && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            remove(c.id);
-                          }}
-                          className="ml-auto text-xs cursor-pointer"
-                          style={{ color: "var(--ink-muted)" }}
-                          title="Supprimer"
+
+              <div className="rounded-[11px] relative" style={{ height: hauteurGrille, background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
+                {heures.map((h) => (
+                  <div key={h} className="absolute left-0 right-0" style={{ top: (h * 60 - rangeDebut) * PX_PAR_MIN, borderTop: "1px solid var(--border)", opacity: 0.6 }} />
+                ))}
+
+                {dispositionParJour[i].map((e) => {
+                  const top = (e.debutMin - rangeDebut) * PX_PAR_MIN;
+                  const hauteur = Math.max((e.finMin - e.debutMin) * PX_PAR_MIN, 46);
+                  const largeurPct = 100 / e.nbCols;
+                  const comparteCompact = hauteur < 90;
+
+                  if (e.kind === "stage") {
+                    const c = e.creneau;
+                    return (
+                      <div
+                        key={e.id}
+                        onClick={() => router.push(`/presences?slot=stage:${c.id}&date=${dayDates[i]}`)}
+                        className="absolute rounded-[9px] px-2.5 py-2 cursor-pointer overflow-hidden transition-colors hover:brightness-110"
+                        style={{
+                          top,
+                          height: hauteur,
+                          left: `${e.col * largeurPct}%`,
+                          width: `calc(${largeurPct}% - 4px)`,
+                          background: "var(--bg-card)",
+                          border: "1px solid var(--border)",
+                          borderLeft: `3px solid ${e.stageColor}`,
+                        }}
+                        title={`Stage · ${e.stageNom} · ${c.groupe} · ${c.debut}–${c.fin} · ${c.coachNom ?? "—"}`}
+                      >
+                        <div className="text-[9px] font-bold tracking-[0.08em] uppercase truncate" style={{ color: e.stageColor }}>
+                          Stage · {e.stageNom}
+                        </div>
+                        <div className="text-[13px] font-semibold truncate leading-tight">{c.groupe}</div>
+                        <div className="text-[11px] truncate" style={{ color: "#7D91AE" }}>
+                          {c.debut}–{c.fin} {!comparteCompact && `· ${c.coachNom ?? "—"}`}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  const c = e.creneau;
+                  const enPause = Boolean(periodeVacances && c.actifHorsVacances);
+                  return (
+                    <div
+                      key={e.id}
+                      onClick={() => router.push(`/presences?slot=reg:${c.id}&date=${dayDates[i]}`)}
+                      className="absolute rounded-[9px] px-2.5 py-2 group cursor-pointer overflow-hidden transition-colors hover:brightness-110"
+                      style={{
+                        top,
+                        height: hauteur,
+                        left: `${e.col * largeurPct}%`,
+                        width: `calc(${largeurPct}% - 4px)`,
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border)",
+                        borderLeft: `3px solid ${ETAT_COLOR[c.etat]}`,
+                        opacity: enPause ? 0.5 : 1,
+                      }}
+                      title={`${c.groupe.nom} · ${enPause ? "En pause" : ETAT_LABEL[c.etat]} · ${c.debut}–${c.fin} · ${c.libelleCoach ?? c.coach?.user.name ?? "—"} · ${c.bassin}`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: ETAT_COLOR[c.etat] }} />
+                        <span className="text-[13px] font-semibold truncate leading-tight">{c.groupe.nom}</span>
+                        {canEdit && (
+                          <button
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              remove(c.id);
+                            }}
+                            className="ml-auto text-[11px] cursor-pointer opacity-0 group-hover:opacity-100 shrink-0"
+                            style={{ color: "var(--ink-muted)" }}
+                            title="Supprimer"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      <div className="text-[11px] truncate" style={{ color: "#7D91AE" }}>
+                        {c.debut}–{c.fin} · {c.libelleCoach ?? c.coach?.user.name ?? "—"}
+                      </div>
+                      {!comparteCompact && c.groupe.objectif && (
+                        <span
+                          className="inline-block mt-1 text-[9px] font-bold px-1 py-0.5 rounded truncate max-w-full"
+                          style={{ background: `${couleurObjectif(c.groupe.objectif)}26`, color: couleurObjectif(c.groupe.objectif) }}
                         >
-                          ✕
+                          {c.groupe.objectif}
+                        </span>
+                      )}
+                      {!comparteCompact && canEdit && (
+                        <button
+                          onClick={(ev) => {
+                            ev.stopPropagation();
+                            openReglages(c);
+                          }}
+                          className="absolute bottom-1 right-1.5 text-[10px] cursor-pointer opacity-0 group-hover:opacity-100"
+                          style={{ color: "var(--ink-muted)" }}
+                          title="Réglages : effectif attendu et comportement pendant les vacances scolaires"
+                        >
+                          ⚙
                         </button>
                       )}
                     </div>
-                    <div className="mt-2.5 text-[15px] font-semibold leading-tight">{c.groupe.nom}</div>
-                    {c.groupe.objectif && (
-                      <span
-                        className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded"
-                        style={{ background: `${couleurObjectif(c.groupe.objectif)}26`, color: couleurObjectif(c.groupe.objectif) }}
-                        title="Objectif en cours du groupe"
-                      >
-                        {c.groupe.objectif}
-                      </span>
-                    )}
-                    <div className="mt-0.5 text-[13px]">{c.libelleCoach ?? c.coach?.user.name ?? "—"}</div>
-                    <div className="mt-2.5 pt-2.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px]" style={{ borderTop: "1px solid var(--border)", color: "#7D91AE" }}>
-                      <span>
-                        {c.debut}–{c.fin}
-                      </span>
-                      <span>·</span>
-                      <span>{c.effectifLabel ?? "—"}</span>
-                      <span>·</span>
-                      <span>{c.bassin}</span>
-                    </div>
-                    {canEdit && (!c.actifHorsVacances || c.effectifNageurs.length > 0) && (
-                      <div className="mt-2 flex flex-wrap gap-1.5 items-center">
-                        {!c.actifHorsVacances && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(242,179,61,0.15)", color: "#F2B33D" }} title="Ce créneau continue même pendant les vacances scolaires">
-                            🏖 Actif en vacances
-                          </span>
-                        )}
-                        {c.effectifNageurs.length > 0 && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(140,107,255,0.15)", color: "#8C6BFF" }} title="Seule une partie du groupe est attendue à ce créneau">
-                            {c.effectifNageurs.length} nageur{c.effectifNageurs.length > 1 ? "s" : ""} seulement
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {canEdit && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openReglages(c);
-                        }}
-                        className="mt-2 text-[11px] cursor-pointer underline"
-                        style={{ color: "var(--ink-muted)" }}
-                        title="Réglages : effectif attendu et comportement pendant les vacances scolaires"
-                      >
-                        ⚙ Réglages
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-              {(stagesByDay[i] ?? []).map((stageEntry) =>
-                stageEntry.creneaux.map((c) => (
-                  <div
-                    key={c.id}
-                    onClick={() => router.push(`/presences?slot=stage:${c.id}&date=${dayDates[i]}`)}
-                    className="rounded-[11px] p-3.5 cursor-pointer transition-colors hover:brightness-110"
-                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderLeft: `4px solid ${stageEntry.color}` }}
-                    title="Voir la feuille de présence de cette séance"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: stageEntry.color }}>
-                        Stage · {stageEntry.stageNom}
-                      </span>
-                    </div>
-                    <div className="mt-2.5 text-[15px] font-semibold leading-tight">{c.groupe}</div>
-                    <div className="mt-0.5 text-[13px]">{c.coachNom ?? "—"}</div>
-                    <div className="mt-2.5 pt-2.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px]" style={{ borderTop: "1px solid var(--border)", color: "#7D91AE" }}>
-                      <span>
-                        {c.debut}–{c.fin}
-                      </span>
-                      <span>·</span>
-                      <span>{c.theme}</span>
-                      <span>·</span>
-                      <span>{c.bassin}</span>
-                    </div>
-                  </div>
-                ))
-              )}
+                  );
+                })}
+              </div>
+
               {canEdit && (
                 <button
                   onClick={() => openModal(i)}
@@ -344,7 +420,7 @@ export function PlanningClient({
                   + créneau
                 </button>
               )}
-              {byDay[i].length === 0 && (stagesByDay[i] ?? []).length === 0 && !canEdit && (
+              {evenementsParJour[i].length === 0 && !canEdit && (
                 <div className="rounded-[11px] p-5 text-center text-[13px]" style={{ border: "1px dashed var(--border)", color: "var(--ink-muted)" }}>
                   —
                 </div>
