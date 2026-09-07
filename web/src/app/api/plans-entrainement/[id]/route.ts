@@ -1,0 +1,62 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { requireCoachOrAdmin } from "@/lib/auth";
+import { dateFinDe } from "../route";
+
+const setSchema = z.object({
+  id: z.string(),
+  reps: z.number().int().min(1),
+  distance: z.number().int().min(1),
+  label: z.string(),
+  allure: z.string(),
+  repos: z.string(),
+});
+const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.string(), sets: z.array(setSchema) });
+
+const bodySchema = z.object({
+  nom: z.string().min(1).optional(),
+  heureDebut: z.string().nullable().optional(),
+  sections: z.array(sectionSchema).min(1).optional(),
+  dateDebut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  dureeSemaines: z.number().int().min(1).optional(),
+  groupeIds: z.array(z.string()).min(1).optional(),
+});
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requireCoachOrAdmin();
+  } catch {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const json = await request.json().catch(() => null);
+  const parsed = bodySchema.safeParse(json);
+  if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
+  const { nom, heureDebut, sections, dateDebut, dureeSemaines, groupeIds } = parsed.data;
+
+  await prisma.planEntrainement.update({
+    where: { id },
+    data: {
+      ...(nom !== undefined ? { nom } : {}),
+      ...(heureDebut !== undefined ? { heureDebut } : {}),
+      ...(sections !== undefined ? { sections } : {}),
+      ...(dateDebut !== undefined && dureeSemaines !== undefined ? { dateDebut: new Date(`${dateDebut}T00:00:00`), dateFin: dateFinDe(dateDebut, dureeSemaines) } : {}),
+      ...(groupeIds !== undefined ? { groupes: { set: groupeIds.map((gid) => ({ id: gid })) } } : {}),
+    },
+  });
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requireCoachOrAdmin();
+  } catch {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  await prisma.planEntrainement.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
+}

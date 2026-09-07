@@ -18,6 +18,7 @@ export const TITLES: Record<string, [string, string, string]> = {
   "/absences": ["Absences & congés", "Indisponibilités coach et absences nageurs", "Planning"],
   "/nageurs": ["Nageurs", "Effectif suivi · cotation FFN et rankings", "Nageurs"],
   "/seance": ["Créateur de séance", "Variant · intensité · nage", "Entraînement"],
+  "/plans-entrainement": ["Plans d'entraînement", "Un plan chiffré, appliqué à un ou plusieurs groupes sur une période", "Entraînement"],
   "/thematiques": ["Thématiques d'entraînement", "Un objectif → un cycle de séances généré", "Entraînement"],
   "/planning-objectifs": ["Planning objectifs", "L'objectif en cours de chaque groupe, dans le temps", "Entraînement"],
 };
@@ -88,6 +89,12 @@ export const HERO: Record<string, Hero> = {
     kicker: "Variant · intensité · nage", title: "Construire une séance",
     text: "Trois axes à combiner, un volume cible jusqu'à 10 km, et la séance se rédige toute seule.",
     cta1: { label: "Thématiques", href: "/thematiques" },
+  },
+  "/plans-entrainement": {
+    img: "/assets/flip-turn.jpg", pos: "center 40%", veil: "corner",
+    kicker: "Plan chiffré", title: "Un plan, plusieurs groupes, plusieurs semaines",
+    text: "Sections et séries en distances libres, appliquées automatiquement sur une période à un ou plusieurs groupes — ajustables au cas par cas en %.",
+    cta1: { label: "Créateur de séance", href: "/seance" },
   },
   "/thematiques": {
     img: "/assets/flip-turn.jpg", pos: "center 30%", veil: "corner",

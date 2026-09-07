@@ -136,6 +136,8 @@ model Groupe {
   nageurs    Nageur[]
   creneaux   Creneau[]
   inscriptions Inscription[]
+  plansEntrainement PlanEntrainement[] @relation("PlanEntrainementGroupes")
+  ajustementsPlan   AjustementPlan[]
   createdAt  DateTime @default(now())
 }
 
@@ -438,6 +440,41 @@ model SeancePlan {
   blocs        Json
   updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
+}
+
+// Plan d'entraînement chiffré (sections/sets saisis à la main, cf.
+// lib/seance-manual.ts) appliqué automatiquement à un ou plusieurs groupes
+// sur une plage de dates — chaque créneau réel de ces groupes affiche ce
+// contenu tant qu'aucune séance n'a été saisie spécifiquement pour cette
+// date (cf. lib/plan-entrainement.ts), sans tâche de fond ni recalcul manuel.
+model PlanEntrainement {
+  id          String   @id @default(cuid())
+  nom         String
+  heureDebut  String?
+  sections    Json
+  dateDebut   DateTime
+  dateFin     DateTime
+  groupes     Groupe[] @relation("PlanEntrainementGroupes")
+  ajustements AjustementPlan[]
+  createdAt   DateTime @default(now())
+}
+
+// Ajustement ponctuel d'une section du plan pour un groupe et une date
+// précise (ex. +30% sur la section "Jambes" pour le créneau du 12/10) —
+// recalcule les distances de cette section à l'affichage sans toucher au
+// plan ni aux autres occurrences.
+model AjustementPlan {
+  id          String           @id @default(cuid())
+  planId      String
+  plan        PlanEntrainement @relation(fields: [planId], references: [id], onDelete: Cascade)
+  groupeId    String
+  groupe      Groupe           @relation(fields: [groupeId], references: [id], onDelete: Cascade)
+  date        DateTime
+  sectionId   String
+  pourcentage Int
+  createdAt   DateTime         @default(now())
+
+  @@unique([planId, groupeId, date, sectionId])
 }
 
 model Echeance {

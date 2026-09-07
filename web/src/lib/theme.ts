@@ -33,6 +33,7 @@ export const NAV_GROUPS = [
     label: "Entraînement",
     items: [
       { id: "seance", href: "/seance", icon: "✦", label: "Créateur de séance" },
+      { id: "plans-entrainement", href: "/plans-entrainement", icon: "▨", label: "Plans d'entraînement" },
       { id: "thematique", href: "/thematiques", icon: "⟳", label: "Thématiques" },
       { id: "planning-objectifs", href: "/planning-objectifs", icon: "◫", label: "Planning objectifs" },
     ],

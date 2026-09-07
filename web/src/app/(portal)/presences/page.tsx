@@ -9,6 +9,9 @@ import { lastOccurrenceOnOrBefore, toDateInputValue } from "@/lib/week";
 import { resolveSeanceInstance } from "@/lib/seance-instance";
 import { genererSeance, type Bloc } from "@/lib/seance-generator";
 import { couleurObjectif } from "@/lib/objectifs";
+import { seanceDepuisPlan } from "@/lib/plan-entrainement";
+import { AjustementBloc } from "@/components/portal/AjustementBloc";
+import { getSession } from "@/lib/auth";
 
 export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string; date?: string }> }) {
   const [creneaux, creneauxStage] = await Promise.all([
@@ -42,6 +45,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
       : toDateInputValue(new Date());
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : defaultDate;
 
+  const session = await getSession();
   const instance = await resolveSeanceInstance(slot, date);
   if (!instance) {
     return (
@@ -69,14 +73,19 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
 
   const rosterNageurs = nageurs.map((n) => ({ nom: n.nom, initiales: n.initiales, sousTitre: n.groupe?.categorie ?? n.categorie, etat: etatMap.get(n.nom) ?? "PRESENT", nageurId: n.id }));
 
+  const groupeId = kind === "reg" ? creneaux.find((c) => c.id === id)?.groupeId ?? null : null;
+  const planContenu = !instance.blocs && groupeId ? await seanceDepuisPlan(groupeId, new Date(`${date}T00:00:00`)) : null;
+
   const seancePrevue = instance.blocs
     ? {
         resume: `${instance.variant} · ${instance.intensite} · ${instance.nage} · ${instance.volumeNage} m`,
-        blocs: instance.blocs as unknown as Bloc[],
+        items: (instance.blocs as unknown as Bloc[]).map((bloc) => ({ bloc, sectionId: null, pourcentage: null })),
       }
-    : instance.variant && instance.intensite && instance.nage && instance.volumeNage
-      ? genererSeance(instance.variant, instance.intensite, instance.nage, instance.volumeNage)
-      : null;
+    : planContenu
+      ? { resume: `Plan d'entraînement : ${planContenu.nomPlan}`, items: planContenu.items }
+      : instance.variant && instance.intensite && instance.nage && instance.volumeNage
+        ? { resume: `${instance.variant} · ${instance.intensite} · ${instance.nage} · ${instance.volumeNage} m`, items: genererSeance(instance.variant, instance.intensite, instance.nage, instance.volumeNage).blocs.map((bloc) => ({ bloc, sectionId: null, pourcentage: null })) }
+        : null;
 
   const compte = { PRESENT: 0, RETARD: 0, ABSENT: 0, EXCUSE: 0 } as Record<string, number>;
   for (const p of rosterNageurs) compte[p.etat]++;
@@ -151,7 +160,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
                 {seancePrevue.resume}
               </div>
               <div className="flex flex-col gap-2.5">
-                {seancePrevue.blocs.map((b) => (
+                {seancePrevue.items.map(({ bloc: b, sectionId, pourcentage }) => (
                   <div
                     key={b.phase}
                     className="flex gap-3.5 rounded-xl px-3.5 py-3"
@@ -174,6 +183,9 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
                         {b.consigne}
                       </div>
                     </div>
+                    {sectionId && planContenu && session && (
+                      <AjustementBloc planId={planContenu.planId} groupeId={groupeId!} date={date} sectionId={sectionId} pourcentageActuel={pourcentage} />
+                    )}
                   </div>
                 ))}
               </div>
