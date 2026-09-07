@@ -327,7 +327,7 @@ export function SeanceCreator({ groupes, modeles: modelesInitiaux }: { groupes: 
                     <input
                       value={section.nom}
                       onChange={(e) => renommerSection(section.id, e.target.value)}
-                      placeholder="Nom de la section (ex. Warm up)"
+                      placeholder="Nom de la section (ex. Échauffement)"
                       className="flex-1 font-display text-sm tracking-[0.04em] uppercase bg-transparent outline-none"
                       style={{ color: "var(--ink)" }}
                     />
@@ -367,7 +367,7 @@ export function SeanceCreator({ groupes, modeles: modelesInitiaux }: { groupes: 
                         <input
                           value={s.label}
                           onChange={(e) => updateSet(section.id, s.id, "label", e.target.value)}
-                          placeholder="ex. IM (Free), Fly — Green…"
+                          placeholder="ex. 4 nages, Papillon — Vert…"
                           className="rounded-md px-1.5 py-1.5 text-xs outline-none min-w-0"
                           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                         />
