@@ -138,6 +138,15 @@ export function EntrainementClient({
     return plans.filter((p) => p.groupes.some((g) => g.id === groupeId));
   }
 
+  // On ne montre que les objectifs déjà planifiés pour ce groupe : sur les 7
+  // objectifs possibles, un groupe n'en travaille en général que 2-3, inutile
+  // de réserver une ligne pour les autres. "+ Ajouter un objectif" ouvre le
+  // même formulaire pour en démarrer un nouveau.
+  function objectifsDuGroupe(groupeId: string) {
+    const themes = new Set(plansDuGroupe(groupeId).map((p) => p.theme));
+    return OBJECTIFS.filter((o) => themes.has(o.nom));
+  }
+
   function planPourCellule(groupeId: string, themeNom: string, semaine: Date) {
     return plansDuGroupe(groupeId).find((p) => p.theme === themeNom && new Date(p.dateDebut) <= semaine && semaine <= new Date(p.dateFin));
   }
@@ -299,6 +308,8 @@ export function EntrainementClient({
 
       {groupesSelectionnes.map((groupe) => {
         const prochainesSeances = prochainesSeancesPourGroupe(groupe.id);
+        const objectifsGroupe = objectifsDuGroupe(groupe.id);
+        const objectifsRestants = OBJECTIFS.filter((o) => !objectifsGroupe.includes(o));
         return (
           <div key={groupe.id} className="flex flex-col gap-3.5">
             <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
@@ -325,7 +336,7 @@ export function EntrainementClient({
                     ))}
                   </div>
 
-                  {OBJECTIFS.map((objectif) => (
+                  {objectifsGroupe.map((objectif) => (
                     <div key={objectif.nom} className="flex items-stretch" style={{ borderBottom: "1px solid var(--border)" }}>
                       <div style={{ width: LARGEUR_COLONNE }} className="shrink-0 px-3.5 py-2.5 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full shrink-0" style={{ background: objectif.color }} />
@@ -358,6 +369,20 @@ export function EntrainementClient({
                   ))}
                 </div>
               </div>
+              {objectifsGroupe.length === 0 && (
+                <div className="px-3.5 py-3 text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+                  Aucun objectif planifié pour ce groupe pour le moment.
+                </div>
+              )}
+              {objectifsRestants.length > 0 && (
+                <button
+                  onClick={() => ouvrirNouveau(groupe, objectifsRestants[0].nom, lundiCourant)}
+                  className="w-full text-left px-3.5 py-2.5 text-[13px] font-semibold cursor-pointer"
+                  style={{ color: "#7FDCFF" }}
+                >
+                  + Ajouter un objectif
+                </button>
+              )}
             </div>
 
             <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>

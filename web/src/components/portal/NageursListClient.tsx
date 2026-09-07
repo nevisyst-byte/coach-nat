@@ -27,6 +27,11 @@ type FfnResult = { iuf: string; nom: string };
 
 const currentYear = new Date().getFullYear();
 
+// Même gabarit de colonnes pour l'en-tête et chaque ligne : garantit l'alignement
+// vertical (avec flex, chaque ligne dérivait sa largeur de son propre contenu,
+// d'où le décalage entre les titres et les données).
+const GRID_COLS = "minmax(170px,1.5fr) 64px minmax(90px,1fr) 56px 140px 70px 140px";
+
 function splitNom(nom: string) {
   const i = nom.indexOf(" ");
   return i === -1 ? { prenom: nom, nomFamille: "" } : { prenom: nom.slice(0, i), nomFamille: nom.slice(i + 1) };
@@ -207,19 +212,19 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
               </span>
             </div>
             <div
-              className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 sm:px-5 py-2"
-              style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}
+              className="grid items-center px-4 sm:px-5 py-2"
+              style={{ gridTemplateColumns: GRID_COLS, columnGap: 16, borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}
             >
-              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ minWidth: 170, color: "#61789B" }}>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
                 Nageur
               </div>
-              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ minWidth: 60, color: "#61789B" }}>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
                 Catégorie
               </div>
-              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ minWidth: 90, color: "#61789B" }}>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
                 Groupe
               </div>
-              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ minWidth: 40, color: "#61789B" }} title="Points de cotation FFN">
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }} title="Points de cotation FFN">
                 Pts FFN
               </div>
               <div className="hidden sm:block text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }} title="Rang départemental / régional / national">
@@ -235,40 +240,42 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                 const presBg = p >= 85 ? "rgba(46,204,143,0.14)" : p >= 70 ? "rgba(242,179,61,0.15)" : "rgba(232,68,43,0.16)";
                 const presFg = p >= 85 ? "#2ECC8F" : p >= 70 ? "#F2B33D" : "#E8442B";
                 return (
-                  <div key={n.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 sm:px-5 py-3.5" style={{ borderTop: "1px solid var(--border)" }}>
-                    <Link href={`/nageurs/${n.id}`} className="flex items-center gap-2.5" style={{ minWidth: 170 }}>
+                  <div
+                    key={n.id}
+                    className="grid items-center px-4 sm:px-5 py-3.5"
+                    style={{ gridTemplateColumns: GRID_COLS, columnGap: 16, borderTop: "1px solid var(--border)" }}
+                  >
+                    <Link href={`/nageurs/${n.id}`} className="flex items-center gap-2.5 min-w-0">
                       <div
                         className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center text-xs font-bold shrink-0"
                         style={{ background: initialsColor(n.nom) }}
                       >
                         {n.initiales}
                       </div>
-                      <div>
-                        <div className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold truncate" style={{ color: "var(--ink)" }}>
                           {n.nom}
                         </div>
-                        <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                        <div className="text-xs truncate" style={{ color: "var(--ink-secondary)" }}>
                           {n.age} ans{n.specialite ? ` · ${n.specialite}` : ""}
                         </div>
                       </div>
                     </Link>
-                    <div className="text-[13px]" style={{ minWidth: 60, color: "var(--ink-body)" }}>
+                    <div className="text-[13px] truncate" style={{ color: "var(--ink-body)" }}>
                       {n.categorie}
                     </div>
-                    <div className="text-[13px]" style={{ minWidth: 90, color: "var(--ink-body)" }}>
+                    <div className="text-[13px] truncate" style={{ color: "var(--ink-body)" }}>
                       {n.groupeNom ?? "—"}
                     </div>
-                    <div className="font-display text-lg" style={{ minWidth: 40 }}>
-                      {n.pointsFFN || "—"}
-                    </div>
-                    <div className="hidden sm:block text-[13px]" style={{ color: "var(--ink-body)" }}>
+                    <div className="font-display text-lg">{n.pointsFFN || "—"}</div>
+                    <div className="hidden sm:block text-[13px] truncate" style={{ color: "var(--ink-body)" }}>
                       {n.rangDept ? `${n.rangDept} / ${n.rangReg} / ${n.rangNat}` : "— / — / —"}
                     </div>
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-md" style={{ background: presBg, color: presFg }}>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-md justify-self-start" style={{ background: presBg, color: presFg }}>
                       {n.presenceRate}%
                     </span>
                     {isAdmin && (
-                      <div className="flex gap-1.5 ml-auto">
+                      <div className="flex gap-1.5 justify-self-end">
                         <button onClick={() => openEdit(n)} className="rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
                           Modifier
                         </button>
