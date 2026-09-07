@@ -2,35 +2,56 @@
 
 import { useMemo, useState } from "react";
 import { Card, Chip } from "@/components/ui/Card";
-import { THEMES, genererCycle } from "@/lib/thematique-generator";
+import { THEMES, genererCyclePhases, type PhaseCycle } from "@/lib/thematique-generator";
 
 const VARIANT_OPTIONS = ["Nage complète", "Bras", "Jambes", "Éducatif"];
 const NAGE_OPTIONS = ["4 nages", "Spécialité", "Papillon", "Dos", "Brasse", "Crawl"];
-const CYCLES = [3, 4, 6];
+
+function uid() {
+  return Math.random().toString(36).slice(2, 10);
+}
 
 export function ThematiqueClient({ groupes }: { groupes: string[] }) {
-  const [theme, setTheme] = useState<string>(THEMES[0].nom);
+  const [phases, setPhases] = useState<(PhaseCycle & { id: string })[]>([{ id: uid(), theme: THEMES[0].nom, duree: 4 }]);
   const [variant, setVariant] = useState(VARIANT_OPTIONS[0]);
   const [nage, setNage] = useState(NAGE_OPTIONS[0]);
   const [objectif, setObjectif] = useState("Tenir l'allure 200 sur la fin de course");
   const [groupe, setGroupe] = useState(groupes[0] ?? "");
-  const [cycleLen, setCycleLen] = useState(4);
   const [saved, setSaved] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  function ajouterPhase() {
+    setPhases((prev) => [...prev, { id: uid(), theme: THEMES[0].nom, duree: 4 }]);
+  }
+
+  function supprimerPhase(id: string) {
+    setPhases((prev) => (prev.length > 1 ? prev.filter((p) => p.id !== id) : prev));
+  }
+
+  function updatePhaseTheme(id: string, theme: string) {
+    setPhases((prev) => prev.map((p) => (p.id === id ? { ...p, theme } : p)));
+  }
+
+  function updatePhaseDuree(id: string, duree: string) {
+    setPhases((prev) => prev.map((p) => (p.id === id ? { ...p, duree: Math.max(1, parseInt(duree, 10) || 1) } : p)));
+  }
+
+  const dureeTotale = phases.reduce((sum, p) => sum + p.duree, 0);
+
   const { cycleSeances, chargeSemaines, volumeThemes, courbeCharge } = useMemo(
-    () => genererCycle(theme, variant, nage, cycleLen),
-    [theme, variant, nage, cycleLen]
+    () => genererCyclePhases(phases, variant, nage),
+    [phases, variant, nage]
   );
 
   async function save() {
     setSaving(true);
     setSaved(null);
     try {
+      const themeLabel = phases.map((p) => `${p.theme} (${p.duree} sem.)`).join(" → ");
       await fetch("/api/cycles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ theme, variant, nage, objectif, groupeNom: groupe, dureeSemaines: cycleLen, seances: cycleSeances }),
+        body: JSON.stringify({ theme: themeLabel, variant, nage, objectif, groupeNom: groupe, dureeSemaines: dureeTotale, seances: cycleSeances }),
       });
       setSaved("Cycle enregistré.");
     } finally {
@@ -46,15 +67,55 @@ export function ThematiqueClient({ groupes }: { groupes: string[] }) {
           Une thématique combine un variant, une intensité et une nage, puis génère automatiquement le cycle de séances qui mène le groupe à son objectif.
         </p>
 
-        <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
-          Thématique dominante
+        <div className="flex items-baseline justify-between mb-2">
+          <div className="text-[11px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
+            Phases du cycle
+          </div>
+          <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+            Durée totale : <strong style={{ color: "var(--ink)" }}>{dureeTotale} semaines</strong>
+          </span>
         </div>
-        <div className="flex gap-2 flex-wrap mb-5">
-          {THEMES.map((th) => (
-            <Chip key={th.nom} active={theme === th.nom} color={th.color} onClick={() => setTheme(th.nom)}>
-              {th.nom}
-            </Chip>
+        <div className="flex flex-col gap-2 mb-5">
+          {phases.map((phase, i) => (
+            <div key={phase.id} className="flex items-center gap-2 flex-wrap rounded-[10px] px-3 py-2.5" style={{ background: "rgba(255,255,255,0.03)", border: `1px solid var(--border)`, borderLeft: `3px solid ${THEMES[Math.max(0, THEMES.findIndex((t) => t.nom === phase.theme))].color}` }}>
+              <span className="text-xs font-bold shrink-0" style={{ color: "#61789B", minWidth: 60 }}>
+                Phase {i + 1}
+              </span>
+              <select
+                value={phase.theme}
+                onChange={(e) => updatePhaseTheme(phase.id, e.target.value)}
+                className="rounded-[9px] px-3 py-2 text-sm outline-none"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+              >
+                {THEMES.map((th) => (
+                  <option key={th.nom} value={th.nom} style={{ background: "#101A2B", color: th.color }}>
+                    {th.nom}
+                  </option>
+                ))}
+              </select>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min={1}
+                  value={phase.duree}
+                  onChange={(e) => updatePhaseDuree(phase.id, e.target.value)}
+                  className="rounded-[9px] px-3 py-2 text-sm outline-none"
+                  style={{ width: 64, background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                />
+                <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                  semaine{phase.duree > 1 ? "s" : ""}
+                </span>
+              </div>
+              {phases.length > 1 && (
+                <button onClick={() => supprimerPhase(phase.id)} className="ml-auto text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer cette phase">
+                  ✕
+                </button>
+              )}
+            </div>
           ))}
+          <button onClick={ajouterPhase} className="rounded-[10px] py-2 text-[12px] font-semibold cursor-pointer" style={{ border: "1px dashed var(--border-strong)", color: "var(--ink-secondary)" }}>
+            + Nouvelle phase (ex. 4 semaines Volume aérobie puis 2 semaines Vitesse)
+          </button>
         </div>
 
         <div className="grid gap-5 mb-5" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
@@ -99,18 +160,6 @@ export function ThematiqueClient({ groupes }: { groupes: string[] }) {
               {groupes.map((g) => (
                 <option key={g} value={g} style={{ background: "#101A2B" }}>
                   {g}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
-              Durée du cycle
-            </div>
-            <select value={cycleLen} onChange={(e) => setCycleLen(Number(e.target.value))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
-              {CYCLES.map((c) => (
-                <option key={c} value={c} style={{ background: "#101A2B" }}>
-                  {c} semaines
                 </option>
               ))}
             </select>

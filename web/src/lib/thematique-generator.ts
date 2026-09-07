@@ -26,11 +26,24 @@ function fmtKm(m: number) {
   return (m / 1000).toFixed(1).replace(".", ",") + " km";
 }
 
-export function genererCycle(theme: string, variant: string, nage: string, cycleLen: number) {
-  const themeIdx = Math.max(0, THEMES.findIndex((t) => t.nom === theme));
+function themeIndex(nom: string) {
+  const i = THEMES.findIndex((t) => t.nom === nom);
+  return i === -1 ? 0 : i;
+}
 
-  const cycleSeances = Array.from({ length: cycleLen }, (_, i) => {
-    const th = THEMES[(themeIdx + i) % THEMES.length];
+export type PhaseCycle = { theme: string; duree: number };
+
+// Un cycle est une suite de phases (chacune : un thème dominant tenu
+// pendant N semaines) — ex. 4 semaines Volume aérobie puis 2 semaines
+// Vitesse — plutôt qu'un seul thème filé sur toute la durée. Le volume et
+// le mix de filières de chaque semaine dépendent uniquement du thème de sa
+// phase, pas de sa position dans le cycle : répéter le même thème plusieurs
+// semaines de suite leur donne bien le même contenu.
+export function genererCyclePhases(phases: PhaseCycle[], variant: string, nage: string) {
+  const semaineThemes = phases.flatMap((p) => Array.from({ length: Math.max(0, p.duree) }, () => p.theme));
+
+  const cycleSeances = semaineThemes.map((themeNom, i) => {
+    const th = THEMES[themeIndex(themeNom)];
     return {
       semaine: `Semaine ${i + 1}`,
       charge: th.charge,
@@ -41,9 +54,11 @@ export function genererCycle(theme: string, variant: string, nage: string, cycle
     };
   });
 
+  const volumesSemaines = semaineThemes.map((themeNom) => VOL_SEM[themeIndex(themeNom)]);
+
   const chargeSemaines = cycleSeances.map((cs, i) => {
     const mix = MIX[cs.titre];
-    const vol = VOL_SEM[(themeIdx + i) % VOL_SEM.length];
+    const vol = volumesSemaines[i];
     return {
       semaine: `S${i + 1}`,
       titre: cs.titre,
@@ -53,9 +68,9 @@ export function genererCycle(theme: string, variant: string, nage: string, cycle
     };
   });
 
-  const totalVol = chargeSemaines.reduce((a, _c, i) => a + VOL_SEM[(themeIdx + i) % VOL_SEM.length], 0);
+  const totalVol = volumesSemaines.reduce((a, v) => a + v, 0);
   const volumeThemes = THEMES.map((th, k) => {
-    const m = chargeSemaines.reduce((a, c, i) => a + (VOL_SEM[(themeIdx + i) % VOL_SEM.length] * MIX[c.titre][k]) / 100, 0);
+    const m = cycleSeances.reduce((a, cs, i) => a + (volumesSemaines[i] * MIX[cs.titre][k]) / 100, 0);
     return { nom: th.nom, color: th.color, metres: Math.round(m / 50) * 50, pct: Math.round((m / (totalVol || 1)) * 100) };
   });
 
