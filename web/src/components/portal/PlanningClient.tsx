@@ -74,12 +74,6 @@ export function PlanningClient({
     router.push(`?${params.toString()}`);
   }
 
-  function pushVue(v: "globale" | "moi") {
-    const params = new URLSearchParams(searchParams);
-    params.set("vue", v);
-    router.push(`?${params.toString()}`);
-  }
-
   function openModal(jour: number) {
     setForm((f) => ({ ...f, jour }));
     setModalOpen(true);
@@ -214,16 +208,6 @@ export function PlanningClient({
             style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff" }}
           >
             + Ajouter un créneau
-          </button>
-        )}
-        {!canEdit && (
-          <button
-            onClick={() => pushVue("moi")}
-            className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer"
-            style={{ border: "1px dashed var(--border-strong)", color: "var(--ink-secondary)" }}
-            title="Seul un administrateur peut ajouter un créneau à la vue globale — passe sur « Mon planning » pour gérer les tiens"
-          >
-            + Ajouter un créneau (sur « Mon planning »)
           </button>
         )}
       </div>

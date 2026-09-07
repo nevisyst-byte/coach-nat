@@ -27,7 +27,7 @@ export default async function PlanningObjectifsPage() {
 
   return (
     <Card>
-      <PlanningObjectifsClient groupesParPole={groupesParPole} isAdmin={session?.role === "ADMIN"} />
+      <PlanningObjectifsClient groupesParPole={groupesParPole} isAdmin={session?.role === "ADMIN" || session?.role === "COACH"} />
     </Card>
   );
 }

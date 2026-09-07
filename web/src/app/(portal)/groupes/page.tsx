@@ -13,7 +13,8 @@ export default async function GroupesPage() {
     prisma.nageur.findMany({ orderBy: { nom: "asc" } }),
   ]);
 
-  if (session?.role === "ADMIN") {
+  const canManage = session?.role === "ADMIN" || session?.role === "COACH";
+  if (canManage) {
     return (
       <Card>
         <SectionTitle>Groupes</SectionTitle>

@@ -79,6 +79,15 @@ export async function requireAdmin() {
   return session;
 }
 
+// Groupes, nageurs, planning et plans d'entraînement sont délégués aux
+// coachs — seule la gestion des comptes membres reste réservée à l'admin
+// (voir requireAdmin, utilisé uniquement par /api/admin/users).
+export async function requireCoachOrAdmin() {
+  const session = await requireSession();
+  if (session.role !== "ADMIN" && session.role !== "COACH") throw new Error("FORBIDDEN");
+  return session;
+}
+
 export async function authenticate(email: string, password: string) {
   const user = await prisma.user.findUnique({
     where: { email: email.toLowerCase() },

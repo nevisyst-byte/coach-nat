@@ -79,7 +79,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
         groupes={groupes.map((g) => ({ id: g.id, nom: g.nom }))}
         coachs={coachs.map((c) => ({ id: c.id, nom: c.user.name }))}
         nageurs={nageurs.map((n) => ({ id: n.id, nom: n.nom, groupeId: n.groupeId }))}
-        canEdit={mine ? true : session?.role === "ADMIN"}
+        canEdit={mine ? true : session?.role === "ADMIN" || session?.role === "COACH"}
         showVueToggle
         defaultCoachId={mine ? session!.coachId! : ""}
         periodeVacances={periodeVacances ? { nom: periodeVacances.nom, zone } : null}
