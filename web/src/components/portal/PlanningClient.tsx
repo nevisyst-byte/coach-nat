@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ETAT_COLOR, ETAT_LABEL, JOURS } from "@/lib/format";
 import { couleurObjectif } from "@/lib/objectifs";
 import { parseHeureMin, disposerParColonnes } from "@/lib/disposition-horaire";
@@ -34,6 +34,29 @@ type EvenementJour =
   | { kind: "stage"; id: string; debutMin: number; finMin: number; creneau: StageCreneauJour; stageNom: string; stageColor: string };
 
 const PX_PAR_MIN = 1.5;
+const PAS_MINUTES = 5;
+
+function formatMinutes(min: number) {
+  const total = Math.round(min);
+  const h = Math.floor(total / 60) % 24;
+  const m = ((total % 60) + 60) % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+type DragInfo = {
+  creneauId: string;
+  groupeNom: string;
+  etat: string;
+  origJour: number;
+  origDebutMin: number;
+  durMin: number;
+  pointerOffsetY: number;
+  currentJour: number;
+  currentDebutMin: number;
+  colLeft: number;
+  colTop: number;
+  colWidth: number;
+};
 
 export function PlanningClient({
   creneaux,
@@ -189,6 +212,86 @@ export function PlanningClient({
   const heures = Array.from({ length: (rangeFin - rangeDebut) / 60 + 1 }, (_, k) => rangeDebut / 60 + k);
   const dispositionParJour = evenementsParJour.map((evts) => disposerParColonnes(evts));
 
+  // Glisser-déposer un créneau sur un autre jour/horaire : dragRef porte
+  // l'état vivant (lu/écrit à chaque mousemove sans relancer l'effet), un
+  // "ghost" flottant suit le curseur pendant le geste — le PATCH ne part
+  // qu'au relâchement, et seulement si jour ou horaire a réellement changé.
+  const dragRef = useRef<DragInfo | null>(null);
+  const colRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [dragState, setDragState] = useState<DragInfo | null>(null);
+
+  function startDrag(e: React.MouseEvent, c: Creneau) {
+    if (!canEdit) return;
+    e.preventDefault();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const colRect = colRefs.current[c.jour]?.getBoundingClientRect() ?? rect;
+    const debutMin = parseHeureMin(c.debut);
+    const finMin = parseHeureMin(c.fin);
+    dragRef.current = {
+      creneauId: c.id,
+      groupeNom: c.groupe.nom,
+      etat: c.etat,
+      origJour: c.jour,
+      origDebutMin: debutMin,
+      durMin: finMin - debutMin,
+      pointerOffsetY: e.clientY - rect.top,
+      currentJour: c.jour,
+      currentDebutMin: debutMin,
+      colLeft: colRect.left,
+      colTop: colRect.top,
+      colWidth: colRect.width,
+    };
+    setDragState(dragRef.current);
+  }
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      const info = dragRef.current;
+      if (!info) return;
+      let overCol = -1;
+      let overRect: { left: number; top: number; width: number } | null = null;
+      for (let i = 0; i < colRefs.current.length; i++) {
+        const el = colRefs.current[i];
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX < r.right) {
+          overCol = i;
+          overRect = r;
+          break;
+        }
+      }
+      if (overCol === -1 || !overRect) return;
+      let newDebutMin = rangeDebut + (e.clientY - overRect.top - info.pointerOffsetY) / PX_PAR_MIN;
+      newDebutMin = Math.round(newDebutMin / PAS_MINUTES) * PAS_MINUTES;
+      newDebutMin = Math.max(rangeDebut, Math.min(newDebutMin, rangeFin - info.durMin));
+      dragRef.current = { ...info, currentJour: overCol, currentDebutMin: newDebutMin, colLeft: overRect.left, colTop: overRect.top, colWidth: overRect.width };
+      setDragState(dragRef.current);
+    }
+
+    async function onUp() {
+      const info = dragRef.current;
+      dragRef.current = null;
+      setDragState(dragRef.current);
+      if (!info) return;
+      if (info.currentJour === info.origJour && info.currentDebutMin === info.origDebutMin) return;
+      await fetch(`/api/creneaux/${info.creneauId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jour: info.currentJour, debut: formatMinutes(info.currentDebutMin), fin: formatMinutes(info.currentDebutMin + info.durMin) }),
+      });
+      router.refresh();
+    }
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [rangeDebut, rangeFin, router]);
+
+  const drag = dragState;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 flex-wrap">
@@ -268,7 +371,7 @@ export function PlanningClient({
                 </div>
               </div>
 
-              <div className="rounded-[11px] relative" style={{ height: hauteurGrille, background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
+              <div ref={(el) => { colRefs.current[i] = el; }} className="rounded-[11px] relative" style={{ height: hauteurGrille, background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
                 {heures.map((h) => (
                   <div key={h} className="absolute left-0 right-0" style={{ top: (h * 60 - rangeDebut) * PX_PAR_MIN, borderTop: "1px solid var(--border)", opacity: 0.6 }} />
                 ))}
@@ -310,11 +413,13 @@ export function PlanningClient({
 
                   const c = e.creneau;
                   const enPause = Boolean(periodeVacances && c.actifHorsVacances);
+                  const enCoursDeGlisse = drag?.creneauId === c.id;
                   return (
                     <div
                       key={e.id}
-                      onClick={() => router.push(`/presences?slot=reg:${c.id}&date=${dayDates[i]}`)}
-                      className="absolute rounded-[9px] px-2.5 py-2 group cursor-pointer overflow-hidden transition-colors hover:brightness-110"
+                      onMouseDown={(ev) => startDrag(ev, c)}
+                      onClick={() => !enCoursDeGlisse && router.push(`/presences?slot=reg:${c.id}&date=${dayDates[i]}`)}
+                      className="absolute rounded-[9px] px-2.5 py-2 group overflow-hidden transition-colors hover:brightness-110"
                       style={{
                         top,
                         height: hauteur,
@@ -323,9 +428,10 @@ export function PlanningClient({
                         background: "var(--bg-card)",
                         border: "1px solid var(--border)",
                         borderLeft: `3px solid ${ETAT_COLOR[c.etat]}`,
-                        opacity: enPause ? 0.5 : 1,
+                        opacity: enCoursDeGlisse ? 0.25 : enPause ? 0.5 : 1,
+                        cursor: canEdit ? "grab" : "pointer",
                       }}
-                      title={`${c.groupe.nom} · ${enPause ? "En pause" : ETAT_LABEL[c.etat]} · ${c.debut}–${c.fin} · ${c.libelleCoach ?? c.coach?.user.name ?? "—"} · ${c.bassin}`}
+                      title={`${c.groupe.nom} · ${enPause ? "En pause" : ETAT_LABEL[c.etat]} · ${c.debut}–${c.fin} · ${c.libelleCoach ?? c.coach?.user.name ?? "—"} · ${c.bassin}${canEdit ? " · glisser pour déplacer" : ""}`}
                     >
                       <div className="flex items-center gap-1.5">
                         <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: ETAT_COLOR[c.etat] }} />
@@ -391,6 +497,27 @@ export function PlanningClient({
           ))}
         </div>
       </div>
+
+      {drag && (
+        <div
+          className="fixed rounded-[9px] px-2.5 py-2 overflow-hidden pointer-events-none"
+          style={{
+            zIndex: 200,
+            left: drag.colLeft,
+            width: drag.colWidth,
+            top: drag.colTop + (drag.currentDebutMin - rangeDebut) * PX_PAR_MIN,
+            height: Math.max(drag.durMin * PX_PAR_MIN, 46),
+            background: "var(--bg-card)",
+            border: `2px solid ${ETAT_COLOR[drag.etat]}`,
+            boxShadow: "0 10px 28px rgba(0,0,0,0.55)",
+          }}
+        >
+          <div className="text-[13px] font-semibold truncate leading-tight">{drag.groupeNom}</div>
+          <div className="text-[11px]" style={{ color: "#7D91AE" }}>
+            {JOURS[drag.currentJour]} {formatMinutes(drag.currentDebutMin)}–{formatMinutes(drag.currentDebutMin + drag.durMin)}
+          </div>
+        </div>
+      )}
 
       {modalOpen && (
         <div onClick={() => setModalOpen(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>

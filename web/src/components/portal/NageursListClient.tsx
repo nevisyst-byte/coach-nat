@@ -206,6 +206,29 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                 {g.rows.length} nageur{g.rows.length > 1 ? "s" : ""}
               </span>
             </div>
+            <div
+              className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 sm:px-5 py-2"
+              style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}
+            >
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ minWidth: 170, color: "#61789B" }}>
+                Nageur
+              </div>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ minWidth: 60, color: "#61789B" }}>
+                Catégorie
+              </div>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ minWidth: 90, color: "#61789B" }}>
+                Groupe
+              </div>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ minWidth: 40, color: "#61789B" }} title="Points de cotation FFN">
+                Pts FFN
+              </div>
+              <div className="hidden sm:block text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }} title="Rang départemental / régional / national">
+                Rangs (D/R/N)
+              </div>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }} title="Part des séances pointées Présent ou Retard, calculée sur l'historique de présence de ce nageur">
+                Présence
+              </div>
+            </div>
             <div className="flex flex-col">
               {g.rows.map((n) => {
                 const p = n.presenceRate;

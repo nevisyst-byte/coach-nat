@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { recalculerPresenceRate } from "@/lib/presence-rate";
 
 const bodySchema = z.object({
   seanceInstanceId: z.string().min(1),
@@ -24,6 +25,8 @@ export async function POST(request: Request) {
     update: { etat, role },
     create: { seanceInstanceId, nomPersonne, role, etat },
   });
+
+  if (role === "SWIMMER") await recalculerPresenceRate(nomPersonne);
 
   return NextResponse.json({ ok: true });
 }
