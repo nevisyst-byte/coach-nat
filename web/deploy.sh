@@ -42,4 +42,13 @@ docker compose --env-file .env.production up -d --build --remove-orphans
 echo "==> État des conteneurs :"
 docker compose --env-file .env.production ps
 
+# Chaque build multi-stage (npm install + next build) empile du cache et une
+# image web-app sans jamais nettoyer les anciennes — sur la durée, ça a fini
+# par représenter des dizaines de Go de disque. Ne touche qu'aux images non
+# référencées et à l'excédent de cache de build, jamais aux conteneurs ni
+# images des autres apps du serveur (ollama, n8n, immo...).
+echo "==> Nettoyage des images et du cache de build obsolètes..."
+docker image prune -f
+docker builder prune -f --keep-storage 2gb
+
 echo "==> Terminé."
