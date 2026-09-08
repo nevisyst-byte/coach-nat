@@ -3,6 +3,12 @@
 // (avant ça, ce champ ne se mettait jamais à jour automatiquement — voir
 // lib/presence-rate.ts). Sans effet sur les nageurs jamais pointés.
 //
+// Calcule par nageurId (lien stable) plutôt que par nom : les présences pas
+// encore liées (nageurId NULL, saisies avant l'ajout de ce lien) sont quand
+// même comptées si leur nomPersonne correspond encore au nom actuel du
+// nageur — sinon (nageur renommé depuis), elles restent orphelines comme
+// avant, sans effet sur ce recalcul.
+//
 // Volontairement autonome (ne dépend que de src/generated, comme seed.ts) :
 // l'image Docker de prod ne copie que src/generated, pas tout src/, donc un
 // import de src/lib/presence-rate échouerait dans le conteneur.
@@ -17,22 +23,30 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
-async function recalculerPresenceRate(nomPersonne: string) {
-  const presences = await prisma.presence.findMany({ where: { nomPersonne, role: "SWIMMER" }, select: { etat: true } });
-  if (presences.length === 0) return;
+async function recalculerPresenceRate(nageurId: string, nomPersonne: string) {
+  const presences = await prisma.presence.findMany({
+    where: { role: "SWIMMER", OR: [{ nageurId }, { nageurId: null, nomPersonne }] },
+    select: { etat: true },
+  });
+  if (presences.length === 0) return null;
   const favorable = presences.filter((p) => p.etat === "PRESENT" || p.etat === "RETARD").length;
   const presenceRate = Math.round((favorable / presences.length) * 100);
-  await prisma.nageur.updateMany({ where: { nom: nomPersonne }, data: { presenceRate } });
+  await prisma.nageur.update({ where: { id: nageurId }, data: { presenceRate } });
+  return presenceRate;
 }
 
 async function main() {
-  const noms = await prisma.presence.findMany({ where: { role: "SWIMMER" }, select: { nomPersonne: true }, distinct: ["nomPersonne"] });
-  console.log(`${noms.length} nageur(s) avec un historique de présence à recalculer…`);
-  for (const { nomPersonne } of noms) {
-    await recalculerPresenceRate(nomPersonne);
-    console.log(`  · ${nomPersonne}`);
+  const nageurs = await prisma.nageur.findMany({ select: { id: true, nom: true } });
+  console.log(`${nageurs.length} nageur(s) à recalculer…`);
+  let touches = 0;
+  for (const { id, nom } of nageurs) {
+    const taux = await recalculerPresenceRate(id, nom);
+    if (taux !== null) {
+      console.log(`  · ${nom} → ${taux}%`);
+      touches++;
+    }
   }
-  console.log("Terminé.");
+  console.log(`Terminé. ${touches} nageur(s) avec un historique de présence recalculé(s).`);
 }
 
 main().finally(() => prisma.$disconnect());

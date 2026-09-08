@@ -7,6 +7,7 @@ import { recalculerPresenceRate } from "@/lib/presence-rate";
 const bodySchema = z.object({
   seanceInstanceId: z.string().min(1),
   nomPersonne: z.string().min(1),
+  nageurId: z.string().min(1).optional(),
   role: z.string(),
   etat: z.enum(["PRESENT", "RETARD", "ABSENT", "EXCUSE"]),
 });
@@ -19,14 +20,14 @@ export async function POST(request: Request) {
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
 
-  const { seanceInstanceId, nomPersonne, role, etat } = parsed.data;
+  const { seanceInstanceId, nomPersonne, nageurId, role, etat } = parsed.data;
   await prisma.presence.upsert({
     where: { seanceInstanceId_nomPersonne: { seanceInstanceId, nomPersonne } },
-    update: { etat, role },
-    create: { seanceInstanceId, nomPersonne, role, etat },
+    update: { etat, role, nageurId: nageurId ?? null },
+    create: { seanceInstanceId, nomPersonne, nageurId, role, etat },
   });
 
-  if (role === "SWIMMER") await recalculerPresenceRate(nomPersonne);
+  if (role === "SWIMMER" && nageurId) await recalculerPresenceRate(nageurId, nomPersonne);
 
   return NextResponse.json({ ok: true });
 }

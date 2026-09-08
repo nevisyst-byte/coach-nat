@@ -17,11 +17,11 @@ export type RosterPerson = { nom: string; initiales: string; sousTitre: string; 
 export function PresenceRoster({ title, people, seanceInstanceId, role }: { title: string; people: RosterPerson[]; seanceInstanceId: string; role: string }) {
   const router = useRouter();
 
-  async function setEtat(nom: string, etat: string) {
+  async function setEtat(nom: string, nageurId: string | undefined, etat: string) {
     await fetch("/api/presences", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ seanceInstanceId, nomPersonne: nom, role, etat }),
+      body: JSON.stringify({ seanceInstanceId, nomPersonne: nom, nageurId, role, etat }),
     });
     router.refresh();
   }
@@ -59,7 +59,7 @@ export function PresenceRoster({ title, people, seanceInstanceId, role }: { titl
                   <button
                     key={e.code}
                     title={e.label}
-                    onClick={() => setEtat(p.nom, e.value)}
+                    onClick={() => setEtat(p.nom, p.nageurId, e.value)}
                     className="w-[38px] h-[38px] rounded-[10px] font-display text-[15px] cursor-pointer"
                     style={{ border: `1px solid ${on ? e.color : "var(--border-strong)"}`, background: on ? e.bg : "rgba(255,255,255,0.04)", color: on ? e.color : "var(--ink-secondary)" }}
                   >

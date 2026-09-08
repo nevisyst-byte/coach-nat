@@ -175,6 +175,7 @@ model Nageur {
   absences        Absence[]
   inscriptions    Inscription[]
   creneauxEffectif CreneauNageur[]
+  presences       Presence[]
   createdAt       DateTime @default(now())
 }
 
@@ -392,6 +393,13 @@ model Presence {
   seanceInstanceId String
   seanceInstance   SeanceInstance @relation(fields: [seanceInstanceId], references: [id], onDelete: Cascade)
   nomPersonne      String
+  // Lien stable vers le nageur (rôle SWIMMER uniquement — un coach n'a pas
+  // de fiche Nageur). nomPersonne reste la source d'affichage/unicité, mais
+  // presenceRate se recalcule via cet id : sans lui, renommer un nageur
+  // (typo corrigée, nom complété...) coupait silencieusement son historique
+  // de présence antérieur du calcul (les lignes gardaient l'ancien nom).
+  nageurId         String?
+  nageur           Nageur?        @relation(fields: [nageurId], references: [id], onDelete: SetNull)
   role             String
   etat             EtatPresence   @default(PRESENT)
   updatedAt        DateTime       @updatedAt
