@@ -120,6 +120,7 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
           deltaSaison: p.deltaSaison,
           rangNat: p.rangNat,
           saison: p.saison,
+          tempsDebutSaison: p.tempsDebutSaison,
         }))}
         saisonActive={saisonActive?.label ?? null}
         technique={technique}

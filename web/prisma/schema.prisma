@@ -262,6 +262,13 @@ model Performance {
   deltaSaison String
   rangNat    String
   saison     String   @default("2025-2026")
+  // Temps/points de cette épreuve au premier pointage de la saison en
+  // cours — figés une fois posés, jamais réécrits par une resynchronisation
+  // FFN ultérieure (voir lib/ffn-sync.ts). Référence pour afficher la
+  // progression en cours de saison (lib/chrono.ts), que la FFN ne fournit
+  // pas elle-même (voir deltaSaison, toujours "—").
+  tempsDebutSaison  String?
+  pointsDebutSaison Int?
   createdAt  DateTime @default(now())
 }
 

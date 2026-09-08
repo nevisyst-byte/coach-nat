@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
+import { formatProgression } from "@/lib/chrono";
 
-type Perf = { epreuve: string; temps: string; points: number; niveau: string; deltaSaison: string; rangNat: string; saison: string };
+type Perf = { epreuve: string; temps: string; points: number; niveau: string; deltaSaison: string; rangNat: string; saison: string; tempsDebutSaison?: string | null };
 type TechCritere = { nom: string; note: number };
 type Technique = { nage: string; color: string; moyenne: number; criteres: TechCritere[] };
 type AbsenceRow = { date: string; motif: string; statut: string };
@@ -214,7 +215,7 @@ export function FicheNageur({
             <table className="w-full border-collapse" style={{ minWidth: 700 }}>
               <thead>
                 <tr style={{ background: "rgba(255,255,255,0.03)" }}>
-                  {["Épreuve", "Temps", "Points", "Niveau", "Δ saison", "Rang Nat."].map((h, i) => (
+                  {["Épreuve", "Temps", "Points", "Niveau", "Progression saison", "Rang Nat."].map((h, i) => (
                     <th key={h} className="text-[11px] tracking-[0.12em] uppercase px-3 py-2.5" style={{ color: "#61789B", textAlign: i === 0 ? "left" : "right", paddingLeft: i === 0 ? 20 : 12, paddingRight: i === 5 ? 20 : 12 }}>
                       {h}
                     </th>
@@ -240,8 +241,12 @@ export function FicheNageur({
                         {p.niveau}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-right text-sm font-bold" style={{ color: p.deltaSaison === "—" ? "var(--ink-muted)" : p.deltaSaison.startsWith("−") ? "#2ECC8F" : "#E8442B" }}>
-                      {p.deltaSaison}
+                    <td className="px-3 py-3 text-right text-sm font-bold" title="Écart avec le temps de cette épreuve au premier pointage de la saison">
+                      {(() => {
+                        const progression = p.tempsDebutSaison ? formatProgression(p.temps, p.tempsDebutSaison) : null;
+                        if (!progression || p.temps === p.tempsDebutSaison) return <span style={{ color: "var(--ink-muted)" }}>—</span>;
+                        return <span style={{ color: progression.startsWith("−") ? "#2ECC8F" : "#E8442B" }}>{progression}</span>;
+                      })()}
                     </td>
                     <td className="px-5 py-3 text-right text-[13px]" style={{ color: "var(--ink-body)" }}>
                       {p.rangNat}

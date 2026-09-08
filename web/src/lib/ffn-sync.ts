@@ -16,6 +16,18 @@ export async function syncNageurFfn(nageurId: string, iuf: string) {
   const saisonLabel = saison?.label ?? "2026-2027";
   const completerNaissance = !nageur.anneeNaissance && anneeNaissanceEstimee;
 
+  // Le temps de début de saison d'une épreuve doit survivre à chaque
+  // resynchronisation (sinon la progression en cours de saison n'aurait
+  // plus de référence) : on le récupère avant l'écrasement des lignes de
+  // cette saison, par épreuve, et on le reporte sur la nouvelle ligne — ou,
+  // si l'épreuve apparaît pour la première fois cette saison, le temps
+  // fraîchement synchronisé devient lui-même la référence.
+  const existantes = await prisma.performance.findMany({
+    where: { nageurId, saison: saisonLabel },
+    select: { epreuve: true, tempsDebutSaison: true, pointsDebutSaison: true },
+  });
+  const baselineParEpreuve = new Map(existantes.map((p) => [p.epreuve, { temps: p.tempsDebutSaison, points: p.pointsDebutSaison }]));
+
   await prisma.$transaction([
     prisma.nageur.update({
       where: { id: nageurId },
@@ -27,19 +39,25 @@ export async function syncNageurFfn(nageurId: string, iuf: string) {
     }),
     prisma.performance.deleteMany({ where: { nageurId, saison: saisonLabel } }),
     prisma.performance.createMany({
-      data: performances.map((p) => ({
-        nageurId,
-        epreuve: `${p.epreuve} (${p.bassin})`,
-        temps: p.temps,
-        points: p.points,
-        niveau: p.niveau,
-        // Le site FFN ne donne pas de delta saison-sur-saison ni de rang
-        // national sur cette page (ça viendrait d'un outil de ranking
-        // séparé, pas construit ici) — "—" plutôt qu'une valeur inventée.
-        deltaSaison: "—",
-        rangNat: "—",
-        saison: saisonLabel,
-      })),
+      data: performances.map((p) => {
+        const epreuve = `${p.epreuve} (${p.bassin})`;
+        const baseline = baselineParEpreuve.get(epreuve);
+        return {
+          nageurId,
+          epreuve,
+          temps: p.temps,
+          points: p.points,
+          niveau: p.niveau,
+          // Le site FFN ne donne pas de delta saison-sur-saison ni de rang
+          // national sur cette page (ça viendrait d'un outil de ranking
+          // séparé, pas construit ici) — "—" plutôt qu'une valeur inventée.
+          deltaSaison: "—",
+          rangNat: "—",
+          saison: saisonLabel,
+          tempsDebutSaison: baseline?.temps ?? p.temps,
+          pointsDebutSaison: baseline?.points ?? p.points,
+        };
+      }),
     }),
   ]);
 
