@@ -7,11 +7,30 @@ const COOKIE_NAME = "coachnat_session";
 const PUBLIC_PATHS = ["/login", "/mot-de-passe-oublie", "/reinitialiser-mot-de-passe"];
 
 function secretKey() {
-  return new TextEncoder().encode(process.env.AUTH_SECRET);
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) throw new Error("AUTH_SECRET manquant");
+  return new TextEncoder().encode(secret);
 }
+
+const MUTATING_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Les routes API gèrent elles-mêmes leur authentification (requireSession
+  // etc.) et répondent en JSON — pas de redirection de page ici. Seule
+  // protection ajoutée : sur une mutation, l'en-tête Origin (envoyé par les
+  // navigateurs sur fetch/XHR) doit correspondre à ce site, en défense
+  // supplémentaire par rapport au cookie SameSite=lax contre le CSRF.
+  if (pathname.startsWith("/api")) {
+    if (MUTATING_METHODS.includes(request.method)) {
+      const origin = request.headers.get("origin");
+      if (origin && origin !== request.nextUrl.origin) {
+        return NextResponse.json({ error: "Origine invalide" }, { status: 403 });
+      }
+    }
+    return NextResponse.next();
+  }
 
   if (PUBLIC_PATHS.some((p) => pathname === p)) {
     return NextResponse.next();
@@ -42,5 +61,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|assets|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|assets|favicon.ico).*)"],
 };

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
@@ -21,8 +22,15 @@ export type SessionPayload = {
   coachId: string | null;
 };
 
+const BCRYPT_COST = 12;
+// Hash factice (coût identique) utilisé pour comparer un temps constant
+// quand l'e-mail n'existe pas — sinon authenticate() répond plus vite pour
+// un compte inexistant que pour un mauvais mot de passe, ce qui permet de
+// deviner les e-mails inscrits par mesure du temps de réponse.
+const DUMMY_HASH = bcrypt.hashSync("dummy-password-pour-temps-constant", BCRYPT_COST);
+
 export async function hashPassword(password: string) {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, BCRYPT_COST);
 }
 
 export async function verifyPassword(password: string, hash: string) {
@@ -61,11 +69,22 @@ export async function readSessionToken(token: string | undefined) {
   }
 }
 
-export async function getSession(): Promise<SessionPayload | null> {
+// Le rôle (et l'existence même du compte) sont revérifiés en base à chaque
+// appel plutôt que de faire confiance au JWT : sinon un admin rétrogradé en
+// coach, ou un compte supprimé, garde ses droits jusqu'à l'expiration du
+// cookie (7 jours) — c'était le cas avant ce correctif. cache() dédoublonne
+// les appels au sein d'une même requête (layout + page + route appellent
+// tous getSession()) pour ne pas multiplier les requêtes SQL.
+export const getSession = cache(async (): Promise<SessionPayload | null> => {
   const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
-  return readSessionToken(token);
-}
+  const payload = await readSessionToken(token);
+  if (!payload) return null;
+
+  const user = await prisma.user.findUnique({ where: { id: payload.userId }, include: { coach: true } });
+  if (!user) return null;
+  return { userId: user.id, role: user.role, name: user.name, coachId: user.coach?.id ?? null };
+});
 
 export async function requireSession() {
   const session = await getSession();
@@ -93,9 +112,8 @@ export async function authenticate(email: string, password: string) {
     where: { email: email.toLowerCase() },
     include: { coach: true },
   });
-  if (!user) return null;
-  const ok = await verifyPassword(password, user.passwordHash);
-  if (!ok) return null;
+  const ok = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
+  if (!user || !ok) return null;
   return {
     userId: user.id,
     role: user.role,

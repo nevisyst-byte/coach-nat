@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: coachnat
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-coachnat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env.production}
       POSTGRES_DB: coachnat
     volumes:
       - db_data:/var/lib/postgresql/data
@@ -21,7 +21,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://coachnat:${POSTGRES_PASSWORD:-coachnat}@db:5432/coachnat?schema=public
+      DATABASE_URL: postgresql://coachnat:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env.production}@db:5432/coachnat?schema=public
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set in .env}
       NODE_ENV: production
       # Mailing (mot de passe oublié, notifications) — voir DEPLOY.md § Mailing.

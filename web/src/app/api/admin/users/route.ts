@@ -6,7 +6,7 @@ import { requireAdmin, hashPassword } from "@/lib/auth";
 const bodySchema = z.object({
   email: z.string().email(),
   name: z.string().min(1),
-  password: z.string().min(6),
+  password: z.string().min(10),
   role: z.enum(["ADMIN", "COACH"]),
   initials: z.string().optional(),
 });

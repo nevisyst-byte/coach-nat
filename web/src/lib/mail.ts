@@ -14,6 +14,13 @@ export function getAppUrl() {
   return process.env.APP_URL ?? "http://localhost:3000";
 }
 
+// À utiliser sur toute donnée utilisateur (nom, motif...) interpolée dans un
+// corps de mail HTML — le nom d'un compte est aujourd'hui fixé par un admin,
+// mais reste une donnée saisie, pas une constante du code.
+export function escapeHtml(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 // Enveloppe HTML commune, sobre, cohérente avec l'identité de l'app.
 export function mailShell(title: string, bodyHtml: string) {
   return `<!doctype html>

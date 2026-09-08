@@ -26,8 +26,8 @@ function ReinitialiserForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (password.length < 6) {
-      setError("Le mot de passe doit faire au moins 6 caractères.");
+    if (password.length < 10) {
+      setError("Le mot de passe doit faire au moins 10 caractères.");
       return;
     }
     if (password !== confirm) {

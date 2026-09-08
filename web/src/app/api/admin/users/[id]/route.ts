@@ -9,7 +9,7 @@ const bodySchema = z.object({
   email: z.string().email(),
   name: z.string().min(1),
   role: z.enum(["ADMIN", "COACH"]),
-  password: z.string().min(6).optional().or(z.literal("")),
+  password: z.string().min(10).optional().or(z.literal("")),
 });
 
 export async function PATCH(request: Request, { params }: RouteContext) {
