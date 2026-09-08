@@ -75,15 +75,18 @@ export default async function GeneralPage({ searchParams }: { searchParams: Prom
 }
 
 async function GlobalDashboard() {
-  const [categories, coachs, creneaux, nageurs, absences] = await Promise.all([
-    prisma.categorieEffectif.findMany(),
+  const [coachs, creneaux, nageurs, absences] = await Promise.all([
     prisma.coach.findMany({ include: { user: true } }),
     prisma.creneau.findMany({ include: { groupe: true, coach: { include: { user: true } } } }),
-    prisma.nageur.findMany({ include: { absences: true } }),
+    prisma.nageur.findMany({ include: { absences: true, groupe: true } }),
     prisma.absence.findMany({ include: { nageur: true } }),
   ]);
 
-  const totalLicencies = categories.reduce((a, c) => a + c.count, 0);
+  // Effectif compté sur les vraies fiches Nageur (plus sur un décompte
+  // manuel séparé, CategorieEffectif) : sinon les deux dérivent et on peut
+  // afficher plus de "licenciés" que de nageurs réellement suivis, ce qui
+  // n'a pas de sens une fois que les fiches nageurs sont la source réelle.
+  const totalLicencies = nageurs.length;
   const presenceMoy = nageurs.length
     ? Math.round(nageurs.reduce((a, n) => a + n.presenceRate, 0) / nageurs.length)
     : 0;
@@ -105,9 +108,20 @@ async function GlobalDashboard() {
 
   const poleGroups = ["FORMATION", "COMPETITION", "SAUVETAGE", "LOISIR"] as const;
   const poles = poleGroups.map((pole) => {
-    const cats = categories.filter((c) => c.pole === pole);
-    const total = cats.reduce((a, c) => a + c.count, 0);
-    return { pole, color: POLE_COLORS[pole], total, part: totalLicencies ? Math.round((total / totalLicencies) * 100) : 0, cats: cats.map((c) => ({ nom: c.nom, n: c.count })) };
+    const dansCePole = nageurs.filter((n) => n.groupe?.pole === pole);
+    const parCategorie = new Map<string, number>();
+    for (const n of dansCePole) {
+      const cat = n.groupe?.categorie ?? n.categorie;
+      parCategorie.set(cat, (parCategorie.get(cat) ?? 0) + 1);
+    }
+    const total = dansCePole.length;
+    return {
+      pole,
+      color: POLE_COLORS[pole],
+      total,
+      part: totalLicencies ? Math.round((total / totalLicencies) * 100) : 0,
+      cats: Array.from(parCategorie.entries()).map(([nom, n]) => ({ nom, n })),
+    };
   });
 
   const alertesBlessure = absences.filter((a) => a.statut === "BLESSURE" || a.statut === "A_TRAITER").slice(0, 2);

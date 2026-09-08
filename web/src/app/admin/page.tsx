@@ -15,12 +15,15 @@ export default async function AdminHome() {
     prisma.saison.findMany({ orderBy: { dateDebut: "desc" } }),
   ]);
 
+  // Groupes, nageurs et échéances sont gérés dans le portail (les coachs y
+  // ont accès) — ces cartes n'y renvoient que pour information, l'admin n'a
+  // pas d'écran de gestion séparé pour ça.
   const cards = [
     { label: "Comptes", value: users, href: "/admin/utilisateurs" },
-    { label: "Groupes", value: groupes, href: "/admin/groupes" },
-    { label: "Nageurs", value: nageurs, href: "/admin/nageurs" },
+    { label: "Groupes", value: groupes, href: "/groupes" },
+    { label: "Nageurs", value: nageurs, href: "/nageurs" },
     { label: "Stages", value: stages, href: "/stages" },
-    { label: "Échéances", value: echeances, href: "/admin/echeances" },
+    { label: "Échéances", value: echeances, href: "/calendrier" },
   ];
 
   return (

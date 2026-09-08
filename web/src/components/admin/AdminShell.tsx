@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+// Groupes, nageurs, effectifs et échéances sont gérés par les coachs
+// directement dans le portail (/groupes, /nageurs, /calendrier) — ces pages
+// admin dupliquaient les mêmes écrans sans rien apporter de plus à
+// l'administrateur, et l'effectif manuel (CategorieEffectif) créait une
+// ambiguïté avec le vrai nombre de nageurs suivis sur le tableau de bord.
 const NAV = [
   { href: "/admin", label: "Vue d'ensemble", icon: "◈" },
   { href: "/admin/utilisateurs", label: "Utilisateurs & coachs", icon: "◉" },
-  { href: "/admin/groupes", label: "Groupes", icon: "⚑" },
-  { href: "/admin/nageurs", label: "Nageurs", icon: "☰" },
-  { href: "/admin/effectifs", label: "Effectifs par catégorie", icon: "▦" },
-  { href: "/admin/echeances", label: "Échéances de la saison", icon: "▣" },
   { href: "/admin/journal", label: "Journal d'activité", icon: "☰" },
 ];
 
