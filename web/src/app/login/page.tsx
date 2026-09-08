@@ -18,6 +18,7 @@ function LoginForm() {
   const params = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [afficherMdp, setAfficherMdp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -102,19 +103,31 @@ function LoginForm() {
             <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
               Mot de passe
             </div>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid var(--border-strong)",
-                color: "var(--ink)",
-              }}
-            />
+            <div className="relative">
+              <input
+                type={afficherMdp ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid var(--border-strong)",
+                  color: "var(--ink)",
+                  paddingRight: 40,
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setAfficherMdp((v) => !v)}
+                aria-label={afficherMdp ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-sm"
+                style={{ color: "var(--ink-tertiary)" }}
+              >
+                {afficherMdp ? "🙈" : "👁"}
+              </button>
+            </div>
           </div>
 
           {error && (
