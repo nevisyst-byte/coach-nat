@@ -22,10 +22,16 @@ export async function proxy(request: NextRequest) {
   // protection ajoutée : sur une mutation, l'en-tête Origin (envoyé par les
   // navigateurs sur fetch/XHR) doit correspondre à ce site, en défense
   // supplémentaire par rapport au cookie SameSite=lax contre le CSRF.
+  //
+  // request.nextUrl.origin reflète l'hôte vu par le conteneur, pas le nom
+  // public — derrière le tunnel Cloudflare (coach-nat.nevi-syst.com →
+  // 172.18.0.1:3010), les deux diffèrent et bloquaient TOUTES les requêtes
+  // en prod. APP_URL (déjà utilisé par lib/mail.ts) est la bonne référence.
   if (pathname.startsWith("/api")) {
     if (MUTATING_METHODS.includes(request.method)) {
       const origin = request.headers.get("origin");
-      if (origin && origin !== request.nextUrl.origin) {
+      const attendues = [request.nextUrl.origin, process.env.APP_URL].filter(Boolean);
+      if (origin && !attendues.includes(origin)) {
         return NextResponse.json({ error: "Origine invalide" }, { status: 403 });
       }
     }
