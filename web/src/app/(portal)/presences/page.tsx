@@ -160,7 +160,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="grid gap-4 items-start grid-cols-1 md:[grid-template-columns:repeat(auto-fit,minmax(400px,1fr))]">
-        <PresenceRoster title="Nageurs" people={rosterNageurs} seanceInstanceId={instance.id} role="SWIMMER" />
+        <PresenceRoster key={instance.id} title="Nageurs" people={rosterNageurs} seanceInstanceId={instance.id} role="SWIMMER" />
 
         <Card>
           <div className="flex items-baseline justify-between mb-1 gap-3 flex-wrap">
