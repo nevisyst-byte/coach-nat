@@ -24,6 +24,22 @@ function aggregate(raw: InstanceRow[], field: "variant" | "intensite" | "nage") 
     .map(([nom, m], i) => ({ nom, m, color: PALETTE[i % PALETTE.length] }));
 }
 
+// Nombre d'occurrences hebdomadaires d'un créneau (jour de la semaine, 0 =
+// lundi) entre deux dates incluses.
+function occurrencesDuJour(jour: number, debut: Date, fin: Date): number {
+  if (fin < debut) return 0;
+  let count = 0;
+  const d = new Date(debut);
+  d.setHours(0, 0, 0, 0);
+  const borne = new Date(fin);
+  borne.setHours(0, 0, 0, 0);
+  while (d <= borne) {
+    if ((d.getDay() + 6) % 7 === jour) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
 function donut(items: { m: number; color: string }[]) {
   const total = items.reduce((a, r) => a + r.m, 0);
   let acc = 0;
@@ -253,15 +269,35 @@ async function CoachDashboard({ coachId, periode }: { coachId: string | null; pe
   const since = new Date();
   since.setDate(since.getDate() - days);
 
-  const [creneaux, groupes, conges, seanceInstances] = await Promise.all([
+  const [creneaux, groupes, conges] = await Promise.all([
     prisma.creneau.findMany({ where: { coachId }, include: { groupe: { include: { nageurs: true } } } }),
     prisma.groupe.findMany({ where: { coachId }, include: { nageurs: true } }),
     prisma.conge.findMany({ where: { coachId } }),
-    prisma.seanceInstance.findMany({ where: { coachId, date: { gte: since } } }),
   ]);
 
   const heures = creneaux.reduce((a, c) => a + hoursBetween(c.debut, c.fin), 0);
   const groupesIds = new Set(groupes.map((g) => g.id));
+
+  // Le volume par nage/intensité/variant vient des plans d'entraînement du
+  // groupe (pas de SeanceInstance, que rien n'alimente plus depuis que le
+  // créateur de séance historique a été remplacé par Entraînement) : une
+  // occurrence par semaine du créneau couverte par un plan à axes.
+  const plans = groupesIds.size
+    ? await prisma.planEntrainement.findMany({
+        where: { groupes: { some: { id: { in: Array.from(groupesIds) } } }, dateFin: { gte: since } },
+        include: { groupes: { select: { id: true } } },
+      })
+    : [];
+  const seanceInstances: InstanceRow[] = [];
+  for (const c of creneaux) {
+    for (const plan of plans) {
+      if (!plan.groupes.some((g) => g.id === c.groupeId)) continue;
+      if (!plan.variant || !plan.intensite || !plan.nage || !plan.volumeNage) continue;
+      const debutFenetre = plan.dateDebut > since ? plan.dateDebut : since;
+      const n = occurrencesDuJour(c.jour, debutFenetre, plan.dateFin);
+      for (let i = 0; i < n; i++) seanceInstances.push({ variant: plan.variant, intensite: plan.intensite, nage: plan.nage, volumeNage: plan.volumeNage });
+    }
+  }
 
   const statsCoach = [
     { icon: "▦", value: String(creneaux.length), label: "Créneaux / semaine" },
