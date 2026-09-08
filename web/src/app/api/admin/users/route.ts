@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, hashPassword } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import { clientIp } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -12,8 +14,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  let session;
   try {
-    await requireAdmin();
+    session = await requireAdmin();
   } catch {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
@@ -35,6 +38,15 @@ export async function POST(request: Request) {
       role,
       coach: role === "COACH" ? { create: { initials: initials || name.slice(0, 2).toUpperCase() } } : undefined,
     },
+  });
+
+  await logAudit({
+    userId: session.userId,
+    userName: session.name,
+    role: session.role,
+    action: "COMPTE_CREE",
+    cible: `${name} <${user.email}> (${role})`,
+    ip: clientIp(request),
   });
 
   return NextResponse.json({ ok: true, id: user.id });

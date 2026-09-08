@@ -15,12 +15,14 @@ function secretKey() {
   return new TextEncoder().encode(secret);
 }
 
-export type SessionPayload = {
+export type AuthResult = {
   userId: string;
   role: Role;
   name: string;
   coachId: string | null;
 };
+
+export type SessionPayload = AuthResult & { sessionId: string };
 
 const BCRYPT_COST = 12;
 // Hash factice (coût identique) utilisé pour comparer un temps constant
@@ -37,8 +39,14 @@ export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
-export async function createSessionCookie(payload: SessionPayload) {
-  const token = await new SignJWT({ ...payload })
+// Crée une ligne Session (voir schema.prisma) en plus du cookie : c'est elle
+// qui permet de révoquer un jeton précis (déconnexion, changement de mot de
+// passe) sans attendre son expiration naturelle (7 jours). Retourne l'id de
+// session, utile pour le journal d'audit de l'appelant.
+export async function createSessionCookie(payload: AuthResult, meta?: { ip?: string; userAgent?: string }) {
+  const session = await prisma.session.create({ data: { userId: payload.userId, ip: meta?.ip, userAgent: meta?.userAgent } });
+
+  const token = await new SignJWT({ ...payload, sessionId: session.id })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DURATION_SECONDS}s`)
@@ -52,11 +60,26 @@ export async function createSessionCookie(payload: SessionPayload) {
     path: "/",
     maxAge: SESSION_DURATION_SECONDS,
   });
+
+  return session.id;
 }
 
 export async function clearSessionCookie() {
   const store = await cookies();
   store.delete(COOKIE_NAME);
+}
+
+export async function revokeSession(sessionId: string) {
+  await prisma.session.updateMany({ where: { id: sessionId, revokedAt: null }, data: { revokedAt: new Date() } });
+}
+
+// Utilisé après un changement de mot de passe (reset ou admin) : coupe les
+// autres sessions déjà ouvertes, au cas où le compte était compromis.
+export async function revokeAllSessionsForUser(userId: string, exceptSessionId?: string) {
+  await prisma.session.updateMany({
+    where: { userId, revokedAt: null, ...(exceptSessionId ? { id: { not: exceptSessionId } } : {}) },
+    data: { revokedAt: new Date() },
+  });
 }
 
 export async function readSessionToken(token: string | undefined) {
@@ -79,11 +102,14 @@ export const getSession = cache(async (): Promise<SessionPayload | null> => {
   const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
   const payload = await readSessionToken(token);
-  if (!payload) return null;
+  if (!payload?.sessionId) return null;
 
-  const user = await prisma.user.findUnique({ where: { id: payload.userId }, include: { coach: true } });
-  if (!user) return null;
-  return { userId: user.id, role: user.role, name: user.name, coachId: user.coach?.id ?? null };
+  const [user, session] = await Promise.all([
+    prisma.user.findUnique({ where: { id: payload.userId }, include: { coach: true } }),
+    prisma.session.findUnique({ where: { id: payload.sessionId } }),
+  ]);
+  if (!user || !session || session.revokedAt) return null;
+  return { userId: user.id, sessionId: session.id, role: user.role, name: user.name, coachId: user.coach?.id ?? null };
 });
 
 export async function requireSession() {
@@ -119,7 +145,7 @@ export async function authenticate(email: string, password: string) {
     role: user.role,
     name: user.name,
     coachId: user.coach?.id ?? null,
-  } satisfies SessionPayload;
+  } satisfies AuthResult;
 }
 
 export const SESSION_COOKIE_NAME = COOKIE_NAME;

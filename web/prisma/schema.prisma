@@ -81,7 +81,44 @@ model User {
   role                Role                 @default(COACH)
   coach               Coach?
   passwordResetTokens PasswordResetToken[]
+  sessions            Session[]
+  auditLogs           AuditLog[]
   createdAt           DateTime             @default(now())
+}
+
+// Une session émise = un jeton signé en circulation. Le JWT porte l'id de
+// cette ligne (claim sessionId) : sans elle, une déconnexion ne pouvait que
+// supprimer le cookie du navigateur — un jeton déjà exfiltré restait valable
+// jusqu'à son expiration (7 jours). Avec elle, getSession() revérifie que la
+// session n'a pas été révoquée (déconnexion, changement de mot de passe...).
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+  ip        String?
+  userAgent String?
+
+  @@index([userId])
+}
+
+// Journal des connexions et des actions admin sensibles (comptes). Écriture
+// best-effort (voir lib/audit.ts) : un échec d'écriture du journal ne doit
+// jamais faire échouer l'action réelle qu'il trace.
+model AuditLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName  String
+  role      String?
+  action    String
+  cible     String?
+  detail    String?
+  ip        String?
+
+  @@index([createdAt])
 }
 
 // Jeton de réinitialisation de mot de passe envoyé par mail. Seul son hash

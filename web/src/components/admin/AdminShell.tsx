@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin/nageurs", label: "Nageurs", icon: "☰" },
   { href: "/admin/effectifs", label: "Effectifs par catégorie", icon: "▦" },
   { href: "/admin/echeances", label: "Échéances de la saison", icon: "▣" },
+  { href: "/admin/journal", label: "Journal d'activité", icon: "☰" },
 ];
 
 export function AdminShell({ userName, children }: { userName: string; children: React.ReactNode }) {

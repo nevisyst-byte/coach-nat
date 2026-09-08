@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, hashPassword } from "@/lib/auth";
+import { requireAdmin, hashPassword, revokeAllSessionsForUser } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import { clientIp } from "@/lib/rate-limit";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -13,8 +15,9 @@ const bodySchema = z.object({
 });
 
 export async function PATCH(request: Request, { params }: RouteContext) {
+  let session;
   try {
-    await requireAdmin();
+    session = await requireAdmin();
   } catch {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
@@ -54,10 +57,25 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     });
   }
 
+  // Un mot de passe changé par un admin (ex. compte compromis) coupe les
+  // sessions déjà ouvertes sous l'ancien mot de passe.
+  if (password) await revokeAllSessionsForUser(id);
+
+  const changements = [current.role !== role ? `rôle ${current.role}→${role}` : null, password ? "mot de passe changé" : null].filter(Boolean).join(", ");
+  await logAudit({
+    userId: session.userId,
+    userName: session.name,
+    role: session.role,
+    action: "COMPTE_MODIFIE",
+    cible: `${current.name} <${email.toLowerCase()}>`,
+    detail: changements || undefined,
+    ip: clientIp(request),
+  });
+
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_request: Request, { params }: RouteContext) {
+export async function DELETE(request: Request, { params }: RouteContext) {
   let session;
   try {
     session = await requireAdmin();
@@ -77,5 +95,13 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   }
 
   await prisma.user.delete({ where: { id } });
+  await logAudit({
+    userId: session.userId,
+    userName: session.name,
+    role: session.role,
+    action: "COMPTE_SUPPRIME",
+    cible: `${target.name} <${target.email}> (${target.role})`,
+    ip: clientIp(request),
+  });
   return NextResponse.json({ ok: true });
 }

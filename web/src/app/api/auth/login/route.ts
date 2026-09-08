@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authenticate, createSessionCookie } from "@/lib/auth";
 import { rateLimited, clientIp } from "@/lib/rate-limit";
+import { logAudit } from "@/lib/audit";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -27,11 +28,13 @@ export async function POST(request: Request) {
     return tropDeTentatives();
   }
 
-  const session = await authenticate(parsed.data.email, parsed.data.password);
-  if (!session) {
+  const auth = await authenticate(parsed.data.email, parsed.data.password);
+  if (!auth) {
+    await logAudit({ userName: parsed.data.email.toLowerCase(), action: "LOGIN_ECHEC", ip });
     return NextResponse.json({ error: "Email ou mot de passe incorrect" }, { status: 401 });
   }
 
-  await createSessionCookie(session);
-  return NextResponse.json({ ok: true, role: session.role });
+  await createSessionCookie(auth, { ip, userAgent: request.headers.get("user-agent") ?? undefined });
+  await logAudit({ userId: auth.userId, userName: auth.name, role: auth.role, action: "LOGIN", ip });
+  return NextResponse.json({ ok: true, role: auth.role });
 }

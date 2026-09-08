@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { consumeResetToken } from "@/lib/password-reset";
-import { hashPassword } from "@/lib/auth";
+import { hashPassword, revokeAllSessionsForUser } from "@/lib/auth";
 import { rateLimited, clientIp } from "@/lib/rate-limit";
+import { logAudit } from "@/lib/audit";
 
 const bodySchema = z.object({ token: z.string().min(1), password: z.string().min(10) });
 
@@ -22,7 +23,13 @@ export async function POST(request: Request) {
   if (!userId) return NextResponse.json({ error: "Ce lien de réinitialisation est invalide ou a expiré" }, { status: 400 });
 
   const passwordHash = await hashPassword(parsed.data.password);
-  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  const user = await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+
+  // Un compte dont le mot de passe vient d'être changé (potentiellement
+  // parce qu'il était compromis) ne doit pas garder de sessions ouvertes
+  // ailleurs sous l'ancien mot de passe.
+  await revokeAllSessionsForUser(userId);
+  await logAudit({ userId, userName: user.name, role: user.role, action: "MOT_DE_PASSE_REINITIALISE", ip: clientIp(request) });
 
   return NextResponse.json({ ok: true });
 }
