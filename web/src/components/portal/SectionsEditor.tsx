@@ -3,6 +3,9 @@
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
 import { nouvelleSection, nouvelleSet, distanceSection, fmtDistance, type SectionManuelle } from "@/lib/seance-manual";
 
+const NAGES = ["Papillon", "Dos", "Brasse", "Crawl"];
+const NAGE_ABBR: Record<string, string> = { Papillon: "Pap", Dos: "Dos", Brasse: "Bra", Crawl: "Cr" };
+
 // Éditeur de sections/séries (reps × distance @ allure, repos) partagé par
 // le détail d'un plan d'entraînement et l'édition ponctuelle d'une séance —
 // mêmes distances 100% libres (jamais de liste déroulante), même format,
@@ -31,6 +34,18 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
       sections.map((s) =>
         s.id === sectionId
           ? { ...s, sets: s.sets.map((x) => (x.id === setId ? { ...x, [field]: field === "reps" || field === "distance" ? parseInt(value, 10) || 0 : value } : x)) }
+          : s
+      )
+    );
+  }
+  function toggleNageSet(sectionId: string, setId: string, nage: string) {
+    onChange(
+      sections.map((s) =>
+        s.id === sectionId
+          ? {
+              ...s,
+              sets: s.sets.map((x) => (x.id === setId ? { ...x, nages: x.nages.includes(nage) ? x.nages.filter((n) => n !== nage) : [...x.nages, nage] } : x)),
+            }
           : s
       )
     );
@@ -75,17 +90,18 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
             </button>
           </div>
 
-          <div className="grid gap-1.5 text-[10px] tracking-[0.08em] uppercase mb-1" style={{ gridTemplateColumns: "56px 64px 1fr 64px 64px 20px", color: "#61789B" }}>
+          <div className="grid gap-1.5 text-[10px] tracking-[0.08em] uppercase mb-1" style={{ gridTemplateColumns: "56px 64px 1fr 150px 64px 64px 20px", color: "#61789B" }}>
             <span>Rép.</span>
             <span>Dist.</span>
             <span>Contenu</span>
+            <span>Nages</span>
             <span>Départ</span>
             <span>Repos</span>
             <span />
           </div>
           <div className="flex flex-col gap-1.5">
             {section.sets.map((s) => (
-              <div key={s.id} className="grid gap-1.5 items-center" style={{ gridTemplateColumns: "56px 64px 1fr 64px 64px 20px" }}>
+              <div key={s.id} className="grid gap-1.5 items-center" style={{ gridTemplateColumns: "56px 64px 1fr 150px 64px 64px 20px" }}>
                 <input
                   type="number"
                   value={s.reps}
@@ -103,10 +119,26 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
                 <input
                   value={s.label}
                   onChange={(e) => updateSet(section.id, s.id, "label", e.target.value)}
-                  placeholder="ex. 4 nages, Papillon…"
+                  placeholder="ex. Éducatif, jambes…"
                   className="rounded-md px-1.5 py-1.5 text-xs outline-none min-w-0"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                 />
+                <div className="flex gap-1 flex-wrap" title="Une ou plusieurs nages pour cet exercice (ex. crawl + dos)">
+                  {NAGES.map((n) => {
+                    const on = s.nages.includes(n);
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => toggleNageSet(section.id, s.id, n)}
+                        className="rounded-md px-1.5 py-1 text-[10px] font-bold cursor-pointer"
+                        style={{ border: `1px solid ${on ? "#1E7BFF" : "var(--border-strong)"}`, background: on ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)", color: on ? "#7FDCFF" : "var(--ink-secondary)" }}
+                      >
+                        {NAGE_ABBR[n]}
+                      </button>
+                    );
+                  })}
+                </div>
                 <input
                   value={s.allure}
                   onChange={(e) => updateSet(section.id, s.id, "allure", e.target.value)}

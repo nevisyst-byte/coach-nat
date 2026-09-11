@@ -11,6 +11,7 @@ const setSchema = z.object({
   label: z.string(),
   allure: z.string(),
   repos: z.string(),
+  nages: z.array(z.string()).default([]),
 });
 const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.string(), sets: z.array(setSchema) });
 

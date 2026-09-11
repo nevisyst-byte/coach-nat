@@ -1,6 +1,6 @@
 import { prisma } from "./prisma";
 import { buildManualBlocs, distanceSection, type SectionManuelle } from "./seance-manual";
-import { genererSeance, type Bloc } from "./seance-generator";
+import { genererSeance, genererSeanceMulti, type Bloc, type Combo } from "./seance-generator";
 
 export type SeanceDepuisPlan = {
   planId: string;
@@ -12,13 +12,18 @@ export type SeanceDepuisPlan = {
 };
 
 // Contenu de séance dérivé du plan d'entraînement actif d'un groupe pour une
-// date donnée (celui dont [dateDebut,dateFin] couvre cette date). Deux
+// date donnée (celui dont [dateDebut,dateFin] couvre cette date). Trois
 // sources de détail possibles, au choix du coach à la création du plan :
 // - `sections` (saisie manuelle) : structuré, ajustable en % section par
 //   section (cf. ajustements) ;
-// - `variant`/`intensite`/`nage`/`volumeNage` (génération auto) : recompilé
-//   via genererSeance, contenu texte non ajustable en %.
-// Si ni l'un ni l'autre n'est renseigné, le plan reste macro (badge thème
+// - `combos` (génération auto, plusieurs répartitions nage/intensité/variant
+//   avec un % chacune) : recompilé via genererSeanceMulti, une séance
+//   découpée en blocs "Principal · {nage}" selon ces %.
+// - `variant`/`intensite`/`nage`/`volumeNage` (génération auto, une seule
+//   répartition — ancien format, encore lu pour les plans existants ou un
+//   combo unique) : recompilé via genererSeance, contenu texte non
+//   ajustable en %.
+// Si rien de tout ça n'est renseigné, le plan reste macro (badge thème
 // seul, cf. objectifActuel) — calculé à la lecture, sans tâche de fond.
 export async function seanceDepuisPlan(groupeId: string, date: Date): Promise<SeanceDepuisPlan | null> {
   const plan = await prisma.planEntrainement.findFirst({
@@ -47,6 +52,19 @@ export async function seanceDepuisPlan(groupeId: string, date: Date): Promise<Se
       heureDebut: plan.heureDebut ?? "17:00",
       sections: sectionsAjustees,
       items: sectionsAvecSets.map((s, i) => ({ sectionId: s.id, bloc: blocs[i], pourcentage: pourcentageParSection.get(s.id) ?? null })),
+    };
+  }
+
+  const combos = plan.combos as unknown as Combo[] | null;
+  if (combos && combos.length > 0 && plan.volumeNage) {
+    const blocs = genererSeanceMulti(combos, plan.volumeNage).blocs;
+    return {
+      planId: plan.id,
+      nomPlan: plan.nom,
+      editable: false,
+      heureDebut: plan.heureDebut ?? "17:00",
+      sections: null,
+      items: blocs.map((bloc) => ({ sectionId: null, bloc, pourcentage: null })),
     };
   }
 

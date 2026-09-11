@@ -505,6 +505,12 @@ model PlanEntrainement {
   intensite   String?
   nage        String?
   volumeNage  Int?
+  // Plusieurs répartitions (variant/intensité/nage/%) au sein d'une même
+  // séance, ex. 60% Crawl/Allure 400 + 40% Dos/Seuil — voir
+  // seance-generator.ts:genererSeanceMulti(). variant/intensite/nage
+  // ci-dessus restent renseignés quand il n'y a qu'une seule répartition
+  // (plans existants, ou plan à une seule ligne), pour compatibilité.
+  combos      Json?
   sections    Json?
   dateDebut   DateTime
   dateFin     DateTime
@@ -513,6 +519,21 @@ model PlanEntrainement {
   createdAt   DateTime @default(now())
 
   @@index([dateDebut])
+}
+
+// Contenu de séance sauvegardé pour être réutilisé sur un autre groupe /
+// une autre date, sans période ni groupe attachés (à l'inverse de
+// PlanEntrainement) — juste le contenu (auto via combos, ou manuel via
+// sections) et un nom.
+model ModeleSeance {
+  id         String   @id @default(cuid())
+  nom        String
+  theme      String
+  heureDebut String?
+  combos     Json?
+  volumeNage Int?
+  sections   Json?
+  createdAt  DateTime @default(now())
 }
 
 // Ajustement ponctuel d'une section du plan pour un groupe et une date

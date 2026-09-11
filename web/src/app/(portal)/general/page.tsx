@@ -2,12 +2,14 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, ProgressBar, SectionTitle } from "@/components/ui/Card";
+import { Camembert } from "@/components/ui/Camembert";
 import { PoleEffectifs } from "@/components/portal/PoleEffectifs";
 import { PeriodeToggle } from "@/components/portal/PeriodeToggle";
 import { ViewToggle } from "@/components/portal/ViewToggle";
 import { hoursBetween, JOURS } from "@/lib/format";
 import { POLE_COLORS } from "@/lib/theme";
 import { toDateInputValue } from "@/lib/week";
+import type { Combo } from "@/lib/seance-generator";
 
 const PALETTE = ["#1E7BFF", "#24C8FF", "#2ECC8F", "#F2B33D", "#E8442B", "#8C6BFF", "#5B7BA6"];
 
@@ -49,19 +51,6 @@ function occurrencesDuJour(jour: number, debut: Date, fin: Date): number {
     d.setDate(d.getDate() + 1);
   }
   return count;
-}
-
-function donut(items: { m: number; color: string }[]) {
-  const total = items.reduce((a, r) => a + r.m, 0);
-  let acc = 0;
-  const stops = items
-    .map((r) => {
-      const from = (acc / total) * 360;
-      acc += r.m;
-      return `${r.color} ${from.toFixed(1)}deg ${((acc / total) * 360).toFixed(1)}deg`;
-    })
-    .join(", ");
-  return { total, css: `conic-gradient(${stops})` };
 }
 
 export default async function GeneralPage({ searchParams }: { searchParams: Promise<{ vue?: string; periode?: string; coachId?: string }> }) {
@@ -311,10 +300,19 @@ async function CoachDashboard({
   for (const c of creneaux) {
     for (const plan of plans) {
       if (!plan.groupes.some((g) => g.id === c.groupeId)) continue;
-      if (!plan.variant || !plan.intensite || !plan.nage || !plan.volumeNage) continue;
+      if (!plan.volumeNage) continue;
+      const combos = plan.combos as unknown as Combo[] | null;
       const debutFenetre = plan.dateDebut > since ? plan.dateDebut : since;
       const n = occurrencesDuJour(c.jour, debutFenetre, plan.dateFin);
-      for (let i = 0; i < n; i++) seanceInstances.push({ variant: plan.variant, intensite: plan.intensite, nage: plan.nage, volumeNage: plan.volumeNage });
+      if (combos && combos.length > 0) {
+        for (let i = 0; i < n; i++) {
+          for (const combo of combos) {
+            seanceInstances.push({ variant: combo.variant, intensite: combo.intensite, nage: combo.nage, volumeNage: Math.round((plan.volumeNage * combo.pourcentage) / 100) });
+          }
+        }
+      } else if (plan.variant && plan.intensite && plan.nage) {
+        for (let i = 0; i < n; i++) seanceInstances.push({ variant: plan.variant, intensite: plan.intensite, nage: plan.nage, volumeNage: plan.volumeNage });
+      }
     }
   }
 
@@ -443,39 +441,9 @@ async function CoachDashboard({
           </div>
         ) : (
           <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))" }}>
-            {camemberts.map((ch) => {
-              const { total, css } = donut(ch.items);
-              return (
-                <div key={ch.titre}>
-                  <div className="text-[11px] tracking-[0.14em] uppercase mb-3.5" style={{ color: "#61789B" }}>
-                    {ch.titre}
-                  </div>
-                  <div className="flex items-center gap-5 flex-wrap">
-                    <div className="relative w-[132px] h-[132px] shrink-0">
-                      <div className="absolute inset-0 rounded-full" style={{ background: css }} />
-                      <div className="absolute inset-[27px] rounded-full flex flex-col items-center justify-center" style={{ background: "var(--bg-card)" }}>
-                        <span className="font-display text-[19px] leading-none">{(total / 1000).toFixed(1).replace(".", ",")} km</span>
-                        <span className="text-[10px] uppercase tracking-[0.1em]" style={{ color: "#61789B" }}>
-                          nagés
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 flex-1" style={{ minWidth: 132 }}>
-                      {ch.items.map((r) => (
-                        <div key={r.nom} className="flex items-center gap-2 text-xs">
-                          <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: r.color }} />
-                          <span className="flex-1 font-semibold">{r.nom}</span>
-                          <span style={{ color: "var(--ink-secondary)" }}>{(r.m / 1000).toFixed(1).replace(".", ",")} km</span>
-                          <span className="font-bold" style={{ minWidth: 34, textAlign: "right" }}>
-                            {Math.round((r.m / total) * 100)}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {camemberts.map((ch) => (
+              <Camembert key={ch.titre} titre={ch.titre} items={ch.items} />
+            ))}
           </div>
         )}
       </Card>

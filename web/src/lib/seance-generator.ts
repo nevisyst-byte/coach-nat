@@ -54,3 +54,59 @@ export function genererSeance(variant: string, intensite: string, nage: string, 
 
   return { resume: `${variant} · ${intensite} · ${nage} · ${fmtM(total)}`, blocs };
 }
+
+export type Combo = { variant: string; intensite: string; nage: string; pourcentage: number };
+
+// Une séance à plusieurs répartitions (ex. 60% Crawl/Allure 400/Nage
+// complète + 40% Dos/Seuil/Éducatif) : échauffement et retour communs,
+// un bloc "Principal" par répartition, dimensionné à son pourcentage du
+// volume total.
+export function genererSeanceMulti(combos: Combo[], volumeCible: number): { resume: string; blocs: Bloc[] } {
+  if (combos.length === 0) return { resume: "", blocs: [] };
+  if (combos.length === 1) return genererSeance(combos[0].variant, combos[0].intensite, combos[0].nage, volumeCible);
+
+  const total = volumeCible;
+  const dEch = r100(total * 0.2);
+  const dTech = r100(total * 0.16);
+  const dRet = r100(total * 0.1);
+  const dPrincCible = total - dEch - dTech - dRet;
+  const premier = combos[0];
+  const nEduc = Math.max(4, Math.round(dTech / 50));
+
+  const blocsPrincipaux: Bloc[] = combos.map((c) => {
+    const dCombo = r100((dPrincCible * c.pourcentage) / 100);
+    const repDist = dCombo >= 3000 ? 400 : dCombo >= 1500 ? 300 : dCombo >= 800 ? 200 : 100;
+    const nSeries = Math.max(1, Math.round(dCombo / repDist));
+    return {
+      phase: `Principal · ${c.nage}`,
+      distance: fmtM(dCombo),
+      contenu: `${nSeries}×${repDist} ${c.nage.toLowerCase()} (${c.variant.toLowerCase()}) à ${c.intensite.toLowerCase()} — départ ${DEPARTS[repDist]}`,
+      consigne: `${c.pourcentage}% du volume principal · tenue de l'allure`,
+    };
+  });
+
+  const blocs: Bloc[] = [
+    {
+      phase: "Échauff.",
+      distance: fmtM(dEch),
+      contenu: `${fmtM(r100(dEch * 0.5))} crawl souple + ${Math.round(r100(dEch * 0.5) / 50)}×50 éducatifs`,
+      consigne: "Amplitude, respiration 3 temps",
+    },
+    {
+      phase: "Technique",
+      distance: fmtM(dTech),
+      contenu: `${nEduc}×50 ${premier.variant.toLowerCase()} — départ 1'00`,
+      consigne: "Focus coulée et fréquence",
+    },
+    ...blocsPrincipaux,
+    {
+      phase: "Retour",
+      distance: fmtM(dRet),
+      contenu: `${fmtM(dRet)} souple 2 nages alternées`,
+      consigne: "Fréquence basse, relâchement",
+    },
+  ];
+
+  const resume = combos.map((c) => `${c.pourcentage}% ${c.nage}/${c.intensite}/${c.variant}`).join(" + ") + ` · ${fmtM(total)}`;
+  return { resume, blocs };
+}

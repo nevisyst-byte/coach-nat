@@ -7,6 +7,9 @@ export type SetLigne = {
   label: string;
   allure: string;
   repos: string;
+  // Plusieurs nages sur le même exercice (ex. crawl + dos en alternance) —
+  // vide = pas de nage précisée, comme avant l'ajout de ce champ.
+  nages: string[];
 };
 
 export type SectionManuelle = {
@@ -21,7 +24,7 @@ function uid() {
 }
 
 export function nouvelleSet(): SetLigne {
-  return { id: uid(), reps: 4, distance: 50, label: "", allure: "", repos: "" };
+  return { id: uid(), reps: 4, distance: 50, label: "", allure: "", repos: "", nages: [] };
 }
 
 export function nouvelleSection(nom = ""): SectionManuelle {
@@ -65,6 +68,21 @@ export function volumeTotalManuel(sections: SectionManuelle[]) {
   return sections.reduce((sum, s) => sum + distanceSection(s), 0);
 }
 
+// Répartition du volume par nage pour le camembert "par nage" — un exercice
+// à plusieurs nages (ex. crawl + dos) répartit sa distance à parts égales
+// entre elles plutôt que de la compter en double.
+export function volumeParNage(sections: SectionManuelle[]): { nage: string; m: number }[] {
+  const parNage = new Map<string, number>();
+  for (const section of sections) {
+    for (const s of section.sets) {
+      if (s.nages.length === 0) continue;
+      const part = distanceSet(s) / s.nages.length;
+      for (const nage of s.nages) parNage.set(nage, (parNage.get(nage) ?? 0) + part);
+    }
+  }
+  return Array.from(parNage.entries()).map(([nage, m]) => ({ nage, m: Math.round(m) }));
+}
+
 // Compile les sections saisies à la main en Bloc[] — le même format que le
 // générateur automatique — pour réutiliser tel quel l'aperçu éditable, la
 // sauvegarde en modèle et la planification. L'heure de début n'existe que
@@ -89,7 +107,7 @@ export function buildManualBlocs(heureDebut: string, sections: SectionManuelle[]
         const reposSec = parseMinSec(s.repos);
         curseur += (s.reps * allureSec + reposSec) / 60;
 
-        const titre = [`${s.reps}×${s.distance}`, s.label.trim()].filter(Boolean).join(" ");
+        const titre = [`${s.reps}×${s.distance}`, s.nages.join(" + "), s.label.trim()].filter(Boolean).join(" ");
         const details = [s.allure ? `départ ${s.allure}` : null, s.repos ? `repos ${s.repos}` : null].filter(Boolean).join(" · ");
         lignes.push(`${heureLigne} — ${titre}${details ? ` (${details})` : ""}`);
       }

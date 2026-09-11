@@ -3,12 +3,14 @@ import { Card } from "@/components/ui/Card";
 import { EntrainementClient } from "@/components/portal/EntrainementClient";
 import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
 import type { SectionManuelle } from "@/lib/seance-manual";
+import type { Combo } from "@/lib/seance-generator";
 
 export default async function EntrainementPage() {
-  const [groupes, plans, creneaux] = await Promise.all([
+  const [groupes, plans, creneaux, modeles] = await Promise.all([
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.planEntrainement.findMany({ include: { groupes: { select: { id: true, nom: true } } }, orderBy: { dateDebut: "desc" } }),
     prisma.creneau.findMany({ orderBy: [{ jour: "asc" }, { debut: "asc" }] }),
+    prisma.modeleSeance.findMany({ orderBy: { createdAt: "desc" } }),
   ]);
 
   const groupesParPole = POLE_ORDER.map((pole) => ({
@@ -35,10 +37,20 @@ export default async function EntrainementPage() {
           intensite: p.intensite,
           nage: p.nage,
           volumeNage: p.volumeNage,
+          combos: p.combos as unknown as Combo[] | null,
           sections: p.sections as unknown as SectionManuelle[] | null,
           dateDebut: p.dateDebut.toISOString(),
           dateFin: p.dateFin.toISOString(),
           groupes: p.groupes,
+        }))}
+        modeles={modeles.map((m) => ({
+          id: m.id,
+          nom: m.nom,
+          theme: m.theme,
+          heureDebut: m.heureDebut,
+          combos: m.combos as unknown as Combo[] | null,
+          volumeNage: m.volumeNage,
+          sections: m.sections as unknown as SectionManuelle[] | null,
         }))}
       />
     </Card>
