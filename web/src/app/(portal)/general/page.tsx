@@ -7,6 +7,7 @@ import { PeriodeToggle } from "@/components/portal/PeriodeToggle";
 import { ViewToggle } from "@/components/portal/ViewToggle";
 import { hoursBetween, JOURS } from "@/lib/format";
 import { POLE_COLORS } from "@/lib/theme";
+import { toDateInputValue } from "@/lib/week";
 
 const PALETTE = ["#1E7BFF", "#24C8FF", "#2ECC8F", "#F2B33D", "#E8442B", "#8C6BFF", "#5B7BA6"];
 
@@ -22,6 +23,16 @@ function aggregate(raw: InstanceRow[], field: "variant" | "intensite" | "nage") 
   return Array.from(sums.entries())
     .sort((a, b) => b[1] - a[1])
     .map(([nom, m], i) => ({ nom, m, color: PALETTE[i % PALETTE.length] }));
+}
+
+// Prochaine date (aujourd'hui compris) tombant sur ce jour de la semaine —
+// pour lier une carte "séance" à sa vraie occurrence datée plutôt qu'au
+// planning générique.
+function prochaineOccurrence(jour: number, ref: Date = new Date()): Date {
+  const d = new Date(ref);
+  d.setHours(0, 0, 0, 0);
+  while ((d.getDay() + 6) % 7 !== jour) d.setDate(d.getDate() + 1);
+  return d;
 }
 
 // Nombre d'occurrences hebdomadaires d'un créneau (jour de la semaine, 0 =
@@ -87,17 +98,7 @@ async function GlobalDashboard() {
   // afficher plus de "licenciés" que de nageurs réellement suivis, ce qui
   // n'a pas de sens une fois que les fiches nageurs sont la source réelle.
   const totalLicencies = nageurs.length;
-  const presenceMoy = nageurs.length
-    ? Math.round(nageurs.reduce((a, n) => a + n.presenceRate, 0) / nageurs.length)
-    : 0;
   const aCouvrir = creneaux.filter((c) => c.etat === "A_COUVRIR").length;
-
-  const statsGlobal = [
-    { icon: "⚑", value: String(totalLicencies), label: "Licenciés suivis" },
-    { icon: "◉", value: String(coachs.length), label: "Coachs actifs" },
-    { icon: "▦", value: String(creneaux.length), label: "Créneaux / semaine" },
-    { icon: "✓", value: `${presenceMoy}%`, label: "Présence moy. club" },
-  ];
 
   const chargeParCoach = coachs.map((c) => {
     const mine = creneaux.filter((cr) => cr.coachId === c.id);
@@ -154,23 +155,6 @@ async function GlobalDashboard() {
 
   return (
     <>
-      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))" }}>
-        {statsGlobal.map((s) => (
-          <Card key={s.label} padding={18}>
-            <div
-              className="w-9 h-9 rounded-[10px] flex items-center justify-center text-base"
-              style={{ background: "rgba(30,123,255,0.14)", border: "1px solid rgba(30,123,255,0.3)" }}
-            >
-              {s.icon}
-            </div>
-            <div className="font-display text-[42px] leading-none mt-3.5">{s.value}</div>
-            <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
-              {s.label}
-            </div>
-          </Card>
-        ))}
-      </div>
-
       <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(340px,1fr))" }}>
         <Card>
           <SectionTitle right="Heures / semaine">Charge par coach</SectionTitle>
@@ -522,7 +506,11 @@ async function CoachDashboard({
                       {c.groupe.objectif ?? c.bassin} · {c.bassin}
                     </div>
                   </div>
-                  <Link href="/planning?vue=moi" className="rounded-lg px-3 py-1.5 text-xs font-semibold" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+                  <Link
+                    href={`/presences?slot=reg:${c.id}&date=${toDateInputValue(prochaineOccurrence(c.jour))}`}
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold"
+                    style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                  >
                     Ouvrir
                   </Link>
                 </div>
