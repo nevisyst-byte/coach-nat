@@ -30,7 +30,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
   const weekStart = dates[0];
   const weekEnd = dates[6];
 
-  const [creneaux, groupes, coachs, nageurs, settings, stagesSemaine] = await Promise.all([
+  const [creneaux, groupes, coachs, nageurs, settings, stagesSemaine, echeancesSemaine] = await Promise.all([
     prisma.creneau.findMany({
       where: mine ? { coachId: session!.coachId! } : undefined,
       include: { groupe: { include: { plansEntrainement: { select: { theme: true, dateDebut: true, dateFin: true } } } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } },
@@ -43,7 +43,18 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
       where: { dateDebut: { lte: weekEnd }, dateFin: { gte: weekStart } },
       include: { jours: true, creneaux: { include: { coach: { include: { user: true } } } } },
     }),
+    prisma.echeance.findMany({ where: { date: { gte: weekStart, lte: weekEnd } }, orderBy: { date: "asc" } }),
   ]);
+
+  // Périodes remarquables (compétitions, réunions...) saisies sur le
+  // Calendrier saison — affichées ici aussi, sur le jour concerné, plutôt
+  // que de forcer le coach à ouvrir un autre écran pour les voir.
+  const echeancesByDay: Record<number, { titre: string; detail: string; color: string }[]> = {};
+  for (const e of echeancesSemaine) {
+    const dayIndex = dates.findIndex((d) => sameDay(d, e.date));
+    if (dayIndex === -1) continue;
+    (echeancesByDay[dayIndex] ??= []).push({ titre: e.titre, detail: e.detail, color: e.color });
+  }
 
   const zone = (settings?.zoneScolaire ?? "B") as ZoneScolaire;
   const periodeVacances = semaineEnVacances(dates, zone);
@@ -84,6 +95,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
         defaultCoachId={mine ? session!.coachId! : ""}
         periodeVacances={periodeVacances ? { nom: periodeVacances.nom, zone } : null}
         stagesByDay={stagesByDay}
+        echeancesByDay={echeancesByDay}
       />
     </Card>
   );

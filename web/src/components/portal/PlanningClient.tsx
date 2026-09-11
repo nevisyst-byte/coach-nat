@@ -72,6 +72,7 @@ export function PlanningClient({
   defaultCoachId = "",
   periodeVacances = null,
   stagesByDay = {},
+  echeancesByDay = {},
 }: {
   creneaux: Creneau[];
   dayLabels: string[];
@@ -86,6 +87,7 @@ export function PlanningClient({
   defaultCoachId?: string;
   periodeVacances?: { nom: string; zone: string } | null;
   stagesByDay?: Record<number, StageJourEntry[]>;
+  echeancesByDay?: Record<number, { titre: string; detail: string; color: string }[]>;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -364,11 +366,21 @@ export function PlanningClient({
 
           {JOURS.map((nom, i) => (
             <div key={nom} className="flex flex-col gap-2.5">
-              <div className="text-center rounded-[11px] p-2.5" style={{ background: "var(--bg-panel)", border: "1px solid var(--border)", height: 60, boxSizing: "border-box" }}>
+              <div className="text-center rounded-[11px] p-2.5 flex flex-col justify-center gap-1" style={{ background: "var(--bg-panel)", border: "1px solid var(--border)", minHeight: 60, boxSizing: "border-box" }}>
                 <div className="font-display text-[15px] tracking-[0.12em] uppercase">{nom}</div>
                 <div className="text-[11px]" style={{ color: "var(--ink-secondary)" }}>
                   {dayLabels[i]}
                 </div>
+                {(echeancesByDay[i] ?? []).map((e, j) => (
+                  <div
+                    key={j}
+                    className="text-[10px] font-bold px-1.5 py-0.5 rounded truncate"
+                    style={{ background: `${e.color}26`, color: e.color }}
+                    title={`${e.titre}${e.detail ? " — " + e.detail : ""}`}
+                  >
+                    {e.titre}
+                  </div>
+                ))}
               </div>
 
               <div ref={(el) => { colRefs.current[i] = el; }} className="rounded-[11px] relative" style={{ height: hauteurGrille, background: "var(--bg-panel)", border: "1px solid var(--border)" }}>

@@ -10,7 +10,7 @@ import { parseHeureMin } from "@/lib/disposition-horaire";
 import { estEnVacances, type ZoneScolaire } from "@/lib/vacances-scolaires";
 import { toDateInputValue } from "@/lib/week";
 
-type Evt = { label: string; color: string; detail: string };
+type Evt = { id: string; label: string; color: string; detail: string };
 
 const MOIS_LONG = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -42,7 +42,7 @@ export default async function CalendrierPage() {
     const d = new Date(e.date);
     if (d.getFullYear() === year && d.getMonth() === month) {
       const list = echeancesByDay.get(d.getDate()) ?? [];
-      list.push({ label: e.titre, color: e.color, detail: e.detail });
+      list.push({ id: e.id, label: e.titre, color: e.color, detail: e.detail });
       echeancesByDay.set(d.getDate(), list);
     }
   }
@@ -108,7 +108,7 @@ export default async function CalendrierPage() {
       n: d,
       dateIso,
       evenements,
-      echeances: (echeancesByDay.get(d) ?? []).map((e) => ({ titre: e.label, detail: e.detail, color: e.color })),
+      echeances: (echeancesByDay.get(d) ?? []).map((e) => ({ id: e.id, titre: e.label, detail: e.detail, color: e.color })),
     });
   }
 
