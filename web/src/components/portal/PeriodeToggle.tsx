@@ -16,7 +16,11 @@ export function PeriodeToggle({ current }: { current: string }) {
   function set(value: string) {
     const params = new URLSearchParams(searchParams);
     params.set("periode", value);
-    router.push(`/coach?${params.toString()}`);
+    // /coach n'est qu'une redirection codée en dur vers /general?vue=coach
+    // (voir app/(portal)/coach/page.tsx) : elle ne repropage pas la query
+    // string d'origine, donc la période (et maintenant coachId) revenait
+    // silencieusement à sa valeur par défaut à chaque clic.
+    router.push(`/general?${params.toString()}`);
   }
 
   return (

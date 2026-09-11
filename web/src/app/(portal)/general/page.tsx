@@ -53,8 +53,8 @@ function donut(items: { m: number; color: string }[]) {
   return { total, css: `conic-gradient(${stops})` };
 }
 
-export default async function GeneralPage({ searchParams }: { searchParams: Promise<{ vue?: string; periode?: string }> }) {
-  const { vue, periode = "4" } = await searchParams;
+export default async function GeneralPage({ searchParams }: { searchParams: Promise<{ vue?: string; periode?: string; coachId?: string }> }) {
+  const { vue, periode = "4", coachId: coachIdParam } = await searchParams;
   const session = await getSession();
   const isCoach = vue === "coach";
 
@@ -69,7 +69,7 @@ export default async function GeneralPage({ searchParams }: { searchParams: Prom
           current={isCoach ? "coach" : "globale"}
         />
       </div>
-      {isCoach ? <CoachDashboard coachId={session?.coachId ?? null} periode={periode} /> : <GlobalDashboard />}
+      {isCoach ? <CoachDashboard sessionCoachId={session?.coachId ?? null} isAdmin={session?.role === "ADMIN"} coachIdParam={coachIdParam} periode={periode} /> : <GlobalDashboard />}
     </div>
   );
 }
@@ -268,12 +268,33 @@ async function GlobalDashboard() {
   );
 }
 
-async function CoachDashboard({ coachId, periode }: { coachId: string | null; periode: string }) {
+async function CoachDashboard({
+  sessionCoachId,
+  isAdmin,
+  coachIdParam,
+  periode,
+}: {
+  sessionCoachId: string | null;
+  isAdmin: boolean;
+  coachIdParam: string | undefined;
+  periode: string;
+}) {
+  // Un admin n'a pas de fiche coach propre (pas de "mon" tableau de bord),
+  // mais doit pouvoir consulter celui de n'importe quel coach plutôt que de
+  // se voir cette vue interdite — un coach, lui, ne voit que la sienne.
+  let coachId = sessionCoachId;
+  let tousLesCoachs: { id: string; nom: string }[] = [];
+  if (isAdmin) {
+    const coachs = await prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } });
+    tousLesCoachs = coachs.map((c) => ({ id: c.id, nom: c.user.name }));
+    coachId = (coachIdParam && tousLesCoachs.some((c) => c.id === coachIdParam) ? coachIdParam : tousLesCoachs[0]?.id) ?? null;
+  }
+
   if (!coachId) {
     return (
       <Card>
         <div className="text-sm" style={{ color: "var(--ink-secondary)" }}>
-          Cette vue est réservée aux comptes coach.
+          {isAdmin ? "Aucun coach à afficher pour le moment." : "Cette vue est réservée aux comptes coach."}
         </div>
       </Card>
     );
@@ -331,6 +352,27 @@ async function CoachDashboard({ coachId, periode }: { coachId: string | null; pe
 
   return (
     <>
+      {isAdmin && tousLesCoachs.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+            Vue de :
+          </span>
+          {tousLesCoachs.map((c) => (
+            <Link
+              key={c.id}
+              href={`/general?vue=coach&coachId=${c.id}`}
+              className="rounded-full px-3.5 py-1.5 text-[13px] font-semibold"
+              style={{
+                background: c.id === coachId ? "linear-gradient(135deg,#1E7BFF,#0F5FD6)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${c.id === coachId ? "transparent" : "var(--border)"}`,
+                color: c.id === coachId ? "#fff" : "var(--ink-body)",
+              }}
+            >
+              {c.nom}
+            </Link>
+          ))}
+        </div>
+      )}
       <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
         {statsCoach.map((s) => (
           <Card key={s.label} padding={18}>

@@ -13,9 +13,9 @@ const POLES = ["FORMATION", "COMPETITION", "SAUVETAGE", "LOISIR"];
 
 // Grille partagée entre l'en-tête et les lignes du tableau, pour que les
 // colonnes restent alignées quelle que soit la longueur du contenu. Le pôle
-// n'est pas une colonne : les groupes sont déjà regroupés par pôle (comme
-// sur /nageurs), la section fait déjà office d'étiquette.
-const ROW_COLUMNS = "1.4fr 130px 90px 170px 1.3fr 170px";
+// est éditable ici (pas juste affiché par la section) : sans ça, un groupe
+// créé dans le mauvais pôle n'a plus aucun moyen d'en changer.
+const ROW_COLUMNS = "1.2fr 130px 110px 80px 160px 1.1fr 150px";
 const LABEL_STYLE: React.CSSProperties = { color: "#61789B", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 };
 const INPUT_STYLE: React.CSSProperties = { background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" };
 
@@ -125,9 +125,9 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
               </span>
             </div>
             <div className="overflow-x-auto">
-              <div style={{ minWidth: 900 }}>
+              <div style={{ minWidth: 1000 }}>
                 <div className="grid gap-3 px-3.5 py-2" style={{ gridTemplateColumns: ROW_COLUMNS, background: "rgba(255,255,255,0.02)", borderBottom: "1px solid var(--border)" }}>
-                  {["Groupe", "Catégorie", "Effectif", "Coach responsable", "Objectif en cours", "Actions"].map((label) => (
+                  {["Groupe", "Pôle", "Catégorie", "Effectif", "Coach responsable", "Objectif en cours", "Actions"].map((label) => (
                     <div key={label} style={{ ...LABEL_STYLE, marginBottom: 0 }}>
                       {label}
                     </div>
@@ -151,6 +151,18 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
                         className="w-full rounded-[9px] px-2.5 py-2 text-sm font-semibold outline-none"
                         style={INPUT_STYLE}
                       />
+                      <select
+                        defaultValue={g.pole}
+                        onChange={(e) => updateGroupe(g.id, { pole: e.target.value })}
+                        className="w-full rounded-[9px] px-2.5 py-2 text-sm outline-none"
+                        style={INPUT_STYLE}
+                      >
+                        {POLES.map((p) => (
+                          <option key={p} value={p} style={{ background: "#101A2B" }}>
+                            {POLE_LABELS[p] ?? p}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         key={`${g.id}-categorie-${g.categorie}`}
                         defaultValue={g.categorie}
