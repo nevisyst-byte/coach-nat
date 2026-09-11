@@ -33,6 +33,10 @@ export const NAV_GROUPS = [
     label: "Plan d'entraînement",
     items: [{ id: "entrainement", href: "/entrainement", icon: "✦", label: "Plan d'entraînement" }],
   },
+  {
+    label: "Outils",
+    items: [{ id: "allures", href: "/outils/allures", icon: "⏱", label: "Allures & VMA" }],
+  },
 ] as const;
 
 export const MOBILE_TABS = [

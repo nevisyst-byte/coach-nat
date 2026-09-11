@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { formatProgression } from "@/lib/chrono";
+import { AllureVmaTool } from "./AllureVmaTool";
 
 type Perf = { epreuve: string; temps: string; points: number; niveau: string; deltaSaison: string; rangNat: string; saison: string; tempsDebutSaison?: string | null };
 type TechCritere = { nom: string; note: number };
@@ -122,7 +123,7 @@ export function FicheNageur({
     }
   }
 
-  const tabs = ["Cotation FFN", "Notation technique", "Assiduité", "Évolution"];
+  const tabs = ["Cotation FFN", "Notation technique", "Assiduité", "Évolution", "Allures & VMA"];
 
   const perfsCourants = saisonActive ? perfs.filter((p) => p.saison === saisonActive) : perfs;
 
@@ -449,6 +450,12 @@ export function FicheNageur({
             </div>
           </Card>
         </div>
+      )}
+
+      {tab === 4 && (
+        <Card className="mt-4">
+          <AllureVmaTool />
+        </Card>
       )}
 
       {notation && (

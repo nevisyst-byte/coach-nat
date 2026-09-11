@@ -522,9 +522,14 @@ export function EntrainementClient({
           <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl overflow-hidden flex flex-col" style={{ maxWidth: 780, maxHeight: "90vh", background: "#101A2B", border: "1px solid var(--border-strong)" }}>
             <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
               <h2 className="font-display text-[20px] tracking-[0.05em]">{modal.mode === "new" ? "Nouveau plan d'entraînement" : "Modifier le plan"}</h2>
-              <button onClick={() => setModal(null)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
-                ✕
-              </button>
+              <div className="flex items-center gap-2.5">
+                <Link href="/outils/allures" target="_blank" className="text-[12px] font-semibold underline" style={{ color: "#7FDCFF" }}>
+                  Tableaux d&apos;allures →
+                </Link>
+                <button onClick={() => setModal(null)} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
+                  ✕
+                </button>
+              </div>
             </div>
 
             <div className="px-6 py-4 flex-1 overflow-y-auto flex flex-col gap-4">

@@ -18,6 +18,7 @@ export const TITLES: Record<string, [string, string, string]> = {
   "/absences": ["Absences & congés", "Indisponibilités coach et absences nageurs", "Planning"],
   "/nageurs": ["Nageurs", "Effectif suivi · cotation FFN et rankings", "Nageurs"],
   "/entrainement": ["Entraînement", "Un plan par groupe, du thème macro au contenu chiffré", "Entraînement"],
+  "/outils/allures": ["Allures & VMA", "Temps test 100m nage complète → allures cibles par type d'entraînement", "Outils"],
 };
 
 function titleForGeneral(vue?: string | null): [string, string, string] {
@@ -86,6 +87,12 @@ export const HERO: Record<string, Hero> = {
     kicker: "Macro → micro", title: "Un plan par groupe, semaine après semaine",
     text: "Choisis un groupe, planifie un objectif sur une période, détaille-le (variant/intensité/nage ou saisie manuelle) — appliqué automatiquement à chaque créneau, modifiable au cas par cas.",
     cta1: { label: "Planning", href: "/planning" },
+  },
+  "/outils/allures": {
+    img: "/assets/flip-turn.jpg", pos: "center 40%", veil: "corner",
+    kicker: "Nouvel outil", title: "Allures et VMA",
+    text: "Un temps test sur 100m nage complète, des allures cibles par type d'entraînement — à partir des grilles du coach.",
+    cta1: { label: "Plan d'entraînement", href: "/entrainement" },
   },
 };
 
