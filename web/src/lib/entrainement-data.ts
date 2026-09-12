@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
 import type { SectionManuelle } from "@/lib/seance-manual";
-import type { Combo } from "@/lib/seance-generator";
+import { normalizeCombos } from "@/lib/seance-generator";
 
 // Données communes aux deux écrans de planification d'un plan
 // d'entraînement (grille par objectif, calendrier par groupe) — une seule
@@ -36,7 +36,7 @@ export async function getEntrainementData() {
       intensite: p.intensite,
       nage: p.nage,
       volumeNage: p.volumeNage,
-      combos: p.combos as unknown as Combo[] | null,
+      combos: normalizeCombos(p.combos),
       sections: p.sections as unknown as SectionManuelle[] | null,
       dateDebut: p.dateDebut.toISOString(),
       dateFin: p.dateFin.toISOString(),
@@ -47,7 +47,7 @@ export async function getEntrainementData() {
       nom: m.nom,
       theme: m.theme,
       heureDebut: m.heureDebut,
-      combos: m.combos as unknown as Combo[] | null,
+      combos: normalizeCombos(m.combos),
       volumeNage: m.volumeNage,
       sections: m.sections as unknown as SectionManuelle[] | null,
     })),

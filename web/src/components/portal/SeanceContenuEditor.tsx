@@ -16,12 +16,20 @@ export const AXES = [
 ];
 
 export function comboVide(): Combo {
-  return { variant: AXES[0].options[0], intensite: AXES[1].options[0], nage: AXES[2].options[0], pourcentage: 100 };
+  return { variant: [AXES[0].options[0]], intensite: [AXES[1].options[0]], nage: [AXES[2].options[0]], pourcentage: 100 };
 }
 
+// Une répartition peut cocher plusieurs valeurs par axe (ex. Crawl + Dos) —
+// son % est alors partagé à parts égales entre elles pour ce camembert,
+// plutôt que compté en double.
 export function camembertsAxes(field: "nage" | "intensite" | "variant", combos: Combo[]): CamembertItem[] {
   const sums = new Map<string, number>();
-  for (const c of combos) sums.set(c[field], (sums.get(c[field]) ?? 0) + c.pourcentage);
+  for (const c of combos) {
+    const valeurs = c[field];
+    if (valeurs.length === 0) continue;
+    const part = c.pourcentage / valeurs.length;
+    for (const v of valeurs) sums.set(v, (sums.get(v) ?? 0) + part);
+  }
   return Array.from(sums.entries())
     .sort((a, b) => b[1] - a[1])
     .map(([nom, m], i) => ({ nom, m, color: PALETTE[i % PALETTE.length] }));
@@ -94,8 +102,19 @@ export function SeanceContenuEditor({
   function supprimerCombo(index: number) {
     onChange((v) => ({ ...v, combos: v.combos.filter((_, i) => i !== index) }));
   }
-  function updateCombo(index: number, field: "variant" | "intensite" | "nage", val: string) {
-    onChange((v) => ({ ...v, combos: v.combos.map((c, i) => (i === index ? { ...c, [field]: val } : c)) }));
+  // Coche/décoche une valeur pour cet axe de cette répartition — au moins
+  // une valeur doit rester cochée par axe, donc la dernière ne se décoche
+  // pas (il faudrait alors en cocher une autre d'abord).
+  function toggleComboValeur(index: number, field: "variant" | "intensite" | "nage", valeur: string) {
+    onChange((v) => ({
+      ...v,
+      combos: v.combos.map((c, i) => {
+        if (i !== index) return c;
+        const present = c[field].includes(valeur);
+        if (present && c[field].length === 1) return c;
+        return { ...c, [field]: present ? c[field].filter((x) => x !== valeur) : [...c[field], valeur] };
+      }),
+    }));
   }
   function updateComboPourcentage(index: number, val: number) {
     onChange((v) => ({ ...v, combos: v.combos.map((c, i) => (i === index ? { ...c, pourcentage: val } : c)) }));
@@ -242,7 +261,7 @@ export function SeanceContenuEditor({
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {ax.options.map((o) => (
-                          <Chip key={o} active={combo[ax.key] === o} onClick={() => updateCombo(index, ax.key, o)}>
+                          <Chip key={o} active={combo[ax.key].includes(o)} onClick={() => toggleComboValeur(index, ax.key, o)}>
                             {o}
                           </Chip>
                         ))}

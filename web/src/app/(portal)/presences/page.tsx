@@ -7,7 +7,7 @@ import { PresenceRoster } from "@/components/portal/PresenceRoster";
 import { JOURS } from "@/lib/format";
 import { lastOccurrenceOnOrBefore, toDateInputValue } from "@/lib/week";
 import { resolveSeanceInstance } from "@/lib/seance-instance";
-import { genererSeance, genererSeanceMulti, type Bloc, type Combo } from "@/lib/seance-generator";
+import { genererSeance, genererSeanceMulti, normalizeCombos, type Bloc } from "@/lib/seance-generator";
 import { couleurObjectif } from "@/lib/objectifs";
 import { seanceDepuisPlan } from "@/lib/plan-entrainement";
 import { AjustementBloc } from "@/components/portal/AjustementBloc";
@@ -84,7 +84,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
   // de plan d'entraînement séparé pour un stage) — mêmes sections/combos que
   // sur un plan classique, lus directement sur le créneau.
   const sectionsStage = creneauStageActuel?.sections as unknown as SectionManuelle[] | null;
-  const combosStage = creneauStageActuel?.combos as unknown as Combo[] | null;
+  const combosStage = normalizeCombos(creneauStageActuel?.combos);
   const contenuStage =
     !instance.blocs && creneauStageActuel
       ? sectionsStage && sectionsStage.length > 0

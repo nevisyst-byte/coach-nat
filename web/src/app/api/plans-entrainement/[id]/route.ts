@@ -15,7 +15,12 @@ const setSchema = z.object({
   nages: z.array(z.string()).default([]),
 });
 const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.string(), sets: z.array(setSchema) });
-const comboSchema = z.object({ variant: z.string(), intensite: z.string(), nage: z.string(), pourcentage: z.number().min(0).max(100) });
+const comboSchema = z.object({
+  variant: z.array(z.string()).min(1),
+  intensite: z.array(z.string()).min(1),
+  nage: z.array(z.string()).min(1),
+  pourcentage: z.number().min(0).max(100),
+});
 
 const bodySchema = z.object({
   nom: z.string().min(1).optional(),
@@ -52,7 +57,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       ...(nom !== undefined ? { nom } : {}),
       ...(theme !== undefined ? { theme } : {}),
       ...(heureDebut !== undefined ? { heureDebut } : {}),
-      ...(comboUnique ? { variant: comboUnique.variant, intensite: comboUnique.intensite, nage: comboUnique.nage } : variant !== undefined ? { variant } : {}),
+      ...(comboUnique ? { variant: comboUnique.variant.join(" + "), intensite: comboUnique.intensite.join(" + "), nage: comboUnique.nage.join(" + ") } : variant !== undefined ? { variant } : {}),
       ...(!comboUnique && intensite !== undefined ? { intensite } : {}),
       ...(!comboUnique && nage !== undefined ? { nage } : {}),
       ...(volumeNage !== undefined ? { volumeNage } : {}),

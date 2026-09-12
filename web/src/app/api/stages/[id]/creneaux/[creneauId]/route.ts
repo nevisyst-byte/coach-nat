@@ -14,7 +14,12 @@ const setSchema = z.object({
   nages: z.array(z.string()).default([]),
 });
 const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.string(), sets: z.array(setSchema) });
-const comboSchema = z.object({ variant: z.string(), intensite: z.string(), nage: z.string(), pourcentage: z.number().min(0).max(100) });
+const comboSchema = z.object({
+  variant: z.array(z.string()).min(1),
+  intensite: z.array(z.string()).min(1),
+  nage: z.array(z.string()).min(1),
+  pourcentage: z.number().min(0).max(100),
+});
 
 const bodySchema = z.object({
   jour: z.number().int().min(0).max(6).optional(),
@@ -45,7 +50,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     where: { id: creneauId },
     data: {
       ...rest,
-      ...(comboUnique ? { variant: comboUnique.variant, intensite: comboUnique.intensite, nage: comboUnique.nage } : combos !== undefined ? { variant: null, intensite: null, nage: null } : {}),
+      ...(comboUnique ? { variant: comboUnique.variant.join(" + "), intensite: comboUnique.intensite.join(" + "), nage: comboUnique.nage.join(" + ") } : combos !== undefined ? { variant: null, intensite: null, nage: null } : {}),
       ...(combos !== undefined ? { combos: combos === null || combos.length === 0 ? Prisma.JsonNull : combos } : {}),
       ...(sections !== undefined ? { sections: sections === null ? Prisma.JsonNull : sections } : {}),
     },

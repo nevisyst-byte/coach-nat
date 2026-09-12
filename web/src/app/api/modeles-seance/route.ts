@@ -13,7 +13,12 @@ const setSchema = z.object({
   nages: z.array(z.string()).default([]),
 });
 const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.string(), sets: z.array(setSchema) });
-const comboSchema = z.object({ variant: z.string(), intensite: z.string(), nage: z.string(), pourcentage: z.number().min(0).max(100) });
+const comboSchema = z.object({
+  variant: z.array(z.string()).min(1),
+  intensite: z.array(z.string()).min(1),
+  nage: z.array(z.string()).min(1),
+  pourcentage: z.number().min(0).max(100),
+});
 
 const bodySchema = z.object({
   nom: z.string().min(1),

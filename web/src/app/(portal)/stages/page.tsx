@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { StagesClient } from "@/components/portal/StagesClient";
 import { Card } from "@/components/ui/Card";
-import type { Combo } from "@/lib/seance-generator";
+import { normalizeCombos } from "@/lib/seance-generator";
 import type { SectionManuelle } from "@/lib/seance-manual";
 
 export default async function StagesPage({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
@@ -70,7 +70,7 @@ export default async function StagesPage({ searchParams }: { searchParams: Promi
           variant: c.variant,
           intensite: c.intensite,
           nage: c.nage,
-          combos: c.combos as unknown as Combo[] | null,
+          combos: normalizeCombos(c.combos),
           sections: c.sections as unknown as SectionManuelle[] | null,
           coachId: c.coachId,
           coach: c.coach ? { user: { name: c.coach.user.name } } : null,
@@ -84,7 +84,7 @@ export default async function StagesPage({ searchParams }: { searchParams: Promi
         nom: m.nom,
         theme: m.theme,
         heureDebut: m.heureDebut,
-        combos: m.combos as unknown as Combo[] | null,
+        combos: normalizeCombos(m.combos),
         volumeNage: m.volumeNage,
         sections: m.sections as unknown as SectionManuelle[] | null,
       }))}

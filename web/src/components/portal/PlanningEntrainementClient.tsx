@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { OBJECTIFS } from "@/lib/objectifs";
 import { mondayOf, toDateInputValue } from "@/lib/week";
@@ -20,6 +20,8 @@ function ajouterJours(d: Date, n: number) {
 function joursEntre(a: Date, b: Date) {
   return Math.round((b.getTime() - a.getTime()) / 86400000);
 }
+
+type DragModele = { modeleId: string; modeleNom: string; x: number; y: number };
 
 export function PlanningEntrainementClient({
   groupesParPole,
@@ -81,6 +83,55 @@ export function PlanningEntrainementClient({
       setSurvolCellule(null);
     }
   }
+
+  // Glisser un modèle depuis la liste jusqu'à une case du calendrier — en
+  // souris/tactile natifs (mousedown/mousemove/mouseup), pas le drag&drop
+  // HTML5 (draggable/dragstart) qui ne déclenche rien sur tablette : même
+  // pattern que le glisser-déposer déjà utilisé sur le Planning hebdo.
+  const dragRef = useRef<DragModele | null>(null);
+  const [dragState, setDragState] = useState<DragModele | null>(null);
+
+  function startDragModele(e: React.MouseEvent, m: Modele) {
+    e.preventDefault();
+    dragRef.current = { modeleId: m.id, modeleNom: m.nom, x: e.clientX, y: e.clientY };
+    setDragState(dragRef.current);
+  }
+
+  useEffect(() => {
+    function celluleSous(x: number, y: number) {
+      const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-cellule-id]");
+      return el?.dataset.celluleId ?? null;
+    }
+
+    function onMove(e: MouseEvent) {
+      const info = dragRef.current;
+      if (!info) return;
+      dragRef.current = { ...info, x: e.clientX, y: e.clientY };
+      setDragState(dragRef.current);
+      setSurvolCellule(celluleSous(e.clientX, e.clientY));
+    }
+
+    function onUp(e: MouseEvent) {
+      const info = dragRef.current;
+      dragRef.current = null;
+      setDragState(null);
+      setSurvolCellule(null);
+      if (!info) return;
+      const celluleId = celluleSous(e.clientX, e.clientY);
+      if (!celluleId) return;
+      const [objectifNom, indexStr] = celluleId.split("|");
+      const modele = modeles.find((m) => m.id === info.modeleId);
+      if (modele) creerDepuisModele(objectifNom, semaines[Number(indexStr)], modele);
+    }
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modeles, groupe?.id]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -144,21 +195,10 @@ export function PlanningEntrainementClient({
                         return (
                           <div
                             key={i}
+                            data-cellule-id={celluleId}
                             className="shrink-0"
                             style={{ width: LARGEUR_SEMAINE, height: "100%", borderLeft: i > 0 ? "1px solid var(--border)" : undefined, background: survolCellule === celluleId ? "rgba(30,123,255,0.14)" : undefined }}
                             onClick={() => setModalOpen({ mode: "new", presetTheme: objectif.nom, presetDate: s, groupeId: groupe.id })}
-                            onDragOver={(e) => {
-                              e.preventDefault();
-                              setSurvolCellule(celluleId);
-                            }}
-                            onDragLeave={() => setSurvolCellule((c) => (c === celluleId ? null : c))}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              const modeleId = e.dataTransfer.getData("text/modele-id");
-                              const modele = modeles.find((m) => m.id === modeleId);
-                              if (modele) creerDepuisModele(objectif.nom, s, modele);
-                              else setSurvolCellule(null);
-                            }}
                           />
                         );
                       })}
@@ -175,7 +215,7 @@ export function PlanningEntrainementClient({
                                 setModalOpen({ mode: "edit", plan: p });
                               }}
                               className="absolute rounded-md px-2 flex items-center text-[11px] font-semibold truncate cursor-pointer"
-                              style={{ top: 8, height: 28, left: style.left + 2, width: style.width, background: `${objectif.color}55`, border: `1px solid ${objectif.color}` }}
+                              style={{ top: 8, height: 28, left: style.left + 2, width: style.width, background: `${objectif.color}55`, border: `1px solid ${objectif.color}`, pointerEvents: "auto" }}
                               title={p.nom}
                             >
                               {p.nom}
@@ -202,9 +242,8 @@ export function PlanningEntrainementClient({
               {modeles.map((m) => (
                 <div
                   key={m.id}
-                  draggable
-                  onDragStart={(e) => e.dataTransfer.setData("text/modele-id", m.id)}
-                  className="rounded-lg px-2.5 py-2 text-[12px] font-semibold cursor-grab truncate"
+                  onMouseDown={(e) => startDragModele(e, m)}
+                  className="rounded-lg px-2.5 py-2 text-[12px] font-semibold cursor-grab truncate select-none"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink-body)" }}
                   title={`${m.nom} — glisser sur une case`}
                 >
@@ -218,6 +257,15 @@ export function PlanningEntrainementClient({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {dragState && (
+        <div
+          className="fixed z-[200] rounded-lg px-3 py-2 text-[12px] font-bold pointer-events-none"
+          style={{ left: dragState.x + 14, top: dragState.y + 14, background: "#1E7BFF", color: "#fff", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}
+        >
+          {dragState.modeleNom}
         </div>
       )}
 

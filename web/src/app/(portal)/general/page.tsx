@@ -6,24 +6,28 @@ import { Camembert } from "@/components/ui/Camembert";
 import { PeriodeToggle } from "@/components/portal/PeriodeToggle";
 import { hoursBetween, JOURS } from "@/lib/format";
 import { toDateInputValue } from "@/lib/week";
-import type { Combo } from "@/lib/seance-generator";
+import { normalizeCombos } from "@/lib/seance-generator";
 
 const PALETTE = ["#1E7BFF", "#24C8FF", "#2ECC8F", "#F2B33D", "#E8442B", "#8C6BFF", "#5B7BA6"];
 
-type ComboPoids = { variant: string | null; intensite: string | null; nage: string | null; pourcentage: number | null };
-type InstanceRow = { variant: string | null; intensite: string | null; nage: string | null; volumeNage: number | null };
+type ComboPoids = { variant: string[]; intensite: string[]; nage: string[]; pourcentage: number | null };
+type InstanceRow = { variant: string[]; intensite: string[]; nage: string[]; volumeNage: number | null };
 
-function aggregerParPoids<T extends { variant: string | null; intensite: string | null; nage: string | null }>(
+// Une répartition peut cocher plusieurs valeurs par axe (ex. Crawl + Dos) —
+// son poids (% ou volume) est alors partagé à parts égales entre elles
+// pour l'axe agrégé, plutôt que compté en double.
+function aggregerParPoids<T extends { variant: string[]; intensite: string[]; nage: string[] }>(
   raw: T[],
   field: "variant" | "intensite" | "nage",
   poids: (r: T) => number | null
 ) {
   const sums = new Map<string, number>();
   for (const r of raw) {
-    const key = r[field];
+    const valeurs = r[field];
     const p = poids(r);
-    if (!key || !p) continue;
-    sums.set(key, (sums.get(key) ?? 0) + p);
+    if (!p || valeurs.length === 0) continue;
+    const part = p / valeurs.length;
+    for (const v of valeurs) sums.set(v, (sums.get(v) ?? 0) + part);
   }
   return Array.from(sums.entries())
     .sort((a, b) => b[1] - a[1])
@@ -139,7 +143,7 @@ async function CoachDashboard({
     for (const plan of plansRealise) {
       if (!plan.groupes.some((g) => g.id === c.groupeId)) continue;
       if (!plan.volumeNage) continue;
-      const combos = plan.combos as unknown as Combo[] | null;
+      const combos = normalizeCombos(plan.combos);
       const debutFenetre = plan.dateDebut > since ? plan.dateDebut : since;
       const n = occurrencesDuJour(c.jour, debutFenetre, plan.dateFin);
       if (combos && combos.length > 0) {
@@ -149,18 +153,18 @@ async function CoachDashboard({
           }
         }
       } else if (plan.variant && plan.intensite && plan.nage) {
-        for (let i = 0; i < n; i++) volumeRealise.push({ variant: plan.variant, intensite: plan.intensite, nage: plan.nage, volumeNage: plan.volumeNage });
+        for (let i = 0; i < n; i++) volumeRealise.push({ variant: [plan.variant], intensite: [plan.intensite], nage: [plan.nage], volumeNage: plan.volumeNage });
       }
     }
   }
 
   const combosCible: ComboPoids[] = [];
   for (const plan of plansCible) {
-    const combos = plan.combos as unknown as Combo[] | null;
+    const combos = normalizeCombos(plan.combos);
     if (combos && combos.length > 0) {
       for (const combo of combos) combosCible.push({ variant: combo.variant, intensite: combo.intensite, nage: combo.nage, pourcentage: combo.pourcentage });
     } else if (plan.variant && plan.intensite && plan.nage) {
-      combosCible.push({ variant: plan.variant, intensite: plan.intensite, nage: plan.nage, pourcentage: 100 });
+      combosCible.push({ variant: [plan.variant], intensite: [plan.intensite], nage: [plan.nage], pourcentage: 100 });
     }
   }
 
