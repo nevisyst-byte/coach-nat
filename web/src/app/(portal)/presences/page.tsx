@@ -7,13 +7,13 @@ import { PresenceRoster } from "@/components/portal/PresenceRoster";
 import { JOURS } from "@/lib/format";
 import { lastOccurrenceOnOrBefore, toDateInputValue } from "@/lib/week";
 import { resolveSeanceInstance } from "@/lib/seance-instance";
-import { genererSeance, type Bloc } from "@/lib/seance-generator";
+import { genererSeance, genererSeanceMulti, type Bloc, type Combo } from "@/lib/seance-generator";
 import { couleurObjectif } from "@/lib/objectifs";
 import { seanceDepuisPlan } from "@/lib/plan-entrainement";
 import { AjustementBloc } from "@/components/portal/AjustementBloc";
 import { EditerSeanceInstance } from "@/components/portal/EditerSeanceInstance";
 import { getSession } from "@/lib/auth";
-import type { SectionManuelle } from "@/lib/seance-manual";
+import { buildManualBlocs, type SectionManuelle } from "@/lib/seance-manual";
 
 export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string; date?: string }> }) {
   const [creneaux, creneauxStage] = await Promise.all([
@@ -76,8 +76,25 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
   const rosterNageurs = nageurs.map((n) => ({ nom: n.nom, initiales: n.initiales, sousTitre: n.groupe?.categorie ?? n.categorie, etat: etatMap.get(n.nom) ?? "PRESENT", nageurId: n.id }));
 
   const creneauReg = kind === "reg" ? creneaux.find((c) => c.id === id) : null;
+  const creneauStageActuel = kind === "stage" ? creneauxStage.find((c) => c.id === id) : null;
   const groupeId = creneauReg?.groupeId ?? null;
   const planContenu = !instance.blocs && groupeId ? await seanceDepuisPlan(groupeId, new Date(`${date}T00:00:00`)) : null;
+
+  // Un créneau de stage porte directement son propre contenu détaillé (pas
+  // de plan d'entraînement séparé pour un stage) — mêmes sections/combos que
+  // sur un plan classique, lus directement sur le créneau.
+  const sectionsStage = creneauStageActuel?.sections as unknown as SectionManuelle[] | null;
+  const combosStage = creneauStageActuel?.combos as unknown as Combo[] | null;
+  const contenuStage =
+    !instance.blocs && creneauStageActuel
+      ? sectionsStage && sectionsStage.length > 0
+        ? { resume: `${creneauStageActuel.theme}`, items: buildManualBlocs(creneauStageActuel.debut, sectionsStage).map((bloc) => ({ bloc, sectionId: null, pourcentage: null })) }
+        : combosStage && combosStage.length > 0
+          ? { resume: `${creneauStageActuel.theme}`, items: genererSeanceMulti(combosStage, creneauStageActuel.volume || 0).blocs.map((bloc) => ({ bloc, sectionId: null, pourcentage: null })) }
+          : creneauStageActuel.variant && creneauStageActuel.intensite && creneauStageActuel.nage
+            ? { resume: `${creneauStageActuel.theme}`, items: genererSeance(creneauStageActuel.variant, creneauStageActuel.intensite, creneauStageActuel.nage, creneauStageActuel.volume || 0).blocs.map((bloc) => ({ bloc, sectionId: null, pourcentage: null })) }
+            : null
+      : null;
 
   const seancePrevue = instance.blocs
     ? {
@@ -86,16 +103,18 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
       }
     : planContenu
       ? { resume: `Plan d'entraînement : ${planContenu.nomPlan}`, items: planContenu.items }
-      : instance.variant && instance.intensite && instance.nage && instance.volumeNage
-        ? { resume: `${instance.variant} · ${instance.intensite} · ${instance.nage} · ${instance.volumeNage} m`, items: genererSeance(instance.variant, instance.intensite, instance.nage, instance.volumeNage).blocs.map((bloc) => ({ bloc, sectionId: null, pourcentage: null })) }
-        : null;
+      : contenuStage
+        ? contenuStage
+        : instance.variant && instance.intensite && instance.nage && instance.volumeNage
+          ? { resume: `${instance.variant} · ${instance.intensite} · ${instance.nage} · ${instance.volumeNage} m`, items: genererSeance(instance.variant, instance.intensite, instance.nage, instance.volumeNage).blocs.map((bloc) => ({ bloc, sectionId: null, pourcentage: null })) }
+          : null;
 
   // Pré-remplissage de l'éditeur ponctuel : la surcharge déjà enregistrée
   // pour cette date si elle existe, sinon le détail structuré du plan actif
-  // (rien si le plan est en génération auto ou si aucun plan ne couvre cette
-  // date — l'éditeur démarre alors d'une section vide).
-  const sectionsInitiales = (instance.sections as unknown as SectionManuelle[] | null) ?? planContenu?.sections ?? [];
-  const heureDebutInitiale = instance.heureDebut ?? planContenu?.heureDebut ?? creneauReg?.debut ?? "17:00";
+  // ou du créneau de stage (rien si le contenu est en génération auto ou
+  // qu'aucun des deux n'existe — l'éditeur démarre alors d'une section vide).
+  const sectionsInitiales = (instance.sections as unknown as SectionManuelle[] | null) ?? planContenu?.sections ?? sectionsStage ?? [];
+  const heureDebutInitiale = instance.heureDebut ?? planContenu?.heureDebut ?? creneauReg?.debut ?? creneauStageActuel?.debut ?? "17:00";
 
   const compte = { PRESENT: 0, RETARD: 0, ABSENT: 0, EXCUSE: 0 } as Record<string, number>;
   for (const p of rosterNageurs) compte[p.etat]++;
@@ -173,9 +192,9 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
                 {seancePrevue.resume}
               </div>
               <div className="flex flex-col gap-2.5">
-                {seancePrevue.items.map(({ bloc: b, sectionId, pourcentage }) => (
+                {seancePrevue.items.map(({ bloc: b, sectionId, pourcentage }, i) => (
                   <div
-                    key={b.phase}
+                    key={i}
                     className="flex gap-3.5 rounded-xl px-3.5 py-3"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", borderLeft: `3px solid ${b.objectif ? couleurObjectif(b.objectif) : "var(--border)"}` }}
                   >

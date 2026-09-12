@@ -391,6 +391,16 @@ model CreneauStage {
   bassin    String
   theme     String
   volume    Int         @default(0)
+  // Contenu détaillé, même modèle que PlanEntrainement (combos multi-nage/%
+  // en génération auto, ou sections en saisie manuelle) — variant/intensite/
+  // nage restent renseignés en miroir quand il n'y a qu'une seule répartition,
+  // pour tout code qui les lit encore directement. "volume" ci-dessus sert
+  // de volume cible pour la génération auto (pas de colonne dupliquée).
+  variant   String?
+  intensite String?
+  nage      String?
+  combos    Json?
+  sections  Json?
   instances SeanceInstance[]
   createdAt DateTime    @default(now())
 }

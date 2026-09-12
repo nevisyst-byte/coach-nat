@@ -1,14 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { StagesClient } from "@/components/portal/StagesClient";
 import { Card } from "@/components/ui/Card";
+import type { Combo } from "@/lib/seance-generator";
+import type { SectionManuelle } from "@/lib/seance-manual";
 
 export default async function StagesPage({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   const { stage: stageId } = await searchParams;
 
-  const [stagesRaw, groupes, coachs] = await Promise.all([
+  const [stagesRaw, groupes, coachs, modeles] = await Promise.all([
     prisma.stage.findMany({ include: { jours: true, creneaux: true }, orderBy: { createdAt: "asc" } }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
+    prisma.modeleSeance.findMany({ orderBy: { createdAt: "desc" } }),
   ]);
 
   if (stagesRaw.length === 0) {
@@ -64,12 +67,27 @@ export default async function StagesPage({ searchParams }: { searchParams: Promi
           bassin: c.bassin,
           theme: c.theme,
           volume: c.volume,
+          variant: c.variant,
+          intensite: c.intensite,
+          nage: c.nage,
+          combos: c.combos as unknown as Combo[] | null,
+          sections: c.sections as unknown as SectionManuelle[] | null,
+          coachId: c.coachId,
           coach: c.coach ? { user: { name: c.coach.user.name } } : null,
         })),
       }}
       stages={stages}
       groupesOptions={groupesOptions}
       coachs={coachs.map((c) => ({ id: c.id, nom: c.user.name }))}
+      modeles={modeles.map((m) => ({
+        id: m.id,
+        nom: m.nom,
+        theme: m.theme,
+        heureDebut: m.heureDebut,
+        combos: m.combos as unknown as Combo[] | null,
+        volumeNage: m.volumeNage,
+        sections: m.sections as unknown as SectionManuelle[] | null,
+      }))}
     />
   );
 }
