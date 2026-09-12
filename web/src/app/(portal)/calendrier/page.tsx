@@ -119,6 +119,7 @@ export default async function CalendrierPage({ searchParams }: { searchParams: P
       dateIso,
       evenements,
       echeances: (echeancesByDay.get(d) ?? []).map((e) => ({ id: e.id, titre: e.label, detail: e.detail, color: e.color })),
+      vacances: vac?.nom ?? null,
     });
   }
 

@@ -31,6 +31,7 @@ export type JourDetail = {
   dateIso: string;
   evenements: EvenementDetail[];
   echeances: EcheanceDetail[];
+  vacances: string | null;
 };
 
 const PX_PAR_MIN = 1.7;
@@ -234,24 +235,29 @@ export function VueEnsembleClient({
       <div className="grid grid-cols-7 gap-1.5">
         {cells.map((c, i) => {
           const isToday = c?.n === aujourdhui;
+          const enVacances = !!c?.vacances;
           const badges = c ? [...c.evenements.map((e) => ({ label: e.groupeNom, color: e.kind === "stage" ? (e.stageColor ?? "#8C6BFF") : ETAT_COLOR[e.etat ?? "ASSURE"] })), ...c.echeances.map((e) => ({ label: e.titre, color: e.color }))] : [];
           return (
             <button
               key={i}
               onClick={() => c && setSelectedDate(c.dateIso)}
               disabled={!c}
+              title={c?.vacances ?? undefined}
               className="rounded-[9px] p-1.5 flex flex-col gap-0.5 text-left"
               style={{
                 minHeight: 74,
-                border: `1px solid ${isToday ? "#24C8FF" : "var(--border)"}`,
-                background: isToday ? "rgba(30,123,255,0.22)" : c ? "rgba(255,255,255,0.03)" : "transparent",
+                border: `1px solid ${isToday ? "#24C8FF" : enVacances ? "rgba(242,179,61,0.4)" : "var(--border)"}`,
+                background: isToday ? "rgba(30,123,255,0.22)" : enVacances ? "rgba(242,179,61,0.09)" : c ? "rgba(255,255,255,0.03)" : "transparent",
                 cursor: c ? "pointer" : "default",
               }}
             >
               {c && (
                 <>
-                  <span className="text-[13px] font-semibold" style={{ color: isToday ? "var(--ink)" : "var(--ink-body)" }}>
-                    {c.n}
+                  <span className="flex items-center gap-1">
+                    <span className="text-[13px] font-semibold" style={{ color: isToday ? "var(--ink)" : "var(--ink-body)" }}>
+                      {c.n}
+                    </span>
+                    {enVacances && <span style={{ fontSize: 10 }}>🏖</span>}
                   </span>
                   {badges.slice(0, 3).map((e, j) => (
                     <span
@@ -273,9 +279,16 @@ export function VueEnsembleClient({
         <div onClick={fermer} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
           <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl overflow-hidden flex flex-col" style={{ maxWidth: 520, maxHeight: "88vh", background: "#101A2B", border: "1px solid var(--border-strong)" }}>
             <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
-              <h2 className="font-display text-[19px] tracking-[0.05em]">
-                {selected.n} {mois}
-              </h2>
+              <div>
+                <h2 className="font-display text-[19px] tracking-[0.05em]">
+                  {selected.n} {mois}
+                </h2>
+                {selected.vacances && (
+                  <div className="text-[12px] font-semibold mt-0.5" style={{ color: "#F2B33D" }}>
+                    🏖 {selected.vacances}
+                  </div>
+                )}
+              </div>
               <button onClick={fermer} className="w-[34px] h-[34px] rounded-[9px] cursor-pointer" style={{ border: "1px solid var(--border-strong)" }}>
                 ✕
               </button>
