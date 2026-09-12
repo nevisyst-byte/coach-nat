@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, ProgressBar, SectionTitle } from "@/components/ui/Card";
 import { Camembert } from "@/components/ui/Camembert";
 import { PoleEffectifs } from "@/components/portal/PoleEffectifs";
+import { PeriodeToggle } from "@/components/portal/PeriodeToggle";
 import { ViewToggle } from "@/components/portal/ViewToggle";
 import { hoursBetween, JOURS } from "@/lib/format";
 import { POLE_COLORS } from "@/lib/theme";
@@ -13,17 +14,39 @@ import type { Combo } from "@/lib/seance-generator";
 const PALETTE = ["#1E7BFF", "#24C8FF", "#2ECC8F", "#F2B33D", "#E8442B", "#8C6BFF", "#5B7BA6"];
 
 type ComboPoids = { variant: string | null; intensite: string | null; nage: string | null; pourcentage: number | null };
+type InstanceRow = { variant: string | null; intensite: string | null; nage: string | null; volumeNage: number | null };
 
-function aggregate(raw: ComboPoids[], field: "variant" | "intensite" | "nage") {
+function aggregerParPoids<T extends { variant: string | null; intensite: string | null; nage: string | null }>(
+  raw: T[],
+  field: "variant" | "intensite" | "nage",
+  poids: (r: T) => number | null
+) {
   const sums = new Map<string, number>();
   for (const r of raw) {
     const key = r[field];
-    if (!key || !r.pourcentage) continue;
-    sums.set(key, (sums.get(key) ?? 0) + r.pourcentage);
+    const p = poids(r);
+    if (!key || !p) continue;
+    sums.set(key, (sums.get(key) ?? 0) + p);
   }
   return Array.from(sums.entries())
     .sort((a, b) => b[1] - a[1])
     .map(([nom, m], i) => ({ nom, m, color: PALETTE[i % PALETTE.length] }));
+}
+
+// Nombre d'occurrences hebdomadaires d'un créneau (jour de la semaine, 0 =
+// lundi) entre deux dates incluses.
+function occurrencesDuJour(jour: number, debut: Date, fin: Date): number {
+  if (fin < debut) return 0;
+  let count = 0;
+  const d = new Date(debut);
+  d.setHours(0, 0, 0, 0);
+  const borne = new Date(fin);
+  borne.setHours(0, 0, 0, 0);
+  while (d <= borne) {
+    if ((d.getDay() + 6) % 7 === jour) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
 }
 
 // Prochaine date (aujourd'hui compris) tombant sur ce jour de la semaine —
@@ -36,8 +59,8 @@ function prochaineOccurrence(jour: number, ref: Date = new Date()): Date {
   return d;
 }
 
-export default async function GeneralPage({ searchParams }: { searchParams: Promise<{ vue?: string; coachId?: string }> }) {
-  const { vue, coachId: coachIdParam } = await searchParams;
+export default async function GeneralPage({ searchParams }: { searchParams: Promise<{ vue?: string; periode?: string; coachId?: string }> }) {
+  const { vue, periode = "4", coachId: coachIdParam } = await searchParams;
   const session = await getSession();
   const isCoach = vue === "coach";
 
@@ -52,7 +75,7 @@ export default async function GeneralPage({ searchParams }: { searchParams: Prom
           current={isCoach ? "coach" : "globale"}
         />
       </div>
-      {isCoach ? <CoachDashboard sessionCoachId={session?.coachId ?? null} isAdmin={session?.role === "ADMIN"} coachIdParam={coachIdParam} /> : <GlobalDashboard />}
+      {isCoach ? <CoachDashboard sessionCoachId={session?.coachId ?? null} isAdmin={session?.role === "ADMIN"} coachIdParam={coachIdParam} periode={periode} /> : <GlobalDashboard />}
     </div>
   );
 }
@@ -228,10 +251,12 @@ async function CoachDashboard({
   sessionCoachId,
   isAdmin,
   coachIdParam,
+  periode,
 }: {
   sessionCoachId: string | null;
   isAdmin: boolean;
   coachIdParam: string | undefined;
+  periode: string;
 }) {
   // Un admin n'a pas de fiche coach propre (pas de "mon" tableau de bord),
   // mais doit pouvoir consulter celui de n'importe quel coach plutôt que de
@@ -263,24 +288,59 @@ async function CoachDashboard({
   const heures = creneaux.reduce((a, c) => a + hoursBetween(c.debut, c.fin), 0);
   const groupesIds = new Set(groupes.map((g) => g.id));
 
-  // % cible par nage/intensité/variant tel que fixé à la création du/des
-  // plan(s) d'entraînement actifs aujourd'hui pour les groupes du coach —
-  // pas un volume réalisé (rien ne trace de volume réellement nagé dans
-  // l'appli), juste la répartition visée sur la période en cours.
+  // Deux lectures complémentaires de la répartition nage/intensité/variant :
+  // - "réalisé" : le volume réellement programmé sur une fenêtre passée
+  //   (depuis la reprise, 4/8 semaines ou saison) — sert à repérer un
+  //   déséquilibre (ex. peu de dos travaillé) et rééquilibrer les prochains
+  //   plans. Pas un vrai suivi d'exécution (rien ne trace un volume nagé
+  //   réel), mais le meilleur proxy disponible : ce qui a été planifié.
+  // - "cible" : le % fixé à la création du/des plan(s) actifs aujourd'hui,
+  //   sans dimension temporelle — la répartition visée dès maintenant.
+  const days = periode === "8" ? 56 : periode === "saison" ? 252 : 28;
+  const since = new Date();
+  since.setDate(since.getDate() - days);
   const aujourdhui = new Date();
   aujourdhui.setHours(0, 0, 0, 0);
-  const plans = groupesIds.size
-    ? await prisma.planEntrainement.findMany({
-        where: { groupes: { some: { id: { in: Array.from(groupesIds) } } }, dateDebut: { lte: aujourdhui }, dateFin: { gte: aujourdhui } },
-      })
-    : [];
-  const combosPoids: ComboPoids[] = [];
-  for (const plan of plans) {
+
+  const [plansRealise, plansCible] = groupesIds.size
+    ? await Promise.all([
+        prisma.planEntrainement.findMany({
+          where: { groupes: { some: { id: { in: Array.from(groupesIds) } } }, dateFin: { gte: since } },
+          include: { groupes: { select: { id: true } } },
+        }),
+        prisma.planEntrainement.findMany({
+          where: { groupes: { some: { id: { in: Array.from(groupesIds) } } }, dateDebut: { lte: aujourdhui }, dateFin: { gte: aujourdhui } },
+        }),
+      ])
+    : [[], []];
+
+  const volumeRealise: InstanceRow[] = [];
+  for (const c of creneaux) {
+    for (const plan of plansRealise) {
+      if (!plan.groupes.some((g) => g.id === c.groupeId)) continue;
+      if (!plan.volumeNage) continue;
+      const combos = plan.combos as unknown as Combo[] | null;
+      const debutFenetre = plan.dateDebut > since ? plan.dateDebut : since;
+      const n = occurrencesDuJour(c.jour, debutFenetre, plan.dateFin);
+      if (combos && combos.length > 0) {
+        for (let i = 0; i < n; i++) {
+          for (const combo of combos) {
+            volumeRealise.push({ variant: combo.variant, intensite: combo.intensite, nage: combo.nage, volumeNage: Math.round((plan.volumeNage * combo.pourcentage) / 100) });
+          }
+        }
+      } else if (plan.variant && plan.intensite && plan.nage) {
+        for (let i = 0; i < n; i++) volumeRealise.push({ variant: plan.variant, intensite: plan.intensite, nage: plan.nage, volumeNage: plan.volumeNage });
+      }
+    }
+  }
+
+  const combosCible: ComboPoids[] = [];
+  for (const plan of plansCible) {
     const combos = plan.combos as unknown as Combo[] | null;
     if (combos && combos.length > 0) {
-      for (const combo of combos) combosPoids.push({ variant: combo.variant, intensite: combo.intensite, nage: combo.nage, pourcentage: combo.pourcentage });
+      for (const combo of combos) combosCible.push({ variant: combo.variant, intensite: combo.intensite, nage: combo.nage, pourcentage: combo.pourcentage });
     } else if (plan.variant && plan.intensite && plan.nage) {
-      combosPoids.push({ variant: plan.variant, intensite: plan.intensite, nage: plan.nage, pourcentage: 100 });
+      combosCible.push({ variant: plan.variant, intensite: plan.intensite, nage: plan.nage, pourcentage: 100 });
     }
   }
 
@@ -291,13 +351,15 @@ async function CoachDashboard({
     { icon: "◷", value: `${heures} h`, label: "Heures hebdo" },
   ];
 
-  const parNage = aggregate(combosPoids, "nage");
-  const parIntensite = aggregate(combosPoids, "intensite");
-  const parVariant = aggregate(combosPoids, "variant");
-  const camemberts = [
-    { titre: "Par nage", items: parNage },
-    { titre: "Par intensité", items: parIntensite },
-    { titre: "Par variant", items: parVariant },
+  const camembertsRealise = [
+    { titre: "Par nage", items: aggregerParPoids(volumeRealise, "nage", (r) => r.volumeNage) },
+    { titre: "Par intensité", items: aggregerParPoids(volumeRealise, "intensite", (r) => r.volumeNage) },
+    { titre: "Par variant", items: aggregerParPoids(volumeRealise, "variant", (r) => r.volumeNage) },
+  ].filter((c) => c.items.length > 0);
+  const camembertsCible = [
+    { titre: "Par nage", items: aggregerParPoids(combosCible, "nage", (r) => r.pourcentage) },
+    { titre: "Par intensité", items: aggregerParPoids(combosCible, "intensite", (r) => r.pourcentage) },
+    { titre: "Par variant", items: aggregerParPoids(combosCible, "variant", (r) => r.pourcentage) },
   ].filter((c) => c.items.length > 0);
 
   return (
@@ -389,29 +451,54 @@ async function CoachDashboard({
         </div>
       </Card>
 
-      <Card padding={22}>
-        <div className="mb-5">
-          <h2 className="font-display text-[19px] tracking-[0.06em]">Répartition cible</h2>
-          <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
-            % fixé à la création du/des plan{plans.length > 1 ? "s" : ""} d&apos;entraînement actif{plans.length > 1 ? "s" : ""} aujourd&apos;hui
+      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(420px,1fr))" }}>
+        <Card padding={22}>
+          <div className="flex items-baseline justify-between gap-3.5 flex-wrap mb-5">
+            <div>
+              <h2 className="font-display text-[19px] tracking-[0.06em]">Réalisé</h2>
+              <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
+                Volume programmé sur la période — pour repérer un déséquilibre
+              </div>
+            </div>
+            <PeriodeToggle current={periode} />
           </div>
-        </div>
-        {camemberts.length === 0 ? (
-          <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
-            Aucun plan actif avec une répartition chiffrée pour tes groupes. Utilise{" "}
-            <Link href="/entrainement" style={{ color: "#7FDCFF" }}>
-              Entraînement
-            </Link>{" "}
-            pour planifier un plan sur un groupe et fixer sa répartition.
+          {camembertsRealise.length === 0 ? (
+            <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+              Aucune séance planifiée sur cette période. Utilise{" "}
+              <Link href="/entrainement" style={{ color: "#7FDCFF" }}>
+                Entraînement
+              </Link>{" "}
+              pour planifier un plan sur un groupe et commencer à alimenter cette vue.
+            </div>
+          ) : (
+            <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
+              {camembertsRealise.map((ch) => (
+                <Camembert key={ch.titre} titre={ch.titre} items={ch.items} />
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card padding={22}>
+          <div className="mb-5">
+            <h2 className="font-display text-[19px] tracking-[0.06em]">Cible</h2>
+            <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
+              % fixé à la création du/des plan(s) d&apos;entraînement actif(s) aujourd&apos;hui
+            </div>
           </div>
-        ) : (
-          <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))" }}>
-            {camemberts.map((ch) => (
-              <Camembert key={ch.titre} titre={ch.titre} items={ch.items} totalLabel="cible" formatTotal={() => "100%"} formatValeur={() => ""} />
-            ))}
-          </div>
-        )}
-      </Card>
+          {camembertsCible.length === 0 ? (
+            <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+              Aucun plan actif avec une répartition chiffrée pour tes groupes.
+            </div>
+          ) : (
+            <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
+              {camembertsCible.map((ch) => (
+                <Camembert key={ch.titre} titre={ch.titre} items={ch.items} totalLabel="cible" formatTotal={() => "100%"} formatValeur={() => ""} />
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
 
       <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))" }}>
         <Card>
