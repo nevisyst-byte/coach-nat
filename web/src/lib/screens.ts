@@ -18,6 +18,7 @@ export const TITLES: Record<string, [string, string, string]> = {
   "/absences": ["Absences & congés", "Indisponibilités coach et absences nageurs", "Planning"],
   "/nageurs": ["Nageurs", "Effectif suivi · cotation FFN et rankings", "Nageurs"],
   "/entrainement": ["Entraînement", "Un plan par groupe, du thème macro au contenu chiffré", "Entraînement"],
+  "/entrainement/planning": ["Calendrier des plans", "Un groupe, tous ses plans sur un vrai calendrier", "Entraînement"],
   "/outils/allures": ["Allures & VMA", "Temps test 100m nage complète → allures cibles par type d'entraînement", "Outils"],
 };
 
@@ -87,6 +88,12 @@ export const HERO: Record<string, Hero> = {
     kicker: "Macro → micro", title: "Un plan par groupe, semaine après semaine",
     text: "Choisis un groupe, planifie un objectif sur une période, détaille-le (variant/intensité/nage ou saisie manuelle) — appliqué automatiquement à chaque créneau, modifiable au cas par cas.",
     cta1: { label: "Planning", href: "/planning" },
+  },
+  "/entrainement/planning": {
+    img: "/assets/flip-turn.jpg", pos: "center 40%", veil: "corner",
+    kicker: "Vue calendaire", title: "Tous les plans d'un groupe, sur un vrai calendrier",
+    text: "Une barre par plan, positionnée sur ses vraies dates — glisse un modèle enregistré sur une semaine pour l'appliquer directement.",
+    cta1: { label: "Plan d'entraînement", href: "/entrainement" },
   },
   "/outils/allures": {
     img: "/assets/flip-turn.jpg", pos: "center 40%", veil: "corner",
