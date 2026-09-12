@@ -13,7 +13,7 @@ import { seanceDepuisPlan } from "@/lib/plan-entrainement";
 import { AjustementBloc } from "@/components/portal/AjustementBloc";
 import { EditerSeanceInstance } from "@/components/portal/EditerSeanceInstance";
 import { getSession } from "@/lib/auth";
-import { buildManualBlocs, type SectionManuelle } from "@/lib/seance-manual";
+import { buildManualBlocs, blocsToSections, type SectionManuelle } from "@/lib/seance-manual";
 
 export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string; date?: string }> }) {
   const [creneaux, creneauxStage] = await Promise.all([
@@ -111,9 +111,17 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
 
   // Pré-remplissage de l'éditeur ponctuel : la surcharge déjà enregistrée
   // pour cette date si elle existe, sinon le détail structuré du plan actif
-  // ou du créneau de stage (rien si le contenu est en génération auto ou
-  // qu'aucun des deux n'existe — l'éditeur démarre alors d'une section vide).
-  const sectionsInitiales = (instance.sections as unknown as SectionManuelle[] | null) ?? planContenu?.sections ?? sectionsStage ?? [];
+  // ou du créneau de stage — et si le contenu vient d'une génération auto
+  // (combos/variant, pas de sections manuelles), on reconstruit des sections
+  // éditables à partir des blocs déjà compilés (mêmes 4 phases, mêmes
+  // volumes que "Séance prévue") plutôt que de ne montrer qu'une section
+  // vide : le coach doit pouvoir modifier toute la séance, pas juste
+  // l'échauffement.
+  const sectionsInitiales =
+    (instance.sections as unknown as SectionManuelle[] | null) ??
+    planContenu?.sections ??
+    sectionsStage ??
+    (seancePrevue ? blocsToSections(seancePrevue.items.map((i) => i.bloc)) : []);
   const heureDebutInitiale = instance.heureDebut ?? planContenu?.heureDebut ?? creneauReg?.debut ?? creneauStageActuel?.debut ?? "17:00";
 
   const compte = { PRESENT: 0, RETARD: 0, ABSENT: 0, EXCUSE: 0 } as Record<string, number>;

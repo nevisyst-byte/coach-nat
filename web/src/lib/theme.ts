@@ -43,7 +43,7 @@ export const NAV_GROUPS = [
 ] as const;
 
 export const MOBILE_TABS = [
-  { id: "accueil", href: "/general?vue=coach", pathname: "/general", vueParam: "coach", icon: "◉", label: "Accueil" },
+  { id: "accueil", href: "/general", pathname: "/general", icon: "◉", label: "Accueil" },
   { id: "planning", href: "/planning?vue=moi", pathname: "/planning", vueParam: "moi", icon: "▤", label: "Planning" },
   { id: "nageurs", href: "/nageurs", pathname: "/nageurs", icon: "⚑", label: "Nageurs" },
   { id: "entrainement", href: "/entrainement", pathname: "/entrainement", icon: "✦", label: "Plan d'entraînement" },

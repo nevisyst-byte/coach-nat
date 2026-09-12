@@ -4,7 +4,6 @@ import { getSession } from "@/lib/auth";
 
 const SCREENS = [
   { label: "Tableau de bord", href: "/general" },
-  { label: "Tableau de bord coach", href: "/general?vue=coach" },
   { label: "Planning", href: "/planning" },
   { label: "Mon planning", href: "/planning?vue=moi" },
   { label: "Stages", href: "/stages" },

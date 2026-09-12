@@ -9,11 +9,11 @@ export function MobileTabBar({ isAdmin }: { isAdmin: boolean }) {
   const searchParams = useSearchParams();
   const vue = searchParams.get("vue");
 
-  // Les onglets « Accueil »/« Planning » pointent par défaut vers la vue
-  // personnelle du coach (vue=coach / vue=moi), qui n'existe pas pour un
-  // compte admin (pas de coachId) — pour un admin, on retombe sur la vue
-  // globale (celle déjà utilisée sur desktop) plutôt que sur un écran
-  // « réservé aux comptes coach ».
+  // L'onglet « Planning » pointe par défaut vers la vue personnelle du
+  // coach (vue=moi), qui n'existe pas pour un compte admin (pas de
+  // coachId) — pour un admin, on retombe sur la vue globale (celle déjà
+  // utilisée sur desktop) plutôt que sur un écran « réservé aux comptes
+  // coach ».
   function vueParamFor(tab: (typeof MOBILE_TABS)[number]) {
     if (isAdmin) return undefined;
     return "vueParam" in tab ? tab.vueParam : undefined;

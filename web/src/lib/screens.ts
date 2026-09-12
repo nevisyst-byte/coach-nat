@@ -10,7 +10,7 @@ export type Hero = {
 };
 
 export const TITLES: Record<string, [string, string, string]> = {
-  "/general": ["Tableau de bord", "Vue club · tous groupes, tous coachs", "Pilotage"],
+  "/general": ["Tableau de bord", "Vue personnelle · mes groupes et ma charge", "Pilotage"],
   "/planning": ["Planning", "Vue globale ou personnelle · code couleur par état d'encadrement", "Planning"],
   "/stages": ["Stages", "Sessions hors saison · effectif, encadrement et budget", "Planning"],
   "/presences": ["Présences", "Pointage nageurs et coachs par séance", "Planning"],
@@ -22,23 +22,11 @@ export const TITLES: Record<string, [string, string, string]> = {
   "/outils/allures": ["Allures & VMA", "Temps test 100m nage complète → allures cibles par type d'entraînement", "Outils"],
 };
 
-function titleForGeneral(vue?: string | null): [string, string, string] {
-  if (vue === "coach") return ["Tableau de bord coach", "Vue personnelle · mes groupes et ma charge", "Pilotage"];
-  return TITLES["/general"];
-}
-
 const VEIL_L = "linear-gradient(90deg,rgba(8,13,24,0.97) 0%,rgba(8,13,24,0.92) 52%,rgba(8,13,24,0.28) 100%)";
 const VEIL_C = "linear-gradient(100deg,rgba(8,13,24,0.96) 0%,rgba(8,13,24,0.86) 46%,rgba(18,41,75,0.40) 100%)";
 
 export const HERO: Record<string, Hero> = {
-  "general-globale": {
-    img: "/assets/swimmer.jpg", pos: "right center", veil: "left",
-    kicker: "Saison 2025 / 2026", title: "Le club en un coup d'œil",
-    text: "Licenciés, coachs et créneaux hebdomadaires. Suis les alertes et les progressions du club.",
-    cta1: { label: "Créer une séance", href: "/entrainement" },
-    cta2: { label: "Absences & congés", href: "/absences" },
-  },
-  "general-coach": {
+  "/general": {
     img: "/assets/coach-poolside.jpg", pos: "center 35%", veil: "left",
     kicker: "Vue personnelle", title: "Ta semaine au bord du bassin",
     text: "Tes groupes, ta charge et les feuilles de présence qui attendent ta saisie.",
@@ -108,16 +96,16 @@ export function heroVeilCss(hero: Hero) {
   return `${veil}, url('${hero.img}')`;
 }
 
-export function titleFor(pathname: string, vue?: string | null) {
+export function titleFor(pathname: string) {
   if (pathname.startsWith("/nageurs/")) {
     return { title: "Fiche nageur", subtitle: "Performances, technique et assiduité", pole: "Nageurs" };
   }
-  const t = pathname === "/general" ? titleForGeneral(vue) : TITLES[pathname];
+  const t = TITLES[pathname];
   if (!t) return { title: "", subtitle: "", pole: "" };
   return { title: t[0], subtitle: t[1], pole: t[2] };
 }
 
-export function heroFor(pathname: string, vue?: string | null): Hero | null {
+export function heroFor(pathname: string): Hero | null {
   if (pathname.startsWith("/nageurs/")) {
     return {
       img: "/assets/flip-turn.jpg", pos: "center 45%", veil: "left",
@@ -126,6 +114,5 @@ export function heroFor(pathname: string, vue?: string | null): Hero | null {
       cta1: { label: "Tous les nageurs", href: "/nageurs" },
     };
   }
-  if (pathname === "/general") return HERO[vue === "coach" ? "general-coach" : "general-globale"];
   return HERO[pathname] ?? null;
 }

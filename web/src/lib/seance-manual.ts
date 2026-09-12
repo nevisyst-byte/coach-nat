@@ -71,6 +71,26 @@ export function volumeTotalManuel(sections: SectionManuelle[]) {
 // Répartition du volume par nage pour le camembert "par nage" — un exercice
 // à plusieurs nages (ex. crawl + dos) répartit sa distance à parts égales
 // entre elles plutôt que de la compter en double.
+function parseDistance(fmt: string): number {
+  return parseInt(fmt.replace(/[^\d]/g, ""), 10) || 0;
+}
+
+// Reconstruit des sections éditables à partir de blocs déjà compilés (séance
+// auto-générée par combos/variant, ou séance de stage) — une section par
+// phase, avec un seul set reprenant le volume total et le contenu textuel
+// du bloc comme label. Ce n'est pas la décomposition reps×distance
+// d'origine (perdue à la compilation en texte), mais un point de départ
+// éditable qui couvre toute la séance plutôt qu'une section vide, quand le
+// coach veut ajuster une séance générée pour une seule date.
+export function blocsToSections(blocs: Bloc[]): SectionManuelle[] {
+  return blocs.map((b) => ({
+    id: uid(),
+    nom: b.phase,
+    objectif: b.objectif ?? "",
+    sets: [{ id: uid(), reps: 1, distance: parseDistance(b.distance), label: b.contenu, allure: "", repos: "", nages: [] }],
+  }));
+}
+
 export function volumeParNage(sections: SectionManuelle[]): { nage: string; m: number }[] {
   const parNage = new Map<string, number>();
   for (const section of sections) {

@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { heroFor, heroVeilCss } from "@/lib/screens";
 
 export function HeroBanner() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const hero = heroFor(pathname, searchParams.get("vue"));
+  const hero = heroFor(pathname);
   if (!hero) return null;
 
   return (
