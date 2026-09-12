@@ -99,8 +99,16 @@ export function PlanningEntrainementClient({
 
   useEffect(() => {
     function celluleSous(x: number, y: number) {
-      const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-cellule-id]");
-      return el?.dataset.celluleId ?? null;
+      // elementFromPoint ne renvoie que l'élément le plus haut dans la pile :
+      // une barre de plan déjà posée (bouton positionné en absolute, frère
+      // des cases) peut recouvrir la case visée et masquer son data-cellule-id.
+      // elementsFromPoint renvoie toute la pile empilée à ce point, du haut
+      // vers le bas — on cherche la case dans l'ensemble.
+      for (const el of document.elementsFromPoint(x, y)) {
+        const cellule = (el as HTMLElement).closest<HTMLElement>("[data-cellule-id]");
+        if (cellule) return cellule.dataset.celluleId ?? null;
+      }
+      return null;
     }
 
     function onMove(e: MouseEvent) {
