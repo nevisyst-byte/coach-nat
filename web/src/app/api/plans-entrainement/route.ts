@@ -16,7 +16,7 @@ const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.st
 const comboSchema = z.object({
   variant: z.array(z.string()).min(1),
   intensite: z.array(z.string()).min(1),
-  nage: z.array(z.string()).min(1),
+  nage: z.array(z.object({ valeur: z.string().min(1), pourcentage: z.number().min(0).max(100) })).min(1),
   pourcentage: z.number().min(0).max(100),
 });
 
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       heureDebut: heureDebut || null,
       variant: comboUnique ? comboUnique.variant.join(" + ") : variant ?? null,
       intensite: comboUnique ? comboUnique.intensite.join(" + ") : intensite ?? null,
-      nage: comboUnique ? comboUnique.nage.join(" + ") : nage ?? null,
+      nage: comboUnique ? comboUnique.nage.map((n) => n.valeur).join(" + ") : nage ?? null,
       volumeNage: volumeNage ?? null,
       combos: combos && combos.length > 0 ? combos : undefined,
       sections: sections ?? undefined,

@@ -139,7 +139,12 @@ export function StagesClient({
       theme: c.theme,
       mode: aSections ? "manuel" : "auto",
       heureDebut: c.debut,
-      combos: c.combos && c.combos.length > 0 ? c.combos : c.variant && c.intensite && c.nage ? [{ variant: [c.variant], intensite: [c.intensite], nage: [c.nage], pourcentage: 100 }] : contenuVide().combos,
+      combos:
+        c.combos && c.combos.length > 0
+          ? c.combos
+          : c.variant && c.intensite && c.nage
+            ? [{ variant: [c.variant], intensite: [c.intensite], nage: [{ valeur: c.nage, pourcentage: 100 }], pourcentage: 100 }]
+            : contenuVide().combos,
       volume: c.volume || 3000,
       sections: c.sections ?? contenuVide().sections,
     });

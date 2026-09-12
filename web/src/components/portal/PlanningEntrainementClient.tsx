@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { OBJECTIFS } from "@/lib/objectifs";
+import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
 import { mondayOf, toDateInputValue } from "@/lib/week";
 import { PlanModal, type Section, type CreneauLite, type Plan, type PlanModalOpen } from "./PlanModal";
 import type { Modele } from "./SeanceContenuEditor";
@@ -46,7 +46,9 @@ export function PlanningEntrainementClient({
   const fenetreFin = ajouterJours(lundiCourant, SEMAINES_AFFICHEES * 7);
 
   const groupe = toutGroupes.find((g) => g.id === groupeId) ?? null;
-  const plansGroupe = groupe ? plans.filter((p) => p.groupes.some((g) => g.id === groupe.id)) : [];
+  const plansGroupe = groupe
+    ? plans.filter((p) => p.groupes.some((g) => g.id === groupe.id)).sort((a, b) => a.dateDebut.localeCompare(b.dateDebut))
+    : [];
 
   function barreStyle(plan: Plan) {
     const debut = new Date(plan.dateDebut);
@@ -59,13 +61,13 @@ export function PlanningEntrainementClient({
     return { left, width: Math.max(width - 4, 8) };
   }
 
-  async function creerDepuisModele(objectifNom: string, semaine: Date, modele: Modele) {
+  async function creerDepuisModele(semaine: Date, modele: Modele) {
     if (!groupe) return;
     setCreation(true);
     try {
       const payload: Record<string, unknown> = {
         nom: modele.nom,
-        theme: objectifNom,
+        theme: modele.theme,
         dateDebut: toDateInputValue(semaine),
         dureeSemaines: 4,
         groupeIds: [groupe.id],
@@ -127,9 +129,8 @@ export function PlanningEntrainementClient({
       if (!info) return;
       const celluleId = celluleSous(e.clientX, e.clientY);
       if (!celluleId) return;
-      const [objectifNom, indexStr] = celluleId.split("|");
       const modele = modeles.find((m) => m.id === info.modeleId);
-      if (modele) creerDepuisModele(objectifNom, semaines[Number(indexStr)], modele);
+      if (modele) creerDepuisModele(semaines[Number(celluleId)], modele);
     }
 
     window.addEventListener("mousemove", onMove);
@@ -144,9 +145,10 @@ export function PlanningEntrainementClient({
   return (
     <div className="flex flex-col gap-4">
       <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
-        Vue calendaire d&apos;un groupe : chaque barre est un plan d&apos;entraînement déjà enregistré, positionné sur ses vraies
-        dates. Clique une barre pour l&apos;éditer, une case vide pour en planifier un nouveau, ou glisse un modèle depuis
-        la liste sur une case pour l&apos;appliquer directement.
+        Vue calendaire d&apos;un groupe : chaque ligne est un plan d&apos;entraînement déjà enregistré (nom libre, objectif et
+        durée choisis à sa création), positionné sur ses vraies dates — clique sa barre pour l&apos;éditer. Utilise la
+        dernière ligne pour en enregistrer un nouveau : clique une case pour le créer toi-même, ou glisse un modèle
+        depuis la liste pour l&apos;appliquer directement.
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
@@ -182,7 +184,7 @@ export function PlanningEntrainementClient({
               <div style={{ minWidth: LARGEUR_LABEL + SEMAINES_AFFICHEES * LARGEUR_SEMAINE }}>
                 <div className="flex" style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}>
                   <div className="shrink-0 px-3.5 py-2.5 text-[10px] tracking-[0.1em] uppercase" style={{ width: LARGEUR_LABEL, color: "#61789B" }}>
-                    Objectif
+                    Plan
                   </div>
                   {semaines.map((s, i) => (
                     <div key={i} className="shrink-0 text-center py-2.5 text-[10px]" style={{ width: LARGEUR_SEMAINE, color: "#61789B" }}>
@@ -191,48 +193,62 @@ export function PlanningEntrainementClient({
                   ))}
                 </div>
 
-                {OBJECTIFS.map((objectif) => (
-                  <div key={objectif.nom} className="flex items-stretch" style={{ borderBottom: "1px solid var(--border)" }}>
-                    <div style={{ width: LARGEUR_LABEL }} className="shrink-0 px-3.5 py-2.5 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: objectif.color }} />
-                      <span className="text-sm font-semibold truncate">{objectif.nom}</span>
+                {plansGroupe.map((p) => {
+                  const style = barreStyle(p);
+                  const color = couleurObjectif(p.theme);
+                  return (
+                    <div key={p.id} className="flex items-stretch" style={{ borderBottom: "1px solid var(--border)" }}>
+                      <div style={{ width: LARGEUR_LABEL }} className="shrink-0 px-3.5 py-2.5 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                        <span className="text-sm font-semibold truncate" title={p.nom}>
+                          {p.nom}
+                        </span>
+                      </div>
+                      <div className="relative flex" style={{ height: 44, width: SEMAINES_AFFICHEES * LARGEUR_SEMAINE }}>
+                        {semaines.map((_, i) => (
+                          <div key={i} className="shrink-0" style={{ width: LARGEUR_SEMAINE, height: "100%", borderLeft: i > 0 ? "1px solid var(--border)" : undefined }} />
+                        ))}
+                        {style && (
+                          <button
+                            onClick={() => setModalOpen({ mode: "edit", plan: p })}
+                            className="absolute rounded-md px-2 flex items-center text-[11px] font-semibold truncate cursor-pointer"
+                            style={{ top: 8, height: 28, left: style.left + 2, width: style.width, background: `${color}55`, border: `1px solid ${color}` }}
+                            title={p.nom}
+                          >
+                            {p.nom}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="relative flex" style={{ height: 44, width: SEMAINES_AFFICHEES * LARGEUR_SEMAINE }}>
-                      {semaines.map((s, i) => {
-                        const celluleId = `${objectif.nom}|${i}`;
-                        return (
-                          <div
-                            key={i}
-                            data-cellule-id={celluleId}
-                            className="shrink-0"
-                            style={{ width: LARGEUR_SEMAINE, height: "100%", borderLeft: i > 0 ? "1px solid var(--border)" : undefined, background: survolCellule === celluleId ? "rgba(30,123,255,0.14)" : undefined }}
-                            onClick={() => setModalOpen({ mode: "new", presetTheme: objectif.nom, presetDate: s, groupeId: groupe.id })}
-                          />
-                        );
-                      })}
-                      {plansGroupe
-                        .filter((p) => p.theme === objectif.nom)
-                        .map((p) => {
-                          const style = barreStyle(p);
-                          if (!style) return null;
-                          return (
-                            <button
-                              key={p.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setModalOpen({ mode: "edit", plan: p });
-                              }}
-                              className="absolute rounded-md px-2 flex items-center text-[11px] font-semibold truncate cursor-pointer"
-                              style={{ top: 8, height: 28, left: style.left + 2, width: style.width, background: `${objectif.color}55`, border: `1px solid ${objectif.color}`, pointerEvents: "auto" }}
-                              title={p.nom}
-                            >
-                              {p.nom}
-                            </button>
-                          );
-                        })}
-                    </div>
+                  );
+                })}
+
+                <div className="flex items-stretch">
+                  <div style={{ width: LARGEUR_LABEL }} className="shrink-0 px-3.5 py-2.5 flex items-center">
+                    <span className="text-[12px] font-semibold" style={{ color: "var(--ink-secondary)" }}>
+                      + Nouveau plan
+                    </span>
                   </div>
-                ))}
+                  <div className="relative flex" style={{ height: 44, width: SEMAINES_AFFICHEES * LARGEUR_SEMAINE }}>
+                    {semaines.map((s, i) => {
+                      const celluleId = String(i);
+                      return (
+                        <div
+                          key={i}
+                          data-cellule-id={celluleId}
+                          className="shrink-0 cursor-pointer"
+                          style={{
+                            width: LARGEUR_SEMAINE,
+                            height: "100%",
+                            borderLeft: i > 0 ? "1px dashed var(--border)" : undefined,
+                            background: survolCellule === celluleId ? "rgba(30,123,255,0.14)" : undefined,
+                          }}
+                          onClick={() => setModalOpen({ mode: "new", presetTheme: OBJECTIFS[0].nom, presetDate: s, groupeId: groupe.id })}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -83,7 +83,7 @@ function formulaireDepuis(open: PlanModalOpen): Form {
         plan.combos && plan.combos.length > 0
           ? plan.combos
           : plan.variant && plan.intensite && plan.nage
-            ? [{ variant: [plan.variant], intensite: [plan.intensite], nage: [plan.nage], pourcentage: 100 }]
+            ? [{ variant: [plan.variant], intensite: [plan.intensite], nage: [{ valeur: plan.nage, pourcentage: 100 }], pourcentage: 100 }]
             : contenuVide().combos,
       volume: plan.volumeNage ?? 3000,
       sections: plan.sections ?? [nouvelleSection("Échauffement")],
