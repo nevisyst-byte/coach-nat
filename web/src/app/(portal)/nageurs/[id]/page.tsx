@@ -126,6 +126,7 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
         technique={technique}
         absences={nageur.absences.map((a) => ({ date: a.date, motif: a.motif, statut: a.statut }))}
         presenceRate={nageur.presenceRate}
+        pointsFFN={nageur.pointsFFN}
         assiduite={assiduite}
         criteresList={CRITERES}
         ffnIuf={nageur.ffnIuf}

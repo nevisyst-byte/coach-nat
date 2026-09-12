@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { formatProgression } from "@/lib/chrono";
 import { AllureVmaTool } from "./AllureVmaTool";
+import { RadarChart, type RadarAxe } from "./RadarChart";
 
 type Perf = { epreuve: string; temps: string; points: number; niveau: string; deltaSaison: string; rangNat: string; saison: string; tempsDebutSaison?: string | null };
 type TechCritere = { nom: string; note: number };
@@ -35,6 +36,7 @@ export function FicheNageur({
   technique,
   absences,
   presenceRate,
+  pointsFFN,
   assiduite,
   criteresList,
   ffnIuf = null,
@@ -48,6 +50,7 @@ export function FicheNageur({
   technique: Technique[];
   absences: AbsenceRow[];
   presenceRate: number;
+  pointsFFN: number;
   assiduite: AssiduiteRow[];
   criteresList: string[];
   ffnIuf?: string | null;
@@ -123,7 +126,13 @@ export function FicheNageur({
     }
   }
 
-  const tabs = ["Cotation FFN", "Notation technique", "Assiduité", "Évolution", "Allures & VMA"];
+  const tabs = ["Cotation FFN", "Notation technique", "Assiduité", "Évolution"];
+
+  const radarAxes: RadarAxe[] = [
+    ...technique.map((t) => ({ label: NAGE_META[t.nage]?.label ?? t.nage, value: t.moyenne, max: 5, couleur: t.color })),
+    { label: "Vitesse (FFN)", value: Math.min(pointsFFN, 600), max: 600 },
+    { label: "Assiduité", value: presenceRate, max: 100 },
+  ];
 
   const perfsCourants = saisonActive ? perfs.filter((p) => p.saison === saisonActive) : perfs;
 
@@ -161,6 +170,23 @@ export function FicheNageur({
 
   return (
     <>
+      <Card padding={20} className="mb-4">
+        <div className="flex gap-6 flex-wrap items-start">
+          <div className="flex flex-col items-center shrink-0" style={{ minWidth: 260 }}>
+            <RadarChart axes={radarAxes} size={240} />
+            <div className="text-[11px] text-center mt-1" style={{ color: "#61789B", maxWidth: 220 }}>
+              Technique par nage (/5) · vitesse FFN (échelle 0-600+) · assiduité (%)
+            </div>
+          </div>
+          <div className="flex-1" style={{ minWidth: 280 }}>
+            <div className="text-[11px] tracking-[0.14em] uppercase mb-2" style={{ color: "#61789B" }}>
+              Tableau temps bassin
+            </div>
+            <AllureVmaTool />
+          </div>
+        </div>
+      </Card>
+
       <div className="flex gap-1.5 flex-wrap">
         {tabs.map((label, i) => (
           <button
@@ -450,12 +476,6 @@ export function FicheNageur({
             </div>
           </Card>
         </div>
-      )}
-
-      {tab === 4 && (
-        <Card className="mt-4">
-          <AllureVmaTool />
-        </Card>
       )}
 
       {notation && (
