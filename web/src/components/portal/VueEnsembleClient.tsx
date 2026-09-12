@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ETAT_COLOR, ETAT_LABEL } from "@/lib/format";
 import { disposerParColonnes } from "@/lib/disposition-horaire";
+import { Button } from "@/components/ui/Button";
 
 export type EvenementDetail = {
   kind: "reg" | "stage";
@@ -45,7 +47,23 @@ type DragInfo = { creneauId: string; origDebutMin: number; durMin: number; point
 
 const COULEUR_VIDE = "#1E7BFF";
 
-export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: string; annee: number; cells: (JourDetail | null)[]; aujourdhui: number }) {
+export function VueEnsembleClient({
+  mois,
+  annee,
+  cells,
+  aujourdhui,
+  hrefMoisPrecedent,
+  hrefMoisSuivant,
+  hrefMoisCourant,
+}: {
+  mois: string;
+  annee: number;
+  cells: (JourDetail | null)[];
+  aujourdhui: number;
+  hrefMoisPrecedent: string;
+  hrefMoisSuivant: string;
+  hrefMoisCourant: string | null;
+}) {
   const router = useRouter();
   // On garde juste la date sélectionnée (pas l'objet JourDetail) : après un
   // router.refresh() (ajout/modif d'échéance, glisser un créneau), le jour
@@ -177,10 +195,33 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex justify-between items-center">
-        <h2 className="font-display text-[19px] tracking-[0.06em]">
-          {mois} {annee}
-        </h2>
+      <div className="flex justify-between items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Link
+            href={hrefMoisPrecedent}
+            className="w-[30px] h-[30px] rounded-[9px] flex items-center justify-center cursor-pointer"
+            style={{ border: "1px solid var(--border-strong)", color: "var(--ink-body)" }}
+            title="Mois précédent"
+          >
+            ‹
+          </Link>
+          <h2 className="font-display text-[19px] tracking-[0.06em]" style={{ minWidth: 160 }}>
+            {mois} {annee}
+          </h2>
+          <Link
+            href={hrefMoisSuivant}
+            className="w-[30px] h-[30px] rounded-[9px] flex items-center justify-center cursor-pointer"
+            style={{ border: "1px solid var(--border-strong)", color: "var(--ink-body)" }}
+            title="Mois suivant"
+          >
+            ›
+          </Link>
+          {hrefMoisCourant && (
+            <Link href={hrefMoisCourant} className="text-[12px] font-semibold cursor-pointer" style={{ color: "#7FDCFF" }}>
+              Aujourd&apos;hui
+            </Link>
+          )}
+        </div>
         <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
           Séances · échéances
         </span>
@@ -265,12 +306,12 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
                       <input type="color" value={editForm.color} onChange={(ev) => setEditForm((f) => ({ ...f, color: ev.target.value }))} className="rounded-[9px] w-[42px] cursor-pointer" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-strong)" }} />
                     </div>
                     <div className="flex gap-1.5 justify-end">
-                      <button onClick={() => setEditingId(null)} className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                      <Button variant="secondary" size="sm" onClick={() => setEditingId(null)}>
                         Annuler
-                      </button>
-                      <button onClick={enregistrerEditionEcheance} disabled={saving} className="rounded-lg px-3 py-1.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
+                      </Button>
+                      <Button variant="primary" size="sm" onClick={enregistrerEditionEcheance} disabled={saving}>
                         {saving ? "…" : "OK"}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -281,12 +322,12 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
                         {e.detail}
                       </span>
                     )}
-                    <button onClick={() => ouvrirEditionEcheance(e)} className="text-[13px] font-semibold cursor-pointer" style={{ color: "var(--cyan)" }}>
-                      Modifier
-                    </button>
-                    <button onClick={() => supprimerEcheance(e.id)} className="text-[13px] font-semibold cursor-pointer" style={{ color: "var(--ink-secondary)" }}>
+                    <Button variant="secondary" size="sm" onClick={() => ouvrirEditionEcheance(e)}>
+                      ✎ Modifier
+                    </Button>
+                    <Button variant="danger" size="sm" onClick={() => supprimerEcheance(e.id)}>
                       Supprimer
-                    </button>
+                    </Button>
                   </div>
                 )
               )}
@@ -317,18 +358,18 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
                     <input type="color" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="rounded-[9px] w-[42px] cursor-pointer" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-strong)" }} />
                   </div>
                   <div className="flex gap-1.5 justify-end">
-                    <button onClick={() => setAjout(false)} className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                    <Button variant="secondary" size="sm" onClick={() => setAjout(false)}>
                       Annuler
-                    </button>
-                    <button onClick={creerEcheance} disabled={saving || !form.titre.trim()} className="rounded-lg px-3 py-1.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
+                    </Button>
+                    <Button variant="primary" size="sm" onClick={creerEcheance} disabled={saving || !form.titre.trim()}>
                       {saving ? "…" : "Ajouter"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
-                <button onClick={ouvrirAjout} className="self-start text-[13px] font-semibold cursor-pointer" style={{ color: "#7FDCFF" }}>
+                <Button variant="secondary" size="sm" className="self-start" onClick={ouvrirAjout}>
                   + Ajouter une échéance ce jour
-                </button>
+                </Button>
               )}
 
               <div className="text-[11px] font-bold tracking-[0.1em] uppercase mt-2" style={{ color: "var(--ink-tertiary)" }}>

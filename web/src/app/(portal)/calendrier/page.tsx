@@ -17,7 +17,8 @@ const MOIS_LONG = [
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
 ];
 
-export default async function CalendrierPage() {
+export default async function CalendrierPage({ searchParams }: { searchParams: Promise<{ mois?: string }> }) {
+  const { mois: moisParam } = await searchParams;
   const [creneaux, groupes, coachs, nageurs, echeances, stages, evenementsSemaine, settings] = await Promise.all([
     prisma.creneau.findMany({ include: { groupe: { include: { plansEntrainement: { select: { theme: true, dateDebut: true, dateFin: true } } } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } } }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
@@ -30,12 +31,21 @@ export default async function CalendrierPage() {
   ]);
 
   const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+  // Mois affiché piloté par ?mois=AAAA-MM (navigation précédent/suivant sur
+  // la vue calendaire) — le mois courant par défaut si absent ou invalide,
+  // pour ne jamais bloquer la page sur un seul mois.
+  const moisMatch = moisParam?.match(/^(\d{4})-(\d{2})$/);
+  const year = moisMatch ? Number(moisMatch[1]) : today.getFullYear();
+  const month = moisMatch ? Number(moisMatch[2]) - 1 : today.getMonth();
   const firstDay = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const startWeekday = (firstDay.getDay() + 6) % 7; // 0 = lundi
   const zone = (settings?.zoneScolaire ?? "B") as ZoneScolaire;
+
+  const moisPrecedent = new Date(year, month - 1, 1);
+  const moisSuivant = new Date(year, month + 1, 1);
+  const hrefMois = (d: Date) => `/calendrier?mois=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const estMoisCourant = year === today.getFullYear() && month === today.getMonth();
 
   const echeancesByDay = new Map<number, Evt[]>();
   for (const e of echeances) {
@@ -115,7 +125,15 @@ export default async function CalendrierPage() {
   const vueEnsemble = (
     <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(330px,1fr))" }}>
       <Card>
-        <VueEnsembleClient mois={MOIS_LONG[month]} annee={year} cells={cellsDetail} aujourdhui={today.getDate()} />
+        <VueEnsembleClient
+          mois={MOIS_LONG[month]}
+          annee={year}
+          cells={cellsDetail}
+          aujourdhui={estMoisCourant ? today.getDate() : -1}
+          hrefMoisPrecedent={hrefMois(moisPrecedent)}
+          hrefMoisSuivant={hrefMois(moisSuivant)}
+          hrefMoisCourant={estMoisCourant ? null : "/calendrier"}
+        />
       </Card>
       <Card>
         <SectionTitle>Échéances de la saison</SectionTitle>
