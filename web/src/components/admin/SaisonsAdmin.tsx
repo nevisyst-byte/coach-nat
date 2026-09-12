@@ -88,7 +88,7 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
             <div className="text-sm font-semibold flex-1" style={{ minWidth: 100 }}>
               Saison {s.label}
             </div>
-            <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+            <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
               {s.dateDebut} → {s.dateFin}
             </div>
             {s.active ? (
@@ -96,7 +96,7 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
                 Active
               </span>
             ) : (
-              <button onClick={() => activer(s.id, s.label)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+              <button onClick={() => activer(s.id, s.label)} className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
                 Activer
               </button>
             )}

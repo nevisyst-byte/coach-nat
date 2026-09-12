@@ -36,10 +36,10 @@ export function PoleEffectifs({ poles }: { poles: PoleData[] }) {
                   </span>
                 </span>
                 <span className="font-display text-2xl">{p.total}</span>
-                <span className="text-xs font-bold min-w-[38px] text-right" style={{ color: p.color }}>
+                <span className="text-[13px] font-bold min-w-[38px] text-right" style={{ color: p.color }}>
                   {p.part}%
                 </span>
-                <span className="text-xs" style={{ color: "var(--ink-tertiary)" }}>
+                <span className="text-[13px]" style={{ color: "var(--ink-tertiary)" }}>
                   {open ? "▾" : "▸"}
                 </span>
               </button>
@@ -50,13 +50,13 @@ export function PoleEffectifs({ poles }: { poles: PoleData[] }) {
                     .sort((a, b) => b.n - a.n)
                     .map((c) => (
                       <div key={c.nom} className="flex items-center gap-3">
-                        <span className="text-xs shrink-0" style={{ width: 118, color: "var(--ink-body)" }}>
+                        <span className="text-[13px] shrink-0" style={{ width: 118, color: "var(--ink-body)" }}>
                           {c.nom}
                         </span>
                         <span className="flex-1">
                           <ProgressBar value={(c.n / maxCat) * 100} color={p.color} height={8} />
                         </span>
-                        <span className="text-xs font-bold shrink-0" style={{ width: 26, textAlign: "right" }}>
+                        <span className="text-[13px] font-bold shrink-0" style={{ width: 26, textAlign: "right" }}>
                           {c.n}
                         </span>
                       </div>

@@ -84,14 +84,14 @@ export function UsersTable({ users }: { users: UserRow[] }) {
               <td className="px-5 py-3 text-right whitespace-nowrap">
                 <button
                   onClick={() => openEdit(u)}
-                  className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer mr-2"
+                  className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer mr-2"
                   style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                 >
                   Modifier
                 </button>
                 <button
                   onClick={() => remove(u)}
-                  className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer"
+                  className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer"
                   style={{ border: "1px solid rgba(232,68,43,0.35)", background: "rgba(232,68,43,0.12)", color: "#FF9179" }}
                 >
                   Supprimer

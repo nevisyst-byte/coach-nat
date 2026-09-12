@@ -217,12 +217,12 @@ export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; 
                       <div className="flex gap-1.5">
                         <button
                           onClick={() => openRoster(g)}
-                          className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer"
+                          className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer"
                           style={{ border: "1px solid rgba(30,123,255,0.4)", background: "rgba(30,123,255,0.1)", color: "#7FDCFF" }}
                         >
                           Nageurs
                         </button>
-                        <button onClick={() => removeGroupe(g.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                        <button onClick={() => removeGroupe(g.id)} className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
                           Supprimer
                         </button>
                       </div>

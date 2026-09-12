@@ -181,7 +181,7 @@ export function EntrainementClient({
                     {semaines.map((s, i) => (
                       <div
                         key={i}
-                        className="shrink-0 text-center py-2.5 text-[10px]"
+                        className="shrink-0 text-center py-2.5 text-[11px]"
                         style={{ width: 56, color: memeJour(s, lundiCourant) ? "#24C8FF" : "#61789B", fontWeight: memeJour(s, lundiCourant) ? 700 : 400 }}
                       >
                         {s.getDate()} {MOIS[s.getMonth()]}
@@ -257,10 +257,10 @@ export function EntrainementClient({
                       className="flex items-center gap-3 px-3.5 py-2.5"
                       style={{ borderBottom: "1px solid var(--border)" }}
                     >
-                      <div className="text-[12px] font-semibold shrink-0" style={{ width: 130, color: "var(--ink-body)" }}>
+                      <div className="text-[13px] font-semibold shrink-0" style={{ width: 130, color: "var(--ink-body)" }}>
                         {fmtDateCourte(date)} · {creneau.debut}
                       </div>
-                      <div className="flex-1 min-w-0 text-[12px] truncate" style={{ color: plan ? "var(--ink-secondary)" : "var(--ink-muted)" }}>
+                      <div className="flex-1 min-w-0 text-[13px] truncate" style={{ color: plan ? "var(--ink-secondary)" : "var(--ink-muted)" }}>
                         {plan ? (
                           blocs ? (
                             blocs.map((b) => b.phase).join(" · ")
@@ -271,7 +271,7 @@ export function EntrainementClient({
                           "Aucun plan programmé"
                         )}
                       </div>
-                      <span className="text-[11px] shrink-0" style={{ color: "#7FDCFF" }}>
+                      <span className="text-[12px] shrink-0" style={{ color: "#7FDCFF" }}>
                         Voir →
                       </span>
                     </Link>

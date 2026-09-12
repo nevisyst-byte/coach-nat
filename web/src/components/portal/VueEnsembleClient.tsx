@@ -181,7 +181,7 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
         <h2 className="font-display text-[19px] tracking-[0.06em]">
           {mois} {annee}
         </h2>
-        <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+        <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
           Séances · échéances
         </span>
       </div>
@@ -209,13 +209,13 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
             >
               {c && (
                 <>
-                  <span className="text-xs font-semibold" style={{ color: isToday ? "var(--ink)" : "var(--ink-body)" }}>
+                  <span className="text-[13px] font-semibold" style={{ color: isToday ? "var(--ink)" : "var(--ink-body)" }}>
                     {c.n}
                   </span>
                   {badges.slice(0, 3).map((e, j) => (
                     <span
                       key={j}
-                      className="text-[9px] font-bold leading-tight px-1 py-0.5 rounded whitespace-nowrap overflow-hidden text-ellipsis"
+                      className="text-[11px] font-bold leading-tight px-1 py-0.5 rounded whitespace-nowrap overflow-hidden text-ellipsis"
                       style={{ background: "rgba(255,255,255,0.08)", color: e.color }}
                     >
                       {e.label}
@@ -265,10 +265,10 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
                       <input type="color" value={editForm.color} onChange={(ev) => setEditForm((f) => ({ ...f, color: ev.target.value }))} className="rounded-[9px] w-[42px] cursor-pointer" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-strong)" }} />
                     </div>
                     <div className="flex gap-1.5 justify-end">
-                      <button onClick={() => setEditingId(null)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                      <button onClick={() => setEditingId(null)} className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
                         Annuler
                       </button>
-                      <button onClick={enregistrerEditionEcheance} disabled={saving} className="rounded-lg px-3 py-1.5 text-xs font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
+                      <button onClick={enregistrerEditionEcheance} disabled={saving} className="rounded-lg px-3 py-1.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
                         {saving ? "…" : "OK"}
                       </button>
                     </div>
@@ -277,14 +277,14 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
                   <div key={e.id} className="flex items-center gap-2.5 rounded-lg px-3 py-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", borderLeft: `3px solid ${e.color}` }}>
                     <span className="text-sm font-semibold flex-1">{e.titre}</span>
                     {e.detail && (
-                      <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                      <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                         {e.detail}
                       </span>
                     )}
-                    <button onClick={() => ouvrirEditionEcheance(e)} className="text-xs font-semibold cursor-pointer" style={{ color: "var(--cyan)" }}>
+                    <button onClick={() => ouvrirEditionEcheance(e)} className="text-[13px] font-semibold cursor-pointer" style={{ color: "var(--cyan)" }}>
                       Modifier
                     </button>
-                    <button onClick={() => supprimerEcheance(e.id)} className="text-xs font-semibold cursor-pointer" style={{ color: "var(--ink-secondary)" }}>
+                    <button onClick={() => supprimerEcheance(e.id)} className="text-[13px] font-semibold cursor-pointer" style={{ color: "var(--ink-secondary)" }}>
                       Supprimer
                     </button>
                   </div>
@@ -317,10 +317,10 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
                     <input type="color" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="rounded-[9px] w-[42px] cursor-pointer" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-strong)" }} />
                   </div>
                   <div className="flex gap-1.5 justify-end">
-                    <button onClick={() => setAjout(false)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                    <button onClick={() => setAjout(false)} className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
                       Annuler
                     </button>
-                    <button onClick={creerEcheance} disabled={saving || !form.titre.trim()} className="rounded-lg px-3 py-1.5 text-xs font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
+                    <button onClick={creerEcheance} disabled={saving || !form.titre.trim()} className="rounded-lg px-3 py-1.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving ? 0.7 : 1 }}>
                       {saving ? "…" : "Ajouter"}
                     </button>
                   </div>
@@ -374,18 +374,18 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
                         }}
                         title={`${e.groupeNom} · ${e.debut}–${e.fin} · ${e.coachNom ?? "—"}${e.kind === "reg" ? " · glisser pour changer l'horaire" : ""}`}
                       >
-                        <div className="text-[12px] font-semibold truncate leading-tight">{e.groupeNom}</div>
-                        <div className="text-[10px] truncate" style={{ color: "#7D91AE" }}>
+                        <div className="text-[13px] font-semibold truncate leading-tight">{e.groupeNom}</div>
+                        <div className="text-[12px] truncate" style={{ color: "#7D91AE" }}>
                           {enCoursDeGlisse && drag ? `${formatMinutes(drag.currentDebutMin)}–${formatMinutes(drag.currentDebutMin + drag.durMin)}` : `${e.debut}–${e.fin}`}
                           {!compact && ` · ${e.coachNom ?? "—"}`}
                         </div>
                         {!compact && e.kind === "reg" && (
-                          <div className="text-[9px] font-bold mt-0.5" style={{ color: couleur }}>
+                          <div className="text-[10px] font-bold mt-0.5" style={{ color: couleur }}>
                             {e.enPause ? "En pause" : ETAT_LABEL[e.etat ?? "ASSURE"]}
                           </div>
                         )}
                         {!compact && e.kind === "stage" && (
-                          <div className="text-[9px] font-bold mt-0.5 truncate" style={{ color: couleur }}>
+                          <div className="text-[10px] font-bold mt-0.5 truncate" style={{ color: couleur }}>
                             Stage · {e.stageNom}
                           </div>
                         )}

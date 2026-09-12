@@ -39,7 +39,7 @@ export default async function AbsencesPage() {
                   <div className="text-sm font-semibold">
                     {c.coach.user.name} · {c.periodeLabel}
                   </div>
-                  <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                  <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                     {c.motif} · {c.impact}
                   </div>
                 </div>
@@ -67,7 +67,7 @@ export default async function AbsencesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold">{a.nageur.nom}</div>
-                  <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                  <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                     {a.date} · {a.motif}
                   </div>
                 </div>

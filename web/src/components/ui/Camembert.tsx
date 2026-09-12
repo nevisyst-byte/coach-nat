@@ -51,7 +51,7 @@ export function Camembert({
         </div>
         <div className="flex flex-col gap-2 flex-1" style={{ minWidth: 132 }}>
           {items.map((r) => (
-            <div key={r.nom} className="flex items-center gap-2 text-xs">
+            <div key={r.nom} className="flex items-center gap-2 text-[13px]">
               <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: r.color }} />
               <span className="flex-1 font-semibold">{r.nom}</span>
               <span style={{ color: "var(--ink-secondary)" }}>{formatValeur(r.m, total)}</span>

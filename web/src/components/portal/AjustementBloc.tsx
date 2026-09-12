@@ -62,13 +62,13 @@ export function AjustementBloc({
         className="w-14 text-sm text-center outline-none rounded-[6px] py-1"
         style={{ background: "rgba(255,255,255,0.06)", border: "1px solid var(--border)", color: "var(--ink)" }}
       />
-      <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+      <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
         %
       </span>
-      <button onClick={enregistrer} disabled={saving} className="text-xs font-bold cursor-pointer" style={{ color: "#24C8FF" }}>
+      <button onClick={enregistrer} disabled={saving} className="text-[13px] font-bold cursor-pointer" style={{ color: "#24C8FF" }}>
         {saving ? "…" : "OK"}
       </button>
-      <button onClick={() => setOpen(false)} className="text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }}>
+      <button onClick={() => setOpen(false)} className="text-[13px] cursor-pointer" style={{ color: "var(--ink-muted)" }}>
         ✕
       </button>
     </div>

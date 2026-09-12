@@ -81,7 +81,7 @@ export function PresenceRoster({ title, people, seanceInstanceId, role }: { titl
                 ) : (
                   <div className="text-sm font-semibold">{p.nom}</div>
                 )}
-                <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                   {p.sousTitre}
                 </div>
               </div>

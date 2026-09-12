@@ -149,7 +149,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
             { label: "Absent", color: "#E8442B" },
             { label: "Excusé", color: "#8CC4FF" },
           ].map((l) => (
-            <div key={l.label} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--ink-body)" }}>
+            <div key={l.label} className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--ink-body)" }}>
               <span className="w-2.5 h-2.5 rounded-sm" style={{ background: l.color }} />
               {l.label}
             </div>
@@ -168,13 +168,13 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
             <div className="font-display text-[34px] leading-none" style={{ color: r.color }}>
               {r.v}
             </div>
-            <div className="text-xs mt-1" style={{ color: "var(--ink-secondary)" }}>
+            <div className="text-[13px] mt-1" style={{ color: "var(--ink-secondary)" }}>
               {r.l}
             </div>
           </Card>
         ))}
         <Card padding={16} className="flex flex-col justify-center">
-          <div className="flex justify-between text-xs mb-1.5">
+          <div className="flex justify-between text-[13px] mb-1.5">
             <span style={{ color: "var(--ink-secondary)" }}>Taux de présence</span>
             <span className="font-bold" style={{ color: tauxColor }}>
               {taux}%
@@ -219,7 +219,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
                     </div>
                     <div className="flex-1">
                       <div className="text-sm font-semibold whitespace-pre-line">{b.contenu}</div>
-                      <div className="text-xs mt-0.5" style={{ color: "var(--ink-secondary)" }}>
+                      <div className="text-[13px] mt-0.5" style={{ color: "var(--ink-secondary)" }}>
                         {b.consigne}
                       </div>
                     </div>

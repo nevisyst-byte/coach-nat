@@ -82,10 +82,10 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
                 </option>
               ))}
             </select>
-            <span className="text-xs shrink-0" style={{ color: "var(--ink-secondary)" }}>
+            <span className="text-[13px] shrink-0" style={{ color: "var(--ink-secondary)" }}>
               {fmtDistance(distanceSection(section))}
             </span>
-            <button onClick={() => supprimerSection(section.id)} className="text-xs cursor-pointer shrink-0" style={{ color: "var(--ink-muted)" }} title="Supprimer la section">
+            <button onClick={() => supprimerSection(section.id)} className="text-[13px] cursor-pointer shrink-0" style={{ color: "var(--ink-muted)" }} title="Supprimer la section">
               ✕
             </button>
           </div>
@@ -106,21 +106,21 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
                   type="number"
                   value={s.reps}
                   onChange={(e) => updateSet(section.id, s.id, "reps", e.target.value)}
-                  className="rounded-md px-1.5 py-1.5 text-xs outline-none"
+                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                 />
                 <input
                   type="number"
                   value={s.distance}
                   onChange={(e) => updateSet(section.id, s.id, "distance", e.target.value)}
-                  className="rounded-md px-1.5 py-1.5 text-xs outline-none"
+                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                 />
                 <input
                   value={s.label}
                   onChange={(e) => updateSet(section.id, s.id, "label", e.target.value)}
                   placeholder="ex. Éducatif, jambes…"
-                  className="rounded-md px-1.5 py-1.5 text-xs outline-none min-w-0"
+                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none min-w-0"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                 />
                 <div className="flex gap-1 flex-wrap" title="Une ou plusieurs nages pour cet exercice (ex. crawl + dos)">
@@ -144,7 +144,7 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
                   onChange={(e) => updateSet(section.id, s.id, "allure", e.target.value)}
                   placeholder="3:40"
                   title="Départ / allure par répétition (mm:ss)"
-                  className="rounded-md px-1.5 py-1.5 text-xs outline-none"
+                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                 />
                 <input
@@ -152,10 +152,10 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
                   onChange={(e) => updateSet(section.id, s.id, "repos", e.target.value)}
                   placeholder="0:40"
                   title="Repos après la série (mm:ss)"
-                  className="rounded-md px-1.5 py-1.5 text-xs outline-none"
+                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                 />
-                <button onClick={() => supprimerSet(section.id, s.id)} className="text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer cette série">
+                <button onClick={() => supprimerSet(section.id, s.id)} className="text-[13px] cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer cette série">
                   ✕
                 </button>
               </div>

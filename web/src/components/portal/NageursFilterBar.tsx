@@ -40,7 +40,7 @@ export function NageursFilterBar() {
         style={{ minWidth: 200, background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
       />
       <div className="flex items-center gap-2 rounded-[10px] px-2.5 py-2" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }}>
-        <span className="text-xs uppercase tracking-[0.1em]" style={{ color: "var(--ink-secondary)" }}>
+        <span className="text-[13px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-secondary)" }}>
           Pôle
         </span>
         <select

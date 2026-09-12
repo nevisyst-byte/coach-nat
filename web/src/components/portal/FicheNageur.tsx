@@ -209,13 +209,13 @@ export function FicheNageur({
           <div className="px-5 py-4 flex justify-between items-center flex-wrap gap-2.5" style={{ borderBottom: "1px solid var(--border)" }}>
             <div>
               <h2 className="font-display text-[19px] tracking-[0.06em]">Meilleures performances · cotation FFN</h2>
-              <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+              <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                 {ffnIuf ? `IUF ${ffnIuf}${ffnSyncedAt ? ` · synchronisé le ${ffnSyncedAt}` : ""}` : "Pas encore relié à une fiche FFN"}
               </span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {ffnError && (
-                <span className="text-xs" style={{ color: "#FF9179" }}>
+                <span className="text-[13px]" style={{ color: "#FF9179" }}>
                   {ffnError}
                 </span>
               )}
@@ -319,7 +319,7 @@ export function FicheNageur({
                 <div className="flex flex-col gap-2">
                   {n.criteres.map((c) => (
                     <div key={c.nom}>
-                      <div className="flex justify-between text-xs mb-1">
+                      <div className="flex justify-between text-[13px] mb-1">
                         <span style={{ color: "var(--ink-body)" }}>{c.nom}</span>
                         <span className="font-bold">{c.note}/5</span>
                       </div>
@@ -340,7 +340,7 @@ export function FicheNageur({
           <Card>
             <div className="flex items-baseline justify-between mb-3.5 gap-2 flex-wrap">
               <h2 className="font-display text-[19px] tracking-[0.06em]">Assiduité</h2>
-              <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+              <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                 8 dernières semaines pointées
               </span>
             </div>
@@ -403,7 +403,7 @@ export function FicheNageur({
           <Card padding={0} className="overflow-hidden">
             <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
               <h2 className="font-display text-[19px] tracking-[0.06em]">Parcours au club</h2>
-              <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+              <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                 {membreDepuis ? `Membre depuis le ${membreDepuis}` : "Date d'arrivée au club non renseignée"}
               </span>
             </div>
@@ -443,7 +443,7 @@ export function FicheNageur({
           <Card padding={0} className="overflow-hidden">
             <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
               <h2 className="font-display text-[19px] tracking-[0.06em]">Évolution des temps par épreuve</h2>
-              <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+              <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                 Saison par saison, à partir des synchronisations FFN
               </span>
             </div>
@@ -625,7 +625,7 @@ export function FicheNageur({
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }}
                   >
                     <span className="text-sm font-semibold">{r.nom}</span>
-                    <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                    <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                       IUF {r.iuf}
                     </span>
                   </button>

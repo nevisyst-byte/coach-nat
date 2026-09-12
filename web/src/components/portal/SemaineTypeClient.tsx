@@ -379,7 +379,7 @@ export function SemaineTypeClient({
 
               <button
                 onClick={() => openModal(i)}
-                className="rounded-[11px] p-2.5 text-xs cursor-pointer"
+                className="rounded-[11px] p-2.5 text-[13px] cursor-pointer"
                 style={{ border: "1px dashed var(--border-strong)", color: "var(--ink-muted)" }}
               >
                 + ajouter
@@ -409,7 +409,7 @@ export function SemaineTypeClient({
                       key={t.value}
                       onClick={() => setForm((f) => ({ ...f, itemType: t.value }))}
                       disabled={!!editing}
-                      className="rounded-[10px] px-3.5 py-2 text-xs font-bold"
+                      className="rounded-[10px] px-3.5 py-2 text-[13px] font-bold"
                       style={{
                         cursor: editing ? "not-allowed" : "pointer",
                         opacity: editing && form.itemType !== t.value ? 0.4 : 1,
@@ -438,7 +438,7 @@ export function SemaineTypeClient({
                     <button
                       key={j}
                       onClick={() => setForm((f) => ({ ...f, jour: i }))}
-                      className="rounded-[10px] px-3.5 py-2 text-xs font-bold cursor-pointer"
+                      className="rounded-[10px] px-3.5 py-2 text-[13px] font-bold cursor-pointer"
                       style={{ border: `1px solid ${form.jour === i ? "#1E7BFF" : "var(--border-strong)"}`, background: form.jour === i ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)" }}
                     >
                       {j}
@@ -508,7 +508,7 @@ export function SemaineTypeClient({
                         <button
                           key={e}
                           onClick={() => setForm((f) => ({ ...f, etat: e }))}
-                          className="rounded-[9px] px-3.5 py-2 text-xs font-bold cursor-pointer"
+                          className="rounded-[9px] px-3.5 py-2 text-[13px] font-bold cursor-pointer"
                           style={{ border: `1px solid ${form.etat === e ? ETAT_COLOR[e] : "var(--border-strong)"}`, color: form.etat === e ? ETAT_COLOR[e] : "var(--ink-body)" }}
                         >
                           {ETAT_LABEL[e]}

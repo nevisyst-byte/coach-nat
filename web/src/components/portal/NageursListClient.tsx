@@ -256,7 +256,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                         <div className="text-sm font-semibold truncate" style={{ color: "var(--ink)" }}>
                           {n.nom}
                         </div>
-                        <div className="text-xs truncate" style={{ color: "var(--ink-secondary)" }}>
+                        <div className="text-[13px] truncate" style={{ color: "var(--ink-secondary)" }}>
                           {n.age} ans{n.specialite ? ` · ${n.specialite}` : ""}
                         </div>
                       </div>
@@ -271,15 +271,15 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                     <div className="hidden sm:block text-[13px] truncate" style={{ color: "var(--ink-body)" }}>
                       {n.rangDept ? `${n.rangDept} / ${n.rangReg} / ${n.rangNat}` : "— / — / —"}
                     </div>
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-md justify-self-start" style={{ background: presBg, color: presFg }}>
+                    <span className="text-[13px] font-bold px-2.5 py-1 rounded-md justify-self-start" style={{ background: presBg, color: presFg }}>
                       {n.presenceRate}%
                     </span>
                     {isAdmin && (
                       <div className="flex gap-1.5 justify-self-end">
-                        <button onClick={() => openEdit(n)} className="rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
+                        <button onClick={() => openEdit(n)} className="rounded-lg px-2.5 py-1 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
                           Modifier
                         </button>
-                        <button onClick={() => remove(n.id, n.nom)} className="rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                        <button onClick={() => remove(n.id, n.nom)} className="rounded-lg px-2.5 py-1 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
                           Supprimer
                         </button>
                       </div>
@@ -331,7 +331,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                       style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }}
                     >
                       <span className="text-sm font-semibold">{r.nom}</span>
-                      <span className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                      <span className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                         {previewLoading && selectedIuf === r.iuf ? "…" : `IUF ${r.iuf}`}
                       </span>
                     </button>
@@ -369,7 +369,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                   {selectedIuf ? `Relié à la fiche FFN (IUF ${selectedIuf})` : "Sans lien FFN"}
                 </div>
               </div>
-              <button onClick={() => setCreateStep("recherche")} className="text-xs cursor-pointer underline" style={{ color: "var(--ink-muted)" }}>
+              <button onClick={() => setCreateStep("recherche")} className="text-[13px] cursor-pointer underline" style={{ color: "var(--ink-muted)" }}>
                 ← changer
               </button>
             </div>

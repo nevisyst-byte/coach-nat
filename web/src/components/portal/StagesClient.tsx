@@ -261,7 +261,7 @@ export function StagesClient({
                             {c.type}
                           </span>
                         </div>
-                        <div className="mt-2 flex flex-col gap-1 text-xs" style={{ color: "var(--ink-body)" }}>
+                        <div className="mt-2 flex flex-col gap-1 text-[13px]" style={{ color: "var(--ink-body)" }}>
                           <div>
                             {c.debut}–{c.fin}
                           </div>
@@ -299,7 +299,7 @@ export function StagesClient({
                       </div>
                     );
                   })}
-                  <button onClick={() => openNouveauCreneau(i)} className="rounded-[11px] p-3 text-xs cursor-pointer" style={{ border: "1px dashed var(--border-strong)", color: "var(--ink-muted)" }}>
+                  <button onClick={() => openNouveauCreneau(i)} className="rounded-[11px] p-3 text-[13px] cursor-pointer" style={{ border: "1px dashed var(--border-strong)", color: "var(--ink-muted)" }}>
                     ＋ créneau
                   </button>
                 </div>
@@ -363,7 +363,7 @@ export function StagesClient({
                 </div>
               </div>
               <div className="mt-4">
-                <div className="flex justify-between text-xs mb-1.5">
+                <div className="flex justify-between text-[13px] mb-1.5">
                   <span style={{ color: "var(--ink-body)" }}>Inscriptions</span>
                   <span className="font-semibold">
                     {st.inscrits} / {st.places} places · {remplissage}%
@@ -372,7 +372,7 @@ export function StagesClient({
                 <ProgressBar value={remplissage} color={remplissageColor(remplissage)} />
               </div>
               <div className="flex justify-between items-center gap-3 mt-4 pt-3.5 flex-wrap" style={{ borderTop: "1px solid var(--border)" }}>
-                <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                   Encadrement · {st.coachsLabel}
                 </div>
               </div>
@@ -419,7 +419,7 @@ export function StagesClient({
                         className="rounded-[10px] px-3 py-2 text-center cursor-pointer"
                         style={{ border: `1px solid ${form.jour === i ? "#1E7BFF" : "var(--border-strong)"}`, background: form.jour === i ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)" }}
                       >
-                        <div className="text-xs font-bold uppercase tracking-[0.06em]">{j}</div>
+                        <div className="text-[13px] font-bold uppercase tracking-[0.06em]">{j}</div>
                         <div className="text-[10px]" style={{ color: "var(--ink-secondary)" }}>
                           {dateLabel}
                         </div>
@@ -528,7 +528,7 @@ export function StagesClient({
                       </div>
                       <div className="flex-1">
                         <div className="text-sm font-semibold whitespace-pre-line">{b.contenu}</div>
-                        <div className="text-xs mt-0.5" style={{ color: "var(--ink-secondary)" }}>
+                        <div className="text-[13px] mt-0.5" style={{ color: "var(--ink-secondary)" }}>
                           {b.consigne}
                         </div>
                       </div>

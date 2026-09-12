@@ -94,7 +94,7 @@ export function EditerSeanceInstance({ instanceId, heureDebutInitial, sectionsIn
                       </div>
                       <div className="flex-1">
                         <div className="text-sm font-semibold whitespace-pre-line">{b.contenu}</div>
-                        <div className="text-xs mt-0.5" style={{ color: "var(--ink-secondary)" }}>
+                        <div className="text-[13px] mt-0.5" style={{ color: "var(--ink-secondary)" }}>
                           {b.consigne}
                         </div>
                       </div>

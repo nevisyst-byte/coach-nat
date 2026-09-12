@@ -183,11 +183,11 @@ export function PlanningEntrainementClient({
             <div className="overflow-x-auto">
               <div style={{ minWidth: LARGEUR_LABEL + SEMAINES_AFFICHEES * LARGEUR_SEMAINE }}>
                 <div className="flex" style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}>
-                  <div className="shrink-0 px-3.5 py-2.5 text-[11px] tracking-[0.1em] uppercase" style={{ width: LARGEUR_LABEL, color: "var(--ink-tertiary)" }}>
+                  <div className="shrink-0 px-3.5 py-2.5 text-[12px] tracking-[0.1em] uppercase" style={{ width: LARGEUR_LABEL, color: "var(--ink-tertiary)" }}>
                     Plan
                   </div>
                   {semaines.map((s, i) => (
-                    <div key={i} className="shrink-0 text-center py-2.5 text-[10px]" style={{ width: LARGEUR_SEMAINE, color: "var(--ink-tertiary)" }}>
+                    <div key={i} className="shrink-0 text-center py-2.5 text-[12px]" style={{ width: LARGEUR_SEMAINE, color: "var(--ink-tertiary)" }}>
                       {s.getDate()} {MOIS[s.getMonth()]}
                     </div>
                   ))}
@@ -211,7 +211,7 @@ export function PlanningEntrainementClient({
                         {style && (
                           <button
                             onClick={() => setModalOpen({ mode: "edit", plan: p })}
-                            className="absolute rounded-md px-2 flex items-center text-[11px] font-semibold truncate cursor-pointer"
+                            className="absolute rounded-md px-2 flex items-center text-[12px] font-semibold truncate cursor-pointer"
                             style={{ top: 8, height: 28, left: style.left + 2, width: style.width, background: `${color}55`, border: `1px solid ${color}` }}
                             title={p.nom}
                           >
@@ -225,7 +225,7 @@ export function PlanningEntrainementClient({
 
                 <div className="flex items-stretch">
                   <div style={{ width: LARGEUR_LABEL }} className="shrink-0 px-3.5 py-2.5 flex items-center">
-                    <span className="text-[12px] font-semibold" style={{ color: "var(--ink-secondary)" }}>
+                    <span className="text-[13px] font-semibold" style={{ color: "var(--ink-secondary)" }}>
                       + Nouveau plan
                     </span>
                   </div>
@@ -259,7 +259,7 @@ export function PlanningEntrainementClient({
             </div>
             <div className="flex flex-col gap-1.5">
               {modeles.length === 0 && (
-                <div className="text-[12px]" style={{ color: "var(--ink-secondary)" }}>
+                <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                   Aucun modèle pour l&apos;instant — enregistre-en un depuis un plan.
                 </div>
               )}
@@ -267,7 +267,7 @@ export function PlanningEntrainementClient({
                 <div
                   key={m.id}
                   onMouseDown={(e) => startDragModele(e, m)}
-                  className="rounded-lg px-2.5 py-2 text-[12px] font-semibold cursor-grab truncate select-none"
+                  className="rounded-lg px-2.5 py-2 text-[13px] font-semibold cursor-grab truncate select-none"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink-body)" }}
                   title={`${m.nom} — glisser sur une case`}
                 >
@@ -276,7 +276,7 @@ export function PlanningEntrainementClient({
               ))}
             </div>
             {creation && (
-              <div className="mt-2.5 text-[11px]" style={{ color: "#7FDCFF" }}>
+              <div className="mt-2.5 text-[12px]" style={{ color: "#7FDCFF" }}>
                 Application du modèle…
               </div>
             )}

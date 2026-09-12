@@ -329,7 +329,7 @@ export function SeanceContenuEditor({
                       Répartition {index + 1}
                     </span>
                     {value.combos.length > 1 && (
-                      <button onClick={() => supprimerCombo(index)} className="text-xs cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer cette répartition">
+                      <button onClick={() => supprimerCombo(index)} className="text-[13px] cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer cette répartition">
                         ✕
                       </button>
                     )}

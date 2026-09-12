@@ -72,10 +72,10 @@ export function EcheancesAdmin({ echeances }: { echeances: Echeance[] }) {
               <input value={editForm.detail} onChange={(ev) => setEditForm((f) => ({ ...f, detail: ev.target.value }))} className="rounded-[9px] px-3 py-2 text-sm outline-none" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
               <input type="color" value={editForm.color} onChange={(ev) => setEditForm((f) => ({ ...f, color: ev.target.value }))} className="rounded-[9px] h-[38px] cursor-pointer" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-strong)" }} />
               <div className="flex gap-1.5">
-                <button onClick={enregistrerEdition} disabled={savingEdit} className="flex-1 rounded-lg px-3 py-1.5 text-xs font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: savingEdit ? 0.7 : 1 }}>
+                <button onClick={enregistrerEdition} disabled={savingEdit} className="flex-1 rounded-lg px-3 py-1.5 text-[13px] font-bold cursor-pointer" style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: savingEdit ? 0.7 : 1 }}>
                   {savingEdit ? "…" : "OK"}
                 </button>
-                <button onClick={() => setEditingId(null)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+                <button onClick={() => setEditingId(null)} className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
                   ✕
                 </button>
               </div>
@@ -87,14 +87,14 @@ export function EcheancesAdmin({ echeances }: { echeances: Echeance[] }) {
               </div>
               <div className="flex-1">
                 <div className="text-sm font-semibold">{e.titre}</div>
-                <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                   {e.detail}
                 </div>
               </div>
-              <button onClick={() => ouvrirEdition(e)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--cyan)" }}>
+              <button onClick={() => ouvrirEdition(e)} className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--cyan)" }}>
                 Modifier
               </button>
-              <button onClick={() => remove(e.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+              <button onClick={() => remove(e.id)} className="rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
                 Supprimer
               </button>
             </div>

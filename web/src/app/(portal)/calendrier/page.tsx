@@ -132,7 +132,7 @@ export default async function CalendrierPage() {
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-semibold">{e.titre}</div>
-                  <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                  <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                     {e.detail}
                   </div>
                 </div>
@@ -207,7 +207,7 @@ export default async function CalendrierPage() {
           >
             <div className="flex-1">
               <div className="text-sm font-semibold">{s.nom}</div>
-              <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+              <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                 {s.periodeLabel} · {s.lieu}
               </div>
             </div>

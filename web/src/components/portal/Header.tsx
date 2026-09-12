@@ -194,13 +194,13 @@ export function Header({
           className="hidden sm:flex items-center gap-2 rounded-[10px] px-2.5 py-1.5"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)" }}
         >
-          <span className="text-xs uppercase tracking-[0.1em]" style={{ color: "var(--ink-secondary)" }}>
+          <span className="text-[13px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-secondary)" }}>
             {userName}
           </span>
         </div>
         {saisonLabel && (
           <div
-            className="hidden lg:flex items-center rounded-[10px] px-3 py-2 text-xs font-bold tracking-[0.1em] uppercase"
+            className="hidden lg:flex items-center rounded-[10px] px-3 py-2 text-[13px] font-bold tracking-[0.1em] uppercase"
             style={{ background: "rgba(30,123,255,0.12)", border: "1px solid rgba(30,123,255,0.4)", color: "#8CC4FF" }}
           >
             Saison {saisonLabel}
@@ -208,7 +208,7 @@ export function Header({
         )}
         <button
           onClick={logout}
-          className="hidden md:block rounded-[10px] px-3 py-2 text-xs font-semibold cursor-pointer"
+          className="hidden md:block rounded-[10px] px-3 py-2 text-[13px] font-semibold cursor-pointer"
           style={{ border: "1px solid var(--border-strong)", background: "transparent", color: "var(--ink-secondary)" }}
         >
           Déconnexion

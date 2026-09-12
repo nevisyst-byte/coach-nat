@@ -55,7 +55,7 @@ export function AdminShell({ userName, children }: { userName: string; children:
           })}
         </nav>
         <div className="p-3.5 flex flex-col gap-2" style={{ borderTop: "1px solid var(--border)" }}>
-          <Link href="/general" className="text-xs" style={{ color: "var(--cyan)" }}>
+          <Link href="/general" className="text-[13px]" style={{ color: "var(--cyan)" }}>
             ← Voir le portail coach
           </Link>
         </div>
@@ -67,7 +67,7 @@ export function AdminShell({ userName, children }: { userName: string; children:
             <span className="hidden sm:inline">Connecté en tant que </span>
             <span style={{ color: "var(--ink)", fontWeight: 600 }}>{userName}</span>
           </div>
-          <button onClick={logout} className="rounded-[10px] px-3 py-2 text-xs font-semibold cursor-pointer shrink-0" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
+          <button onClick={logout} className="rounded-[10px] px-3 py-2 text-[13px] font-semibold cursor-pointer shrink-0" style={{ border: "1px solid var(--border-strong)", color: "var(--ink-secondary)" }}>
             Déconnexion
           </button>
         </header>
@@ -78,7 +78,7 @@ export function AdminShell({ userName, children }: { userName: string; children:
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-1.5 rounded-[9px] px-3 py-2 text-xs font-semibold whitespace-nowrap shrink-0"
+                className="flex items-center gap-1.5 rounded-[9px] px-3 py-2 text-[13px] font-semibold whitespace-nowrap shrink-0"
                 style={{
                   color: active ? "var(--ink)" : "var(--ink-body)",
                   background: active ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)",
@@ -90,7 +90,7 @@ export function AdminShell({ userName, children }: { userName: string; children:
               </Link>
             );
           })}
-          <Link href="/general" className="flex items-center rounded-[9px] px-3 py-2 text-xs font-semibold whitespace-nowrap shrink-0" style={{ color: "var(--cyan)", border: "1px solid var(--border-strong)" }}>
+          <Link href="/general" className="flex items-center rounded-[9px] px-3 py-2 text-[13px] font-semibold whitespace-nowrap shrink-0" style={{ color: "var(--cyan)", border: "1px solid var(--border-strong)" }}>
             ← Portail coach
           </Link>
         </nav>

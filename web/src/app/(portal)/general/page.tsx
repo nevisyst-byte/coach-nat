@@ -260,19 +260,19 @@ async function CoachDashboard({
                 <div className="flex justify-between items-start gap-2.5">
                   <div>
                     <div className="font-display text-xl">{g.nom}</div>
-                    <div className="text-xs mt-0.5" style={{ color: "var(--ink-secondary)" }}>
+                    <div className="text-[13px] mt-0.5" style={{ color: "var(--ink-secondary)" }}>
                       {g.categorie}
                     </div>
                   </div>
                   <div className="font-display text-2xl">{g.nageurs.length}</div>
                 </div>
                 <div className="mt-3.5 flex flex-col gap-2">
-                  <div className="flex justify-between text-xs" style={{ color: "var(--ink-secondary)" }}>
+                  <div className="flex justify-between text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                     <span>Présence moyenne</span>
                     <span style={{ color: "var(--ink)", fontWeight: 600 }}>{presenceMoy}%</span>
                   </div>
                   <ProgressBar value={presenceMoy} color={g.color} height={7} />
-                  <div className="flex justify-between text-xs" style={{ color: "var(--ink-secondary)" }}>
+                  <div className="flex justify-between text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                     <span>Objectif en cours</span>
                     <span style={{ color: "var(--ink)", fontWeight: 600 }}>{g.objectif ?? "—"}</span>
                   </div>
@@ -354,13 +354,13 @@ async function CoachDashboard({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold">{c.groupe.nom}</div>
-                    <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                    <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                       {c.groupe.objectif ?? c.bassin} · {c.bassin}
                     </div>
                   </div>
                   <Link
                     href={`/presences?slot=reg:${c.id}&date=${toDateInputValue(prochaineOccurrence(c.jour))}`}
-                    className="rounded-lg px-3 py-1.5 text-xs font-semibold"
+                    className="rounded-lg px-3 py-1.5 text-[13px] font-semibold"
                     style={{ border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                   >
                     Ouvrir
@@ -377,11 +377,11 @@ async function CoachDashboard({
               <span className="text-[17px]">✎</span>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold">Feuilles de présence</div>
-                <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                   Pointer les séances de la semaine
                 </div>
               </div>
-              <Link href="/presences" className="rounded-lg px-3 py-1.5 text-xs font-bold text-white" style={{ background: "#1E7BFF" }}>
+              <Link href="/presences" className="rounded-lg px-3 py-1.5 text-[13px] font-bold text-white" style={{ background: "#1E7BFF" }}>
                 Saisir
               </Link>
             </div>
@@ -389,11 +389,11 @@ async function CoachDashboard({
               <span className="text-[17px]">☰</span>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold">Notation technique</div>
-                <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                   Mettre à jour la cotation par nage
                 </div>
               </div>
-              <Link href="/nageurs" className="rounded-lg px-3 py-1.5 text-xs font-bold text-white" style={{ background: "#E8442B" }}>
+              <Link href="/nageurs" className="rounded-lg px-3 py-1.5 text-[13px] font-bold text-white" style={{ background: "#E8442B" }}>
                 Noter
               </Link>
             </div>
@@ -401,11 +401,11 @@ async function CoachDashboard({
               <span className="text-[17px]">⟳</span>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold">Cycle à renouveler</div>
-                <div className="text-xs" style={{ color: "var(--ink-secondary)" }}>
+                <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
                   Générer le prochain cycle thématique
                 </div>
               </div>
-              <Link href="/entrainement" className="rounded-lg px-3 py-1.5 text-xs font-bold" style={{ color: "var(--ink)", border: "1px solid var(--border-strong)" }}>
+              <Link href="/entrainement" className="rounded-lg px-3 py-1.5 text-[13px] font-bold" style={{ color: "var(--ink)", border: "1px solid var(--border-strong)" }}>
                 Générer
               </Link>
             </div>

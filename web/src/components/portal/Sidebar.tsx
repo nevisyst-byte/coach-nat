@@ -75,7 +75,7 @@ export function Sidebar({
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="mb-3.5">
             {open ? (
-              <div className="text-xs font-bold tracking-[0.16em] uppercase px-2.5 pt-1.5 pb-2" style={{ color: "#9FB1C9" }}>
+              <div className="text-[13px] font-bold tracking-[0.16em] uppercase px-2.5 pt-1.5 pb-2" style={{ color: "#9FB1C9" }}>
                 {group.label}
               </div>
             ) : (
@@ -138,7 +138,7 @@ export function Sidebar({
         {open && (
           <div className="min-w-0">
             <div className="text-sm font-bold whitespace-nowrap">{userName}</div>
-            <div className="text-xs" style={{ color: "var(--ink-body)" }}>
+            <div className="text-[13px]" style={{ color: "var(--ink-body)" }}>
               {roleLabel}
             </div>
           </div>

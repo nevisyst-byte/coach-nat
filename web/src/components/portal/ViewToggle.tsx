@@ -23,7 +23,7 @@ export function ViewToggle({ options, current, size = "md" }: { options: { value
           <button
             key={o.value}
             onClick={() => setVue(o.value)}
-            className="rounded-[8px] text-xs font-bold cursor-pointer"
+            className="rounded-[8px] text-[13px] font-bold cursor-pointer"
             style={{
               padding: size === "sm" ? "8px 13px" : "8px 14px",
               background: active ? "rgba(30,123,255,0.22)" : "transparent",

@@ -317,7 +317,7 @@ export function PlanningClient({
         </div>
         <div className="flex gap-3.5 flex-wrap flex-1">
           {["ASSURE", "REMPLACE", "A_COUVRIR"].map((e) => (
-            <div key={e} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--ink-body)" }}>
+            <div key={e} className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--ink-body)" }}>
               <span className="w-2 h-2 rounded-full" style={{ background: ETAT_COLOR[e] }} />
               {ETAT_LABEL[e]}
             </div>
@@ -412,11 +412,11 @@ export function PlanningClient({
                         }}
                         title={`Stage · ${e.stageNom} · ${c.groupe} · ${c.debut}–${c.fin} · ${c.coachNom ?? "—"}`}
                       >
-                        <div className="text-[9px] font-bold tracking-[0.08em] uppercase truncate" style={{ color: e.stageColor }}>
+                        <div className="text-[10px] font-bold tracking-[0.08em] uppercase truncate" style={{ color: e.stageColor }}>
                           Stage · {e.stageNom}
                         </div>
                         <div className="text-[13px] font-semibold truncate leading-tight">{c.groupe}</div>
-                        <div className="text-[11px] truncate" style={{ color: "#7D91AE" }}>
+                        <div className="text-[12px] truncate" style={{ color: "#7D91AE" }}>
                           {c.debut}–{c.fin} {!comparteCompact && `· ${c.coachNom ?? "—"}`}
                         </div>
                       </div>
@@ -462,12 +462,12 @@ export function PlanningClient({
                           </button>
                         )}
                       </div>
-                      <div className="text-[11px] truncate" style={{ color: "#7D91AE" }}>
+                      <div className="text-[12px] truncate" style={{ color: "#7D91AE" }}>
                         {c.debut}–{c.fin} · {c.libelleCoach ?? c.coach?.user.name ?? "—"}
                       </div>
                       {!comparteCompact && c.groupe.objectif && (
                         <span
-                          className="inline-block mt-1 text-[9px] font-bold px-1 py-0.5 rounded truncate max-w-full"
+                          className="inline-block mt-1 text-[11px] font-bold px-1 py-0.5 rounded truncate max-w-full"
                           style={{ background: `${couleurObjectif(c.groupe.objectif)}26`, color: couleurObjectif(c.groupe.objectif) }}
                         >
                           {c.groupe.objectif}
@@ -494,7 +494,7 @@ export function PlanningClient({
               {canEdit && (
                 <button
                   onClick={() => openModal(i)}
-                  className="rounded-[11px] p-3 text-xs cursor-pointer"
+                  className="rounded-[11px] p-3 text-[13px] cursor-pointer"
                   style={{ border: "1px dashed var(--border-strong)", color: "var(--ink-muted)" }}
                 >
                   + créneau
@@ -550,7 +550,7 @@ export function PlanningClient({
                     <button
                       key={j}
                       onClick={() => setForm((f) => ({ ...f, jour: i }))}
-                      className="rounded-[10px] px-3.5 py-2 text-xs font-bold cursor-pointer"
+                      className="rounded-[10px] px-3.5 py-2 text-[13px] font-bold cursor-pointer"
                       style={{ border: `1px solid ${form.jour === i ? "#1E7BFF" : "var(--border-strong)"}`, background: form.jour === i ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)" }}
                     >
                       {j}
@@ -616,7 +616,7 @@ export function PlanningClient({
                     <button
                       key={e}
                       onClick={() => setForm((f) => ({ ...f, etat: e }))}
-                      className="rounded-[9px] px-3.5 py-2 text-xs font-bold cursor-pointer"
+                      className="rounded-[9px] px-3.5 py-2 text-[13px] font-bold cursor-pointer"
                       style={{ border: `1px solid ${form.etat === e ? ETAT_COLOR[e] : "var(--border-strong)"}`, color: form.etat === e ? ETAT_COLOR[e] : "var(--ink-body)" }}
                     >
                       {ETAT_LABEL[e]}
