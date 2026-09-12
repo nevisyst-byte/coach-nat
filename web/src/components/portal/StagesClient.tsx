@@ -143,7 +143,14 @@ export function StagesClient({
         c.combos && c.combos.length > 0
           ? c.combos
           : c.variant && c.intensite && c.nage
-            ? [{ variant: [c.variant], intensite: [c.intensite], nage: [{ valeur: c.nage, pourcentage: 100 }], pourcentage: 100 }]
+            ? [
+                {
+                  variant: [{ valeur: c.variant, pourcentage: 100 }],
+                  intensite: [{ valeur: c.intensite, pourcentage: 100 }],
+                  nage: [{ valeur: c.nage, pourcentage: 100 }],
+                  pourcentage: 100,
+                },
+              ]
             : contenuVide().combos,
       volume: c.volume || 3000,
       sections: c.sections ?? contenuVide().sections,

@@ -52,7 +52,9 @@ export function EntrainementClient({
   const semaines = Array.from({ length: SEMAINES_AFFICHEES }, (_, i) => ajouterJours(lundiCourant, i * 7));
   const toutGroupes = groupesParPole.flatMap((s) => s.groupes);
 
-  const [selectedGroupeIds, setSelectedGroupeIds] = useState<string[]>([]);
+  // Présélectionne le premier groupe disponible : s'il en existe un, la
+  // page ne doit jamais s'ouvrir vide sur "Merci de sélectionner..."
+  const [selectedGroupeIds, setSelectedGroupeIds] = useState<string[]>(toutGroupes[0] ? [toutGroupes[0].id] : []);
   const groupesSelectionnes = toutGroupes.filter((g) => selectedGroupeIds.includes(g.id));
 
   function toggleSelectionGroupe(id: string) {

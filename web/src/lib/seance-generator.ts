@@ -55,32 +55,26 @@ export function genererSeance(variant: string, intensite: string, nage: string, 
   return { resume: `${variant} · ${intensite} · ${nage} · ${fmtM(total)}`, blocs };
 }
 
-// Variant/intensité d'une répartition acceptent plusieurs valeurs cochées à
-// la fois (ex. Crawl + Dos dans le même bloc principal), sans répartition
-// chiffrée entre elles — jointes par " + " partout où il faut un texte.
-// Nage, elle, porte un % individuel par valeur cochée (ex. 30% 4 nages +
-// 20% Crawl + 50% Brasse) directement dans cette même répartition, pour ne
-// pas obliger à ouvrir une répartition séparée par nage.
-export type NageValeur = { valeur: string; pourcentage: number };
-export type Combo = { variant: string[]; intensite: string[]; nage: NageValeur[]; pourcentage: number };
+// Chaque axe (variant/intensité/nage) d'une répartition accepte plusieurs
+// valeurs cochées à la fois (ex. Crawl + Dos dans le même bloc principal),
+// avec un % individuel par valeur cochée (ex. 30% 4 nages + 20% Crawl +
+// 50% Brasse) réglable par une barre glissable — pas besoin d'ouvrir une
+// répartition séparée par valeur.
+export type ValeurPourcentage = { valeur: string; pourcentage: number };
+export type Combo = { variant: ValeurPourcentage[]; intensite: ValeurPourcentage[]; nage: ValeurPourcentage[]; pourcentage: number };
 
-function j(valeurs: string[]) {
-  return valeurs.join(" + ");
-}
-
-function nomsNage(nage: NageValeur[]) {
-  return nage.map((n) => n.valeur).join(" + ");
+function noms(valeurs: ValeurPourcentage[]) {
+  return valeurs.map((v) => v.valeur).join(" + ");
 }
 
 // Les combos existants en base (créés avant le passage au choix multiple
-// par axe, puis avant le % individuel par nage) ont nage en chaîne simple
-// ou en tableau de chaînes plutôt qu'en tableau {valeur,pourcentage} — on
-// les enveloppe ici pour rester compatible avec ces plans/créneaux/modèles
-// déjà enregistrés, sans les toucher ni forcer de migration de données.
+// par axe, puis avant le % individuel par valeur) ont chaque axe en chaîne
+// simple ou en tableau de chaînes plutôt qu'en tableau {valeur,pourcentage}
+// — on les enveloppe ici pour rester compatible avec ces plans/créneaux/
+// modèles déjà enregistrés, sans les toucher ni forcer de migration.
 export function normalizeCombos(raw: unknown): Combo[] | null {
   if (!Array.isArray(raw)) return null;
-  const toArr = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : typeof v === "string" ? [v] : []);
-  const toNage = (v: unknown): NageValeur[] => {
+  const toValeurs = (v: unknown): ValeurPourcentage[] => {
     if (typeof v === "string") return [{ valeur: v, pourcentage: 100 }];
     if (!Array.isArray(v)) return [];
     if (v.every((x) => typeof x === "string")) {
@@ -94,9 +88,9 @@ export function normalizeCombos(raw: unknown): Combo[] | null {
       .filter((n) => n.valeur);
   };
   return raw.map((c) => ({
-    variant: toArr((c as Record<string, unknown>).variant),
-    intensite: toArr((c as Record<string, unknown>).intensite),
-    nage: toNage((c as Record<string, unknown>).nage),
+    variant: toValeurs((c as Record<string, unknown>).variant),
+    intensite: toValeurs((c as Record<string, unknown>).intensite),
+    nage: toValeurs((c as Record<string, unknown>).nage),
     pourcentage: Number((c as Record<string, unknown>).pourcentage) || 0,
   }));
 }
@@ -107,7 +101,7 @@ export function normalizeCombos(raw: unknown): Combo[] | null {
 // volume total.
 export function genererSeanceMulti(combos: Combo[], volumeCible: number): { resume: string; blocs: Bloc[] } {
   if (combos.length === 0) return { resume: "", blocs: [] };
-  if (combos.length === 1) return genererSeance(j(combos[0].variant), j(combos[0].intensite), nomsNage(combos[0].nage), volumeCible);
+  if (combos.length === 1) return genererSeance(noms(combos[0].variant), noms(combos[0].intensite), noms(combos[0].nage), volumeCible);
 
   const total = volumeCible;
   const dEch = r100(total * 0.2);
@@ -122,9 +116,9 @@ export function genererSeanceMulti(combos: Combo[], volumeCible: number): { resu
     const repDist = dCombo >= 3000 ? 400 : dCombo >= 1500 ? 300 : dCombo >= 800 ? 200 : 100;
     const nSeries = Math.max(1, Math.round(dCombo / repDist));
     return {
-      phase: `Principal · ${nomsNage(c.nage)}`,
+      phase: `Principal · ${noms(c.nage)}`,
       distance: fmtM(dCombo),
-      contenu: `${nSeries}×${repDist} ${nomsNage(c.nage).toLowerCase()} (${j(c.variant).toLowerCase()}) à ${j(c.intensite).toLowerCase()} — départ ${DEPARTS[repDist]}`,
+      contenu: `${nSeries}×${repDist} ${noms(c.nage).toLowerCase()} (${noms(c.variant).toLowerCase()}) à ${noms(c.intensite).toLowerCase()} — départ ${DEPARTS[repDist]}`,
       consigne: `${c.pourcentage}% du volume principal · tenue de l'allure`,
     };
   });
@@ -139,7 +133,7 @@ export function genererSeanceMulti(combos: Combo[], volumeCible: number): { resu
     {
       phase: "Technique",
       distance: fmtM(dTech),
-      contenu: `${nEduc}×50 ${j(premier.variant).toLowerCase()} — départ 1'00`,
+      contenu: `${nEduc}×50 ${noms(premier.variant).toLowerCase()} — départ 1'00`,
       consigne: "Focus coulée et fréquence",
     },
     ...blocsPrincipaux,
@@ -151,6 +145,6 @@ export function genererSeanceMulti(combos: Combo[], volumeCible: number): { resu
     },
   ];
 
-  const resume = combos.map((c) => `${c.pourcentage}% ${nomsNage(c.nage)}/${j(c.intensite)}/${j(c.variant)}`).join(" + ") + ` · ${fmtM(total)}`;
+  const resume = combos.map((c) => `${c.pourcentage}% ${noms(c.nage)}/${noms(c.intensite)}/${noms(c.variant)}`).join(" + ") + ` · ${fmtM(total)}`;
   return { resume, blocs };
 }

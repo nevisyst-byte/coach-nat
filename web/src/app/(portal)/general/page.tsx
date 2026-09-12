@@ -6,42 +6,25 @@ import { Camembert } from "@/components/ui/Camembert";
 import { PeriodeToggle } from "@/components/portal/PeriodeToggle";
 import { hoursBetween, JOURS } from "@/lib/format";
 import { toDateInputValue } from "@/lib/week";
-import { normalizeCombos, type NageValeur } from "@/lib/seance-generator";
+import { normalizeCombos, type ValeurPourcentage } from "@/lib/seance-generator";
 
 const PALETTE = ["#1E7BFF", "#24C8FF", "#2ECC8F", "#F2B33D", "#E8442B", "#8C6BFF", "#5B7BA6"];
 
-type ComboPoids = { variant: string[]; intensite: string[]; nage: NageValeur[]; pourcentage: number | null };
-type InstanceRow = { variant: string[]; intensite: string[]; nage: NageValeur[]; volumeNage: number | null };
+type ComboPoids = { variant: ValeurPourcentage[]; intensite: ValeurPourcentage[]; nage: ValeurPourcentage[]; pourcentage: number | null };
+type InstanceRow = { variant: ValeurPourcentage[]; intensite: ValeurPourcentage[]; nage: ValeurPourcentage[]; volumeNage: number | null };
 
-// Variant/intensité : une répartition peut cocher plusieurs valeurs par
-// axe (ex. Crawl + Dos) — son poids (% ou volume) est alors partagé à
-// parts égales entre elles pour l'axe agrégé, plutôt que compté en double.
-function aggregerParPoids<T extends { variant: string[]; intensite: string[] }>(
+// Chaque valeur cochée porte déjà son propre % (saisi par le coach à la
+// création du plan) — pas de partage à parts égales à faire ici.
+function aggregerParPoids<T extends { variant: ValeurPourcentage[]; intensite: ValeurPourcentage[]; nage: ValeurPourcentage[] }>(
   raw: T[],
-  field: "variant" | "intensite",
+  field: "variant" | "intensite" | "nage",
   poids: (r: T) => number | null
 ) {
   const sums = new Map<string, number>();
   for (const r of raw) {
-    const valeurs = r[field];
-    const p = poids(r);
-    if (!p || valeurs.length === 0) continue;
-    const part = p / valeurs.length;
-    for (const v of valeurs) sums.set(v, (sums.get(v) ?? 0) + part);
-  }
-  return Array.from(sums.entries())
-    .sort((a, b) => b[1] - a[1])
-    .map(([nom, m], i) => ({ nom, m, color: PALETTE[i % PALETTE.length] }));
-}
-
-// Nage : chaque valeur porte déjà son propre % (saisi par le coach à la
-// création du plan), pas de partage à parts égales à faire ici.
-function aggregerNage<T extends { nage: NageValeur[] }>(raw: T[], poids: (r: T) => number | null) {
-  const sums = new Map<string, number>();
-  for (const r of raw) {
     const p = poids(r);
     if (!p) continue;
-    for (const n of r.nage) sums.set(n.valeur, (sums.get(n.valeur) ?? 0) + (p * (n.pourcentage || 0)) / 100);
+    for (const v of r[field]) sums.set(v.valeur, (sums.get(v.valeur) ?? 0) + (p * (v.pourcentage || 0)) / 100);
   }
   return Array.from(sums.entries())
     .sort((a, b) => b[1] - a[1])
@@ -168,7 +151,12 @@ async function CoachDashboard({
         }
       } else if (plan.variant && plan.intensite && plan.nage) {
         for (let i = 0; i < n; i++)
-          volumeRealise.push({ variant: [plan.variant], intensite: [plan.intensite], nage: [{ valeur: plan.nage, pourcentage: 100 }], volumeNage: plan.volumeNage });
+          volumeRealise.push({
+            variant: [{ valeur: plan.variant, pourcentage: 100 }],
+            intensite: [{ valeur: plan.intensite, pourcentage: 100 }],
+            nage: [{ valeur: plan.nage, pourcentage: 100 }],
+            volumeNage: plan.volumeNage,
+          });
       }
     }
   }
@@ -179,7 +167,12 @@ async function CoachDashboard({
     if (combos && combos.length > 0) {
       for (const combo of combos) combosCible.push({ variant: combo.variant, intensite: combo.intensite, nage: combo.nage, pourcentage: combo.pourcentage });
     } else if (plan.variant && plan.intensite && plan.nage) {
-      combosCible.push({ variant: [plan.variant], intensite: [plan.intensite], nage: [{ valeur: plan.nage, pourcentage: 100 }], pourcentage: 100 });
+      combosCible.push({
+        variant: [{ valeur: plan.variant, pourcentage: 100 }],
+        intensite: [{ valeur: plan.intensite, pourcentage: 100 }],
+        nage: [{ valeur: plan.nage, pourcentage: 100 }],
+        pourcentage: 100,
+      });
     }
   }
 
@@ -191,12 +184,12 @@ async function CoachDashboard({
   ];
 
   const camembertsRealise = [
-    { titre: "Par nage", items: aggregerNage(volumeRealise, (r) => r.volumeNage) },
+    { titre: "Par nage", items: aggregerParPoids(volumeRealise, "nage", (r) => r.volumeNage) },
     { titre: "Par intensité", items: aggregerParPoids(volumeRealise, "intensite", (r) => r.volumeNage) },
     { titre: "Par variant", items: aggregerParPoids(volumeRealise, "variant", (r) => r.volumeNage) },
   ].filter((c) => c.items.length > 0);
   const camembertsCible = [
-    { titre: "Par nage", items: aggregerNage(combosCible, (r) => r.pourcentage) },
+    { titre: "Par nage", items: aggregerParPoids(combosCible, "nage", (r) => r.pourcentage) },
     { titre: "Par intensité", items: aggregerParPoids(combosCible, "intensite", (r) => r.pourcentage) },
     { titre: "Par variant", items: aggregerParPoids(combosCible, "variant", (r) => r.pourcentage) },
   ].filter((c) => c.items.length > 0);

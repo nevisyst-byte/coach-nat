@@ -13,10 +13,11 @@ const setSchema = z.object({
   nages: z.array(z.string()).default([]),
 });
 const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.string(), sets: z.array(setSchema) });
+const valeurPourcentageSchema = z.object({ valeur: z.string().min(1), pourcentage: z.number().min(0).max(100) });
 const comboSchema = z.object({
-  variant: z.array(z.string()).min(1),
-  intensite: z.array(z.string()).min(1),
-  nage: z.array(z.object({ valeur: z.string().min(1), pourcentage: z.number().min(0).max(100) })).min(1),
+  variant: z.array(valeurPourcentageSchema).min(1),
+  intensite: z.array(valeurPourcentageSchema).min(1),
+  nage: z.array(valeurPourcentageSchema).min(1),
   pourcentage: z.number().min(0).max(100),
 });
 
@@ -65,9 +66,9 @@ export async function POST(request: Request) {
       nom,
       theme,
       heureDebut: heureDebut || null,
-      variant: comboUnique ? comboUnique.variant.join(" + ") : variant ?? null,
-      intensite: comboUnique ? comboUnique.intensite.join(" + ") : intensite ?? null,
-      nage: comboUnique ? comboUnique.nage.map((n) => n.valeur).join(" + ") : nage ?? null,
+      variant: comboUnique ? comboUnique.variant.map((v) => v.valeur).join(" + ") : variant ?? null,
+      intensite: comboUnique ? comboUnique.intensite.map((v) => v.valeur).join(" + ") : intensite ?? null,
+      nage: comboUnique ? comboUnique.nage.map((v) => v.valeur).join(" + ") : nage ?? null,
       volumeNage: volumeNage ?? null,
       combos: combos && combos.length > 0 ? combos : undefined,
       sections: sections ?? undefined,
