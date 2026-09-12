@@ -126,7 +126,7 @@ export function EntrainementClient({
           <div key={section.pole} className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2 px-1">
               <span className="w-2 h-2 rounded-full" style={{ background: section.color }} />
-              <span className="font-display text-[12px] tracking-[0.08em] uppercase" style={{ color: "#61789B" }}>
+              <span className="font-display text-[12px] tracking-[0.08em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                 {section.nom}
               </span>
             </div>
@@ -175,7 +175,7 @@ export function EntrainementClient({
               <div className="overflow-x-auto">
                 <div style={{ minWidth: LARGEUR_COLONNE + SEMAINES_AFFICHEES * 56 }}>
                   <div className="flex" style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}>
-                    <div className="shrink-0 px-3.5 py-2.5 text-[10px] tracking-[0.1em] uppercase" style={{ width: LARGEUR_COLONNE, color: "#61789B" }}>
+                    <div className="shrink-0 px-3.5 py-2.5 text-[11px] tracking-[0.1em] uppercase" style={{ width: LARGEUR_COLONNE, color: "var(--ink-tertiary)" }}>
                       Objectif
                     </div>
                     {semaines.map((s, i) => (

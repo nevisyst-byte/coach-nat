@@ -215,22 +215,22 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
               className="grid items-center px-4 sm:px-5 py-2"
               style={{ gridTemplateColumns: GRID_COLS, columnGap: 16, borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}
             >
-              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                 Nageur
               </div>
-              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                 Catégorie
               </div>
-              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                 Groupe
               </div>
-              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }} title="Points de cotation FFN">
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }} title="Points de cotation FFN">
                 Pts FFN
               </div>
-              <div className="hidden sm:block text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }} title="Rang départemental / régional / national">
+              <div className="hidden sm:block text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }} title="Rang départemental / régional / national">
                 Rangs (D/R/N)
               </div>
-              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }} title="Part des séances pointées Présent ou Retard, calculée sur l'historique de présence de ce nageur">
+              <div className="text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }} title="Part des séances pointées Présent ou Retard, calculée sur l'historique de présence de ce nageur">
                 Présence
               </div>
             </div>
@@ -376,7 +376,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
             <div className="px-6 py-5 flex flex-col gap-3.5">
               <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "var(--ink-tertiary)" }}>
                     Année de naissance {selectedIuf && completer.anneeNaissance && <span style={{ color: "#2ECC8F" }}>(estimée FFN)</span>}
                   </div>
                   <input
@@ -389,7 +389,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                   />
                 </div>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "var(--ink-tertiary)" }}>
                     Catégorie
                   </div>
                   <input
@@ -402,7 +402,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                 </div>
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "var(--ink-tertiary)" }}>
                   Groupe
                 </div>
                 <select value={completer.groupeId} onChange={(e) => chooseGroupeCreate(e.target.value)} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={inputStyle}>
@@ -465,7 +465,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
               </div>
               <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "var(--ink-tertiary)" }}>
                     Année de naissance
                   </div>
                   <input
@@ -478,7 +478,7 @@ export function NageursListClient({ groupesByPole, allGroupes, isAdmin }: { grou
                   />
                 </div>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-1.5" style={{ color: "var(--ink-tertiary)" }}>
                     Catégorie
                   </div>
                   <input

@@ -65,7 +65,7 @@ function LoginForm() {
             height={56}
             style={{ borderRadius: 13, border: "1px solid rgba(36,200,255,0.3)" }}
           />
-          <div className="text-[10px] tracking-[0.2em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
+          <div className="text-[11px] tracking-[0.2em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
             Portail coachs
           </div>
         </div>
@@ -82,7 +82,7 @@ function LoginForm() {
 
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div>
-            <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
+            <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
               Email
             </div>
             <input
@@ -100,7 +100,7 @@ function LoginForm() {
             />
           </div>
           <div>
-            <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
+            <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
               Mot de passe
             </div>
             <div className="relative">

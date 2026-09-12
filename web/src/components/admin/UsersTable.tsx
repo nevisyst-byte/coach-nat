@@ -57,7 +57,7 @@ export function UsersTable({ users }: { users: UserRow[] }) {
         <thead>
           <tr style={{ background: "rgba(255,255,255,0.03)" }}>
             {["Nom", "Email", "Rôle", "Initiales", ""].map((h) => (
-              <th key={h} className="text-left text-[11px] tracking-[0.12em] uppercase px-5 py-3" style={{ color: "#61789B" }}>
+              <th key={h} className="text-left text-[12px] tracking-[0.12em] uppercase px-5 py-3" style={{ color: "var(--ink-tertiary)" }}>
                 {h}
               </th>
             ))}
@@ -113,7 +113,7 @@ export function UsersTable({ users }: { users: UserRow[] }) {
             </div>
             <div className="px-6 py-5 flex flex-col gap-3.5">
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Nom complet
                 </div>
                 <input
@@ -124,7 +124,7 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                 />
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Email
                 </div>
                 <input
@@ -136,7 +136,7 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                 />
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Rôle
                 </div>
                 <select
@@ -154,7 +154,7 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                 </select>
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Nouveau mot de passe (optionnel)
                 </div>
                 <input

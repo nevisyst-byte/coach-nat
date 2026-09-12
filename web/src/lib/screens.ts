@@ -17,6 +17,7 @@ export const TITLES: Record<string, [string, string, string]> = {
   "/calendrier": ["Calendrier saison", "Séances, compétitions et congés de la saison", "Planning"],
   "/absences": ["Absences & congés", "Indisponibilités coach et absences nageurs", "Planning"],
   "/nageurs": ["Nageurs", "Effectif suivi · cotation FFN et rankings", "Nageurs"],
+  "/groupes": ["Groupes", "Pôle, catégorie, coach responsable et objectif en cours", "Nageurs"],
   "/entrainement": ["Entraînement", "Un plan par groupe, du thème macro au contenu chiffré", "Entraînement"],
   "/entrainement/planning": ["Calendrier des plans", "Un groupe, tous ses plans sur un vrai calendrier", "Entraînement"],
   "/outils/allures": ["Allures & VMA", "Temps test 100m nage complète → allures cibles par type d'entraînement", "Outils"],
@@ -70,6 +71,12 @@ export const HERO: Record<string, Hero> = {
     kicker: "Effectif suivi", title: "Tous les nageurs, toutes les cotations",
     text: "Points FFN, rangs départemental, régional et national, et assiduité.",
     cta1: { label: "Créer une séance", href: "/entrainement" },
+  },
+  "/groupes": {
+    img: "/assets/pool-lanes.jpg", pos: "center 50%", veil: "corner",
+    kicker: "Effectifs & encadrement", title: "Tous les groupes, un coup d'œil",
+    text: "Pôle, catégorie, coach responsable et objectif en cours par groupe.",
+    cta1: { label: "Nageurs", href: "/nageurs" },
   },
   "/entrainement": {
     img: "/assets/flip-turn.jpg", pos: "center 40%", veil: "corner",

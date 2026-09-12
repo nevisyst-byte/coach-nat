@@ -22,7 +22,7 @@ export function HeroBanner() {
       }}
     >
       <div>
-        <div className="text-[11px] tracking-[0.2em] uppercase" style={{ color: "#7FDCFF" }}>
+        <div className="text-[12px] tracking-[0.2em] uppercase" style={{ color: "#7FDCFF" }}>
           {hero.kicker}
         </div>
         <h2 className="font-display mt-2 max-w-[520px] text-[28px] md:text-[36px] leading-[1.02]">{hero.title}</h2>

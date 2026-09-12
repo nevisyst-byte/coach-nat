@@ -51,8 +51,10 @@ export function Chip({
       {...rest}
       className={`rounded-[9px] px-3.5 py-2 text-[13px] font-semibold cursor-pointer ${rest.className ?? ""}`}
       style={{
+        // Fond inactif relevé (0.04 → 0.07) : à 0.04 le chip se fondait
+        // presque dans le fond de carte, illisible comme bouton cliquable.
         border: `1px solid ${active ? color : "var(--border-strong)"}`,
-        background: active ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)",
+        background: active ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.07)",
         color: active ? "var(--ink)" : "var(--ink-body)",
       }}
     >

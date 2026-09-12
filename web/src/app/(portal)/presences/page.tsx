@@ -207,7 +207,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", borderLeft: `3px solid ${b.objectif ? couleurObjectif(b.objectif) : "var(--border)"}` }}
                   >
                     <div style={{ minWidth: 64 }}>
-                      <div className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
+                      <div className="text-[11px] tracking-[0.12em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                         {b.phase}
                       </div>
                       <div className="font-display text-lg">{b.distance}</div>

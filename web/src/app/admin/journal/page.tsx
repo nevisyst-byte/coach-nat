@@ -36,7 +36,7 @@ export default async function JournalPage() {
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)" }}>
               {["Date", "Compte", "Rôle", "Action", "Cible", "Détail", "IP"].map((h) => (
-                <th key={h} className="text-left py-2 px-2 text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
+                <th key={h} className="text-left py-2 px-2 text-[10px] font-bold tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                   {h}
                 </th>
               ))}

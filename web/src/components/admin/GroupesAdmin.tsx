@@ -16,7 +16,7 @@ const POLES = ["FORMATION", "COMPETITION", "SAUVETAGE", "LOISIR"];
 // est éditable ici (pas juste affiché par la section) : sans ça, un groupe
 // créé dans le mauvais pôle n'a plus aucun moyen d'en changer.
 const ROW_COLUMNS = "1.2fr 130px 110px 80px 160px 1.1fr 150px";
-const LABEL_STYLE: React.CSSProperties = { color: "#61789B", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 };
+const LABEL_STYLE: React.CSSProperties = { color: "var(--ink-tertiary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 };
 const INPUT_STYLE: React.CSSProperties = { background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" };
 
 export function GroupesAdmin({ groupes, coachs, nageurs }: { groupes: Groupe[]; coachs: Coach[]; nageurs: Nageur[] }) {

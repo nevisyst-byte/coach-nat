@@ -174,12 +174,12 @@ export function FicheNageur({
         <div className="flex gap-6 flex-wrap items-start">
           <div className="flex flex-col items-center shrink-0" style={{ minWidth: 260 }}>
             <RadarChart axes={radarAxes} size={240} />
-            <div className="text-[11px] text-center mt-1" style={{ color: "#61789B", maxWidth: 220 }}>
+            <div className="text-[11px] text-center mt-1" style={{ color: "var(--ink-tertiary)", maxWidth: 220 }}>
               Technique par nage (/5) · vitesse FFN (échelle 0-600+) · assiduité (%)
             </div>
           </div>
           <div className="flex-1" style={{ minWidth: 280 }}>
-            <div className="text-[11px] tracking-[0.14em] uppercase mb-2" style={{ color: "#61789B" }}>
+            <div className="text-[12px] tracking-[0.14em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
               Tableau temps bassin
             </div>
             <AllureVmaTool />
@@ -243,7 +243,7 @@ export function FicheNageur({
               <thead>
                 <tr style={{ background: "rgba(255,255,255,0.03)" }}>
                   {["Épreuve", "Temps", "Points", "Niveau", "Progression saison", "Rang Nat."].map((h, i) => (
-                    <th key={h} className="text-[11px] tracking-[0.12em] uppercase px-3 py-2.5" style={{ color: "#61789B", textAlign: i === 0 ? "left" : "right", paddingLeft: i === 0 ? 20 : 12, paddingRight: i === 5 ? 20 : 12 }}>
+                    <th key={h} className="text-[12px] tracking-[0.12em] uppercase px-3 py-2.5" style={{ color: "var(--ink-tertiary)", textAlign: i === 0 ? "left" : "right", paddingLeft: i === 0 ? 20 : 12, paddingRight: i === 5 ? 20 : 12 }}>
                       {h}
                     </th>
                   ))}
@@ -361,7 +361,7 @@ export function FicheNageur({
                       {a.pct}%
                     </span>
                     <div className="w-full rounded-t-md" style={{ height: `${Math.max(a.pct, 4)}%`, background: a.color }} />
-                    <span className="text-[10px]" style={{ color: "#61789B" }}>
+                    <span className="text-[10px]" style={{ color: "var(--ink-tertiary)" }}>
                       {a.sem}
                     </span>
                   </div>
@@ -412,7 +412,7 @@ export function FicheNageur({
                 <thead>
                   <tr style={{ background: "rgba(255,255,255,0.03)" }}>
                     {["Saison", "Groupe", "Coach"].map((h) => (
-                      <th key={h} className="text-[11px] tracking-[0.12em] uppercase px-5 py-2.5 text-left" style={{ color: "#61789B" }}>
+                      <th key={h} className="text-[12px] tracking-[0.12em] uppercase px-5 py-2.5 text-left" style={{ color: "var(--ink-tertiary)" }}>
                         {h}
                       </th>
                     ))}
@@ -496,7 +496,7 @@ export function FicheNageur({
               </button>
             </div>
             <div className="px-6 py-5">
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2.5" style={{ color: "#61789B" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2.5" style={{ color: "var(--ink-tertiary)" }}>
                 Nage évaluée
               </div>
               <div className="flex gap-2 flex-wrap mb-5">
@@ -552,7 +552,7 @@ export function FicheNageur({
               </div>
 
               <div className="mt-5">
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Observation
                 </div>
                 <textarea

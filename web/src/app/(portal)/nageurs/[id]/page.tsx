@@ -98,11 +98,11 @@ export default async function FichePage({ params }: { params: Promise<{ id: stri
             { niveau: "National", place: nageur.rangNat, total: "sur 9 640" },
           ].map((r) => (
             <div key={r.niveau} className="text-center rounded-xl px-4 py-3" style={{ minWidth: 96, background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-strong)" }}>
-              <div className="text-[10px] tracking-[0.14em] uppercase" style={{ color: "var(--ink-secondary)" }}>
+              <div className="text-[11px] tracking-[0.14em] uppercase" style={{ color: "var(--ink-secondary)" }}>
                 {r.niveau}
               </div>
               <div className="font-display text-2xl mt-0.5">{r.place ? `${r.place}e` : "—"}</div>
-              <div className="text-[11px]" style={{ color: "#61789B" }}>
+              <div className="text-[11px]" style={{ color: "var(--ink-tertiary)" }}>
                 {r.total}
               </div>
             </div>

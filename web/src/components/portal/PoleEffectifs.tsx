@@ -39,7 +39,7 @@ export function PoleEffectifs({ poles }: { poles: PoleData[] }) {
                 <span className="text-xs font-bold min-w-[38px] text-right" style={{ color: p.color }}>
                   {p.part}%
                 </span>
-                <span className="text-xs" style={{ color: "#61789B" }}>
+                <span className="text-xs" style={{ color: "var(--ink-tertiary)" }}>
                   {open ? "▾" : "▸"}
                 </span>
               </button>

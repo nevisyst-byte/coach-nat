@@ -65,7 +65,7 @@ export function Sidebar({
           />
         )}
         {open && (
-          <div className="text-[10px] tracking-[0.2em] uppercase whitespace-nowrap" style={{ color: "var(--ink-tertiary)" }}>
+          <div className="text-[11px] tracking-[0.2em] uppercase whitespace-nowrap" style={{ color: "var(--ink-tertiary)" }}>
             Portail coachs
           </div>
         )}

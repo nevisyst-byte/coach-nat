@@ -185,7 +185,7 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
           Séances · échéances
         </span>
       </div>
-      <div className="grid grid-cols-7 gap-1.5 text-[11px] uppercase tracking-[0.08em] mb-1.5 text-center" style={{ color: "#61789B" }}>
+      <div className="grid grid-cols-7 gap-1.5 text-[11px] uppercase tracking-[0.08em] mb-1.5 text-center" style={{ color: "var(--ink-tertiary)" }}>
         {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
           <div key={i}>{d}</div>
         ))}
@@ -241,7 +241,7 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
             </div>
 
             <div className="px-6 py-4 flex-1 overflow-y-auto flex flex-col gap-3">
-              <div className="text-[11px] font-bold tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
+              <div className="text-[11px] font-bold tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                 Échéances
               </div>
               {selected.echeances.map((e) =>
@@ -331,7 +331,7 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
                 </button>
               )}
 
-              <div className="text-[11px] font-bold tracking-[0.1em] uppercase mt-2" style={{ color: "#61789B" }}>
+              <div className="text-[11px] font-bold tracking-[0.1em] uppercase mt-2" style={{ color: "var(--ink-tertiary)" }}>
                 Séances
               </div>
               {selected.evenements.length === 0 ? (
@@ -342,7 +342,7 @@ export function VueEnsembleClient({ mois, annee, cells, aujourdhui }: { mois: st
                 <div ref={colRef} className="relative rounded-[11px]" style={{ height: hauteur, background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
                   {heures.map((h) => (
                     <div key={h} className="absolute left-0 right-0 flex items-center gap-2" style={{ top: (h * 60 - rangeDebut) * PX_PAR_MIN }}>
-                      <span className="text-[10px] pl-1.5 shrink-0" style={{ color: "#61789B", width: 34 }}>
+                      <span className="text-[10px] pl-1.5 shrink-0" style={{ color: "var(--ink-tertiary)", width: 34 }}>
                         {String(Math.floor(h) % 24).padStart(2, "0")}:00
                       </span>
                       <div className="flex-1" style={{ borderTop: "1px solid var(--border)", opacity: 0.6 }} />

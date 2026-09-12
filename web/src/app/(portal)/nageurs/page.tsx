@@ -47,7 +47,7 @@ export default async function NageursPage({
       color: POLE_COLORS[p],
       rows: nageurs.filter((n) => n.groupe?.pole === p).map(mapRow),
     })),
-    { pole: "SANS_GROUPE", nom: "Sans groupe", color: "#61789B", rows: nageurs.filter((n) => !n.groupe).map(mapRow) },
+    { pole: "SANS_GROUPE", nom: "Sans groupe", color: "var(--ink-tertiary)", rows: nageurs.filter((n) => !n.groupe).map(mapRow) },
   ].filter((g) => g.rows.length > 0);
 
   return (

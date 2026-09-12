@@ -90,7 +90,7 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
             </button>
           </div>
 
-          <div className="grid gap-1.5 text-[10px] tracking-[0.08em] uppercase mb-1" style={{ gridTemplateColumns: "56px 64px 1fr 150px 64px 64px 20px", color: "#61789B" }}>
+          <div className="grid gap-1.5 text-[11px] tracking-[0.08em] uppercase mb-1" style={{ gridTemplateColumns: "56px 64px 1fr 150px 64px 64px 20px", color: "var(--ink-tertiary)" }}>
             <span>Rép.</span>
             <span>Dist.</span>
             <span>Contenu</span>

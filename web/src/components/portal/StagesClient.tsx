@@ -342,13 +342,13 @@ export function StagesClient({
               </div>
               <div className="grid gap-3 mt-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(90px,1fr))" }}>
                 <div>
-                  <div className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
+                  <div className="text-[11px] tracking-[0.12em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                     Groupes
                   </div>
                   <div className="text-[13px] font-semibold mt-0.5">{st.groupesLabel}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
+                  <div className="text-[11px] tracking-[0.12em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                     Volume
                   </div>
                   <div className="text-[13px] font-semibold mt-0.5">
@@ -356,7 +356,7 @@ export function StagesClient({
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
+                  <div className="text-[11px] tracking-[0.12em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                     Budget
                   </div>
                   <div className="text-[13px] font-semibold mt-0.5">{st.budgetLabel ?? "—"}</div>
@@ -406,7 +406,7 @@ export function StagesClient({
             </div>
             <div className="px-6 py-5 flex-1 overflow-y-auto flex flex-col gap-4">
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Jour
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
@@ -429,7 +429,7 @@ export function StagesClient({
                 </div>
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Type de créneau
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
@@ -447,13 +447,13 @@ export function StagesClient({
               </div>
               <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))" }}>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Début
                   </div>
                   <input type="time" value={form.debut} onChange={(e) => setForm((f) => ({ ...f, debut: e.target.value, heureDebut: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
                 </div>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Fin
                   </div>
                   <input type="time" value={form.fin} onChange={(e) => setForm((f) => ({ ...f, fin: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
@@ -461,7 +461,7 @@ export function StagesClient({
               </div>
               <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))" }}>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Groupe
                   </div>
                   <select value={form.groupe} onChange={(e) => setForm((f) => ({ ...f, groupe: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
@@ -473,7 +473,7 @@ export function StagesClient({
                   </select>
                 </div>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Coach
                   </div>
                   <select value={form.coachId} onChange={(e) => setForm((f) => ({ ...f, coachId: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
@@ -488,13 +488,13 @@ export function StagesClient({
                   </select>
                 </div>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Lieu / bassin
                   </div>
                   <input value={form.bassin} onChange={(e) => setForm((f) => ({ ...f, bassin: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
                 </div>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Objectif (macro)
                   </div>
                   <select value={form.theme} onChange={(e) => setForm((f) => ({ ...f, theme: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: couleurObjectif(form.theme) }}>
@@ -510,7 +510,7 @@ export function StagesClient({
               <SeanceContenuEditor value={form} onChange={(updater) => setForm((f) => ({ ...f, ...updater(f) }))} modeles={modeles} onEnregistrerModele={enregistrerModeleDepuisForm} />
 
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Aperçu
                 </div>
                 <div className="flex flex-col gap-2.5">
@@ -521,7 +521,7 @@ export function StagesClient({
                       style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)" }}
                     >
                       <div style={{ minWidth: 64 }}>
-                        <div className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
+                        <div className="text-[11px] tracking-[0.12em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                           {b.phase}
                         </div>
                         <div className="font-display text-lg">{b.distance}</div>
@@ -560,43 +560,43 @@ export function StagesClient({
             </div>
             <div className="px-6 py-5 grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
               <div style={{ gridColumn: "1 / -1" }}>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Nom du stage
                 </div>
                 <input value={sForm.nom} onChange={(e) => setSForm((f) => ({ ...f, nom: e.target.value }))} placeholder="Stage Printemps · Élite" className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Du
                 </div>
                 <input type="date" value={sForm.dateDebut} onChange={(e) => setSForm((f) => ({ ...f, dateDebut: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Au (7 jours max)
                 </div>
                 <input type="date" value={sForm.dateFin} onChange={(e) => setSForm((f) => ({ ...f, dateFin: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Lieu
                 </div>
                 <input value={sForm.lieu} onChange={(e) => setSForm((f) => ({ ...f, lieu: e.target.value }))} placeholder="CREPS, piscine…" className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Groupes
                 </div>
                 <input value={sForm.groupesLabel} onChange={(e) => setSForm((f) => ({ ...f, groupesLabel: e.target.value }))} placeholder="Élite · Espoir" className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Places
                 </div>
                 <input type="number" value={sForm.places} onChange={(e) => setSForm((f) => ({ ...f, places: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Budget
                 </div>
                 <input value={sForm.budgetLabel} onChange={(e) => setSForm((f) => ({ ...f, budgetLabel: e.target.value }))} placeholder="3 200 €" className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />

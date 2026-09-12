@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Card, SectionTitle } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { GroupesAdmin } from "@/components/admin/GroupesAdmin";
 import { getSession } from "@/lib/auth";
 import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
@@ -17,7 +17,6 @@ export default async function GroupesPage() {
   if (canManage) {
     return (
       <Card>
-        <SectionTitle>Groupes</SectionTitle>
         <GroupesAdmin
           groupes={groupes.map((g) => ({ id: g.id, nom: g.nom, pole: g.pole, categorie: g.categorie, color: g.color, objectif: g.objectif, coachId: g.coachId }))}
           coachs={coachs.map((c) => ({ id: c.id, nom: c.user.name }))}
@@ -28,7 +27,7 @@ export default async function GroupesPage() {
   }
 
   const columns = "1.4fr 130px 90px 170px 1.3fr";
-  const headerLabel: React.CSSProperties = { color: "#61789B", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" };
+  const headerLabel: React.CSSProperties = { color: "var(--ink-tertiary)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" };
 
   const groupesParPole = POLE_ORDER.map((pole) => ({
     pole,
@@ -39,7 +38,6 @@ export default async function GroupesPage() {
 
   return (
     <Card>
-      <SectionTitle>Groupes</SectionTitle>
       <div className="text-[13px] mb-3.5" style={{ color: "var(--ink-secondary)" }}>
         Vue en lecture seule — seul un administrateur peut créer un groupe, changer son coach ou gérer son
         effectif.

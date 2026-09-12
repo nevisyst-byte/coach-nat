@@ -356,7 +356,7 @@ export function PlanningClient({
                 <div
                   key={h}
                   className="absolute right-1 text-[10px] text-right"
-                  style={{ top: (h * 60 - rangeDebut) * PX_PAR_MIN - 6, color: "#61789B" }}
+                  style={{ top: (h * 60 - rangeDebut) * PX_PAR_MIN - 6, color: "var(--ink-tertiary)" }}
                 >
                   {String(Math.floor(h) % 24).padStart(2, "0")}:00
                 </div>
@@ -542,7 +542,7 @@ export function PlanningClient({
             </div>
             <div className="px-6 py-5 flex flex-col gap-4">
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Jour
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
@@ -560,20 +560,20 @@ export function PlanningClient({
               </div>
               <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Début
                   </div>
                   <input type="time" value={form.debut} onChange={(e) => setForm((f) => ({ ...f, debut: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
                 </div>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Fin
                   </div>
                   <input type="time" value={form.fin} onChange={(e) => setForm((f) => ({ ...f, fin: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
                 </div>
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Groupe
                 </div>
                 <select value={form.groupeId} onChange={(e) => setForm((f) => ({ ...f, groupeId: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
@@ -586,7 +586,7 @@ export function PlanningClient({
               </div>
               <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Coach
                   </div>
                   <select value={form.coachId} onChange={(e) => setForm((f) => ({ ...f, coachId: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}>
@@ -601,14 +601,14 @@ export function PlanningClient({
                   </select>
                 </div>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Bassin
                   </div>
                   <input value={form.bassin} onChange={(e) => setForm((f) => ({ ...f, bassin: e.target.value }))} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
                 </div>
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   État d&apos;encadrement
                 </div>
                 <div className="flex gap-1.5">
@@ -648,7 +648,7 @@ export function PlanningClient({
             </div>
             <div className="px-6 py-5 flex flex-col gap-3.5">
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Qui
                 </div>
                 <div className="flex gap-2 flex-wrap">
@@ -669,7 +669,7 @@ export function PlanningClient({
                 </div>
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   {absForm.qui === "coach" ? "Coach" : "Nageur"}
                 </div>
                 <select
@@ -687,7 +687,7 @@ export function PlanningClient({
               </div>
               <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Date
                   </div>
                   <input
@@ -699,7 +699,7 @@ export function PlanningClient({
                   />
                 </div>
                 <div>
-                  <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                  <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                     Motif
                   </div>
                   <input
@@ -754,7 +754,7 @@ export function PlanningClient({
               </div>
             </div>
             <div className="px-6 pt-3 flex gap-1.5">
-              <div className="text-[11px] tracking-[0.12em] uppercase w-full mb-0.5" style={{ color: "#61789B" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase w-full mb-0.5" style={{ color: "var(--ink-tertiary)" }}>
                 Effectif attendu
               </div>
             </div>

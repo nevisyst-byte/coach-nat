@@ -131,7 +131,7 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
       ) : (
         <div className="rounded-[11px] p-4 flex flex-col gap-3.5" style={{ border: "1px solid var(--border-strong)", background: "rgba(255,255,255,0.02)" }}>
           <div>
-            <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+            <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
               Libellé (ex. 2026-2027)
             </div>
             <input
@@ -144,13 +144,13 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
           </div>
           <div className="grid grid-cols-2 gap-3.5">
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                 Début
               </div>
               <input type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
             </div>
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                 Fin
               </div>
               <input type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)} className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }} />
@@ -169,7 +169,7 @@ export function SaisonsAdmin({ saisons }: { saisons: SaisonRow[] }) {
 
           {resetDonnees && (
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#FF9179" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "#FF9179" }}>
                 Tape RÉINITIALISER pour confirmer
               </div>
               <input

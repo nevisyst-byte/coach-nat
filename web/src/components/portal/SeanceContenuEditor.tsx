@@ -237,7 +237,7 @@ export function SeanceContenuEditor({
             </Chip>
           </div>
           <div className="flex items-center gap-1.5 ml-auto">
-            <span className="text-[11px]" style={{ color: "#61789B" }}>
+            <span className="text-[11px]" style={{ color: "var(--ink-tertiary)" }}>
               Heure de début
             </span>
             <input
@@ -307,7 +307,7 @@ export function SeanceContenuEditor({
         {value.mode === "auto" ? (
           <>
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                 Volume cible (m)
               </div>
               <input
@@ -336,7 +336,7 @@ export function SeanceContenuEditor({
                   </div>
                   {AXES.map((ax) => (
                     <div key={ax.key}>
-                      <div className="text-[10px] tracking-[0.1em] uppercase mb-1" style={{ color: "#61789B" }}>
+                      <div className="text-[11px] tracking-[0.1em] uppercase mb-1" style={{ color: "var(--ink-tertiary)" }}>
                         {ax.titre}
                       </div>
                       <div className="flex flex-wrap gap-1.5 mb-2">
@@ -351,7 +351,7 @@ export function SeanceContenuEditor({
                   ))}
                   {value.combos.length > 1 && (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px]" style={{ color: "#61789B" }}>
+                      <span className="text-[11px]" style={{ color: "var(--ink-tertiary)" }}>
                         % du volume principal
                       </span>
                       <input

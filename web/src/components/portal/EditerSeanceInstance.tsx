@@ -54,7 +54,7 @@ export function EditerSeanceInstance({ instanceId, heureDebutInitial, sectionsIn
                 autres créneaux ne sont pas touchés.
               </div>
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Heure de début
                 </div>
                 <input
@@ -71,7 +71,7 @@ export function EditerSeanceInstance({ instanceId, heureDebutInitial, sectionsIn
               </div>
 
               <div>
-                <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+                <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                   Aperçu — tel qu&apos;affiché dans « Séance prévue »
                 </div>
                 <div className="flex flex-col gap-2.5">
@@ -82,7 +82,7 @@ export function EditerSeanceInstance({ instanceId, heureDebutInitial, sectionsIn
                       style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", borderLeft: `3px solid ${b.objectif ? couleurObjectif(b.objectif) : "var(--border)"}` }}
                     >
                       <div style={{ minWidth: 64 }}>
-                        <div className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
+                        <div className="text-[11px] tracking-[0.12em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                           {b.phase}
                         </div>
                         <div className="font-display text-lg">{b.distance}</div>

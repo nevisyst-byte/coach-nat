@@ -152,7 +152,7 @@ export function PlanningEntrainementClient({
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] tracking-[0.12em] uppercase" style={{ color: "#61789B" }}>
+        <span className="text-[12px] tracking-[0.12em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
           Groupe
         </span>
         <select
@@ -183,11 +183,11 @@ export function PlanningEntrainementClient({
             <div className="overflow-x-auto">
               <div style={{ minWidth: LARGEUR_LABEL + SEMAINES_AFFICHEES * LARGEUR_SEMAINE }}>
                 <div className="flex" style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}>
-                  <div className="shrink-0 px-3.5 py-2.5 text-[10px] tracking-[0.1em] uppercase" style={{ width: LARGEUR_LABEL, color: "#61789B" }}>
+                  <div className="shrink-0 px-3.5 py-2.5 text-[11px] tracking-[0.1em] uppercase" style={{ width: LARGEUR_LABEL, color: "var(--ink-tertiary)" }}>
                     Plan
                   </div>
                   {semaines.map((s, i) => (
-                    <div key={i} className="shrink-0 text-center py-2.5 text-[10px]" style={{ width: LARGEUR_SEMAINE, color: "#61789B" }}>
+                    <div key={i} className="shrink-0 text-center py-2.5 text-[10px]" style={{ width: LARGEUR_SEMAINE, color: "var(--ink-tertiary)" }}>
                       {s.getDate()} {MOIS[s.getMonth()]}
                     </div>
                   ))}
@@ -254,7 +254,7 @@ export function PlanningEntrainementClient({
           </div>
 
           <div className="rounded-2xl p-3.5" style={{ border: "1px solid var(--border)" }}>
-            <div className="text-[11px] tracking-[0.12em] uppercase mb-2.5" style={{ color: "#61789B" }}>
+            <div className="text-[12px] tracking-[0.12em] uppercase mb-2.5" style={{ color: "var(--ink-tertiary)" }}>
               Modèles enregistrés
             </div>
             <div className="flex flex-col gap-1.5">

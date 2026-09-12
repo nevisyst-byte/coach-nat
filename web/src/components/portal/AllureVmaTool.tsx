@@ -18,7 +18,7 @@ export function AllureVmaTool() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
+        <span className="text-[12px] tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
           Temps test 100m nage complète
         </span>
         <input
@@ -62,7 +62,7 @@ export function AllureVmaTool() {
                 <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
                   {DISTANCES.map((d) => (
                     <div key={d} className="rounded-xl px-3 py-2.5 text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
-                      <div className="text-[10px] tracking-[0.1em] uppercase" style={{ color: "#61789B" }}>
+                      <div className="text-[11px] tracking-[0.1em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
                         {d} m
                       </div>
                       <div className="font-display text-lg mt-0.5">{fmtMmSs(cible[d])}</div>
@@ -71,7 +71,7 @@ export function AllureVmaTool() {
                 </div>
               );
             })()}
-          <div className="text-[11px]" style={{ color: "#61789B" }}>
+          <div className="text-[11px]" style={{ color: "var(--ink-tertiary)" }}>
             {testSec <= 360
               ? "Test ≤ 6:00 → types d'allure (nageurs rapides)."
               : "Test > 6:00 → niveaux (nageurs en développement)."}{" "}

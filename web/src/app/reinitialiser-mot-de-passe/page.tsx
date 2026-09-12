@@ -65,7 +65,7 @@ function ReinitialiserForm() {
       <div className="w-full max-w-[380px] rounded-2xl p-8" style={{ background: "var(--bg-card-alt)", border: "1px solid var(--border-strong)" }}>
         <div className="flex flex-col items-center gap-2 mb-7">
           <Image src="/assets/logo-crest.png" alt="COACH FT" width={56} height={56} style={{ borderRadius: 13, border: "1px solid rgba(36,200,255,0.3)" }} />
-          <div className="text-[10px] tracking-[0.2em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
+          <div className="text-[11px] tracking-[0.2em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
             Portail coachs
           </div>
         </div>
@@ -89,7 +89,7 @@ function ReinitialiserForm() {
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                 Nouveau mot de passe
               </div>
               <div className="relative">
@@ -114,7 +114,7 @@ function ReinitialiserForm() {
               </div>
             </div>
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                 Confirmer le mot de passe
               </div>
               <input

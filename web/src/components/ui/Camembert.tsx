@@ -36,7 +36,7 @@ export function Camembert({
   const { total, css } = donutCss(items);
   return (
     <div>
-      <div className="text-[11px] tracking-[0.14em] uppercase mb-3.5" style={{ color: "#61789B" }}>
+      <div className="text-[12px] tracking-[0.14em] uppercase mb-3.5" style={{ color: "var(--ink-tertiary)" }}>
         {titre}
       </div>
       <div className="flex items-center gap-5 flex-wrap">
@@ -44,7 +44,7 @@ export function Camembert({
           <div className="absolute inset-0 rounded-full" style={{ background: css }} />
           <div className="absolute inset-[27px] rounded-full flex flex-col items-center justify-center" style={{ background: "var(--bg-card)" }}>
             <span className="font-display text-[19px] leading-none">{formatTotal(total)}</span>
-            <span className="text-[10px] uppercase tracking-[0.1em]" style={{ color: "#61789B" }}>
+            <span className="text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-tertiary)" }}>
               {totalLabel}
             </span>
           </div>

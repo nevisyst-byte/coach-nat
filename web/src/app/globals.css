@@ -14,8 +14,12 @@
   --ink: #eaf1fb;
   --ink-on-photo: #d6e2f2;
   --ink-secondary: #8fa3c0;
-  --ink-tertiary: #61789b;
-  --ink-muted: #4e627f;
+  /* ink-tertiary/ink-muted relevés pour repasser au-dessus du seuil WCAG AA
+     (4.5:1) sur les fonds de carte les plus clairs (--bg-panel) — les
+     anciennes valeurs (#61789b ~4.0:1, #4e627f ~2.9:1) étaient sous le
+     minimum d'accessibilité malgré un usage massif (labels, "Supprimer"...). */
+  --ink-tertiary: #7c93b4;
+  --ink-muted: #6e86a6;
   --ink-body: #a9bbd4;
 
   --blue: #1e7bff;

@@ -29,7 +29,7 @@ export function AdminShell({ userName, children }: { userName: string; children:
       <aside className="hidden lg:flex w-[240px] shrink-0 flex-col" style={{ background: "var(--bg-nav-top)", borderRight: "1px solid var(--border)" }}>
         <div className="p-5" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="font-display text-lg tracking-[0.05em]">COACH-NAT</div>
-          <div className="text-[10px] tracking-[0.2em] uppercase mt-1" style={{ color: "var(--ink-tertiary)" }}>
+          <div className="text-[11px] tracking-[0.2em] uppercase mt-1" style={{ color: "var(--ink-tertiary)" }}>
             Administration
           </div>
         </div>

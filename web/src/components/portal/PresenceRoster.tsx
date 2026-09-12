@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { initialsColor } from "@/lib/format";
 
-const ETATS: { code: string; value: string; label: string; color: string; bg: string }[] = [
-  { code: "P", value: "PRESENT", label: "Présent", color: "#2ECC8F", bg: "rgba(46,204,143,0.16)" },
-  { code: "R", value: "RETARD", label: "Retard", color: "#F2B33D", bg: "rgba(242,179,61,0.16)" },
-  { code: "A", value: "ABSENT", label: "Absent", color: "#E8442B", bg: "rgba(232,68,43,0.16)" },
-  { code: "E", value: "EXCUSE", label: "Excusé", color: "#8CC4FF", bg: "rgba(30,123,255,0.16)" },
+const ETATS: { code: string; value: string; label: string; color: string }[] = [
+  { code: "P", value: "PRESENT", label: "Présent", color: "#2ECC8F" },
+  { code: "R", value: "RETARD", label: "Retard", color: "#F2B33D" },
+  { code: "A", value: "ABSENT", label: "Absent", color: "#E8442B" },
+  { code: "E", value: "EXCUSE", label: "Excusé", color: "#8CC4FF" },
 ];
 
 export type RosterPerson = { nom: string; initiales: string; sousTitre: string; etat: string; nageurId?: string };
@@ -89,12 +89,21 @@ export function PresenceRoster({ title, people, seanceInstanceId, role }: { titl
                 {ETATS.map((e) => {
                   const on = etat === e.value;
                   return (
+                    // Cible et remplissage agrandis (38px → 44px, opacité active
+                    // doublée + halo) : à l'ancien style, l'état sélectionné se
+                    // distinguait trop peu de l'inactif pour un pointage rapide
+                    // au bord du bassin.
                     <button
                       key={e.code}
                       title={e.label}
                       onClick={() => choisir(p.nom, e.value)}
-                      className="w-[38px] h-[38px] rounded-[10px] font-display text-[15px] cursor-pointer"
-                      style={{ border: `1px solid ${on ? e.color : "var(--border-strong)"}`, background: on ? e.bg : "rgba(255,255,255,0.04)", color: on ? e.color : "var(--ink-secondary)" }}
+                      className="w-[44px] h-[44px] rounded-[12px] font-display text-[16px] font-bold cursor-pointer"
+                      style={{
+                        border: `1.5px solid ${on ? e.color : "var(--border-strong)"}`,
+                        background: on ? `${e.color}33` : "rgba(255,255,255,0.06)",
+                        color: on ? e.color : "var(--ink-body)",
+                        boxShadow: on ? `0 0 0 3px ${e.color}22` : undefined,
+                      }}
                     >
                       {e.code}
                     </button>

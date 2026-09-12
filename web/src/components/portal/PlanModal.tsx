@@ -217,7 +217,7 @@ export function PlanModal({
         <div className="px-6 py-4 flex-1 overflow-y-auto flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                 Nom du plan
               </div>
               <input
@@ -229,7 +229,7 @@ export function PlanModal({
               />
             </div>
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                 Objectif (macro)
               </div>
               <select
@@ -246,7 +246,7 @@ export function PlanModal({
               </select>
             </div>
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                 Date de début
               </div>
               <input
@@ -258,7 +258,7 @@ export function PlanModal({
               />
             </div>
             <div>
-              <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+              <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
                 Durée (semaines)
               </div>
               <input
@@ -273,7 +273,7 @@ export function PlanModal({
           </div>
 
           <div>
-            <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+            <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
               Groupes concernés
             </div>
             <div className="flex flex-col gap-2">
@@ -307,7 +307,7 @@ export function PlanModal({
           <SeanceContenuEditor value={form} onChange={(updater) => setForm((f) => ({ ...f, ...updater(f) }))} modeles={modeles} onEnregistrerModele={enregistrerModeleDepuisForm} />
 
           <div>
-            <div className="text-[11px] tracking-[0.12em] uppercase mb-2" style={{ color: "#61789B" }}>
+            <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
               Aperçu — les séances que ce plan va générer
             </div>
             <div className="flex flex-col gap-1.5 rounded-xl p-2" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", maxHeight: 260, overflowY: "auto" }}>

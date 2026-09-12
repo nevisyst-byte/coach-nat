@@ -78,7 +78,7 @@ export function Header({
       </button>
 
       <div className="flex-1 min-w-[160px]">
-        <div className="text-[10px] tracking-[0.18em] uppercase mb-1" style={{ color: "var(--ink-tertiary)" }}>
+        <div className="text-[11px] tracking-[0.18em] uppercase mb-1" style={{ color: "var(--ink-tertiary)" }}>
           {pole}
         </div>
         <h1 className="font-display text-[22px] md:text-[28px] leading-none">{title}</h1>
