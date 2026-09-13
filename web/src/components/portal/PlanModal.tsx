@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
-import { genererSeanceMulti, semaineIndexDepuis, type Combo } from "@/lib/seance-generator";
+import { genererSeanceMulti, graineOccurrence, type Combo, type VariationPlan } from "@/lib/seance-generator";
 import { nouvelleSection, buildManualBlocs, type SectionManuelle } from "@/lib/seance-manual";
 import { SeanceContenuEditor, contenuVide, combosValidesPour, type SeanceContenu, type Modele } from "./SeanceContenuEditor";
 import { mondayOf, toDateInputValue } from "@/lib/week";
@@ -26,6 +26,7 @@ export type Plan = {
   volumeNage: number | null;
   combos: Combo[] | null;
   sections: SectionManuelle[] | null;
+  variation: string;
   dateDebut: string;
   dateFin: string;
   groupes: Groupe[];
@@ -42,6 +43,7 @@ type Form = SeanceContenu & {
   dateDebut: string;
   dureeSemaines: number;
   groupeIds: string[];
+  variation: VariationPlan;
 };
 
 function ajouterJours(d: Date, n: number) {
@@ -103,6 +105,7 @@ function formulaireDepuis(open: PlanModalOpen): Form {
             : contenuVide().combos,
       volume: plan.volumeNage ?? 3000,
       sections: plan.sections ?? [nouvelleSection("Échauffement")],
+      variation: (plan.variation as VariationPlan) || "semaine",
     };
   }
   return {
@@ -112,6 +115,7 @@ function formulaireDepuis(open: PlanModalOpen): Form {
     dateDebut: toDateInputValue(open.presetDate),
     dureeSemaines: 4,
     groupeIds: [open.groupeId],
+    variation: "semaine",
   };
 }
 
@@ -165,6 +169,7 @@ export function PlanModal({
         dureeSemaines: form.dureeSemaines,
         groupeIds: form.groupeIds,
         heureDebut: form.heureDebut,
+        variation: form.variation,
       };
       if (form.mode === "manuel") {
         payload.sections = form.sections;
@@ -214,7 +219,7 @@ export function PlanModal({
     .sort((a, b) => a.date.getTime() - b.date.getTime() || a.creneau.debut.localeCompare(b.creneau.debut))
     .slice(0, SEMAINES_APERCU * 3)
     .map((s) => {
-      const graine = `${graineBase}-s${semaineIndexDepuis(debutForm, s.date)}`;
+      const graine = graineOccurrence(graineBase, form.variation, debutForm, s.date);
       const blocs = form.mode === "auto" ? genererSeanceMulti(form.combos, form.volume || 0, graine).blocs : buildManualBlocs(form.heureDebut, form.sections);
       return { ...s, blocs };
     });
@@ -291,6 +296,42 @@ export function PlanModal({
                 className="w-full rounded-[9px] px-3 py-2.5 text-sm outline-none"
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
               />
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>
+              Varier le contenu généré
+            </div>
+            <div className="flex gap-1.5">
+              {(
+                [
+                  { valeur: "aucune", label: "Non", aide: "Même contenu à chaque occurrence" },
+                  { valeur: "semaine", label: "Chaque semaine", aide: "Une valeur tirée au sort par semaine, pondérée par son %" },
+                  { valeur: "jour", label: "Chaque jour", aide: "Une valeur tirée au sort à chaque occurrence" },
+                ] as const
+              ).map((o) => {
+                const actif = form.variation === o.valeur;
+                return (
+                  <button
+                    key={o.valeur}
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, variation: o.valeur }))}
+                    title={o.aide}
+                    className="rounded-full px-3 py-1 text-[12px] font-semibold cursor-pointer"
+                    style={{
+                      background: actif ? "linear-gradient(135deg,#1E7BFF,#0F5FD6)" : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${actif ? "transparent" : "var(--border)"}`,
+                      color: actif ? "#fff" : "var(--ink-body)",
+                    }}
+                  >
+                    {o.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-[12px] mt-1.5" style={{ color: "var(--ink-secondary)" }}>
+              Seulement quand un axe (variant/intensité/nage) a plusieurs valeurs cochées — sans effet en saisie manuelle.
             </div>
           </div>
 

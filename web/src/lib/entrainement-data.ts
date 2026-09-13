@@ -39,6 +39,7 @@ export async function getEntrainementData() {
       intensite: p.intensite,
       nage: p.nage,
       volumeNage: p.volumeNage,
+      variation: p.variation,
       combos: normalizeCombos(p.combos),
       sections: p.sections as unknown as SectionManuelle[] | null,
       dateDebut: p.dateDebut.toISOString(),

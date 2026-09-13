@@ -34,6 +34,7 @@ const bodySchema = z.object({
   dateDebut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   dureeSemaines: z.number().int().min(1),
   groupeIds: z.array(z.string()).min(1),
+  variation: z.enum(["aucune", "semaine", "jour"]).optional(),
 });
 
 export function dateFinDe(dateDebut: string, dureeSemaines: number) {
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
-  const { nom, theme, heureDebut, variant, intensite, nage, volumeNage, combos, sections, dateDebut, dureeSemaines, groupeIds } = parsed.data;
+  const { nom, theme, heureDebut, variant, intensite, nage, volumeNage, combos, sections, dateDebut, dureeSemaines, groupeIds, variation } = parsed.data;
 
   // variant/intensite/nage restent renseignés quand il n'y a qu'une seule
   // répartition (une ligne dans combos, ou l'ancien formulaire à une seule
@@ -72,6 +73,7 @@ export async function POST(request: Request) {
       volumeNage: volumeNage ?? null,
       combos: combos && combos.length > 0 ? combos : undefined,
       sections: sections ?? undefined,
+      variation: variation ?? "semaine",
       dateDebut: new Date(`${dateDebut}T00:00:00`),
       dateFin: dateFinDe(dateDebut, dureeSemaines),
       groupes: { connect: groupeIds.map((id) => ({ id })) },

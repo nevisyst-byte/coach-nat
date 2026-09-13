@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
 import { mondayOf, toDateInputValue } from "@/lib/week";
-import { genererSeance, genererSeanceMulti, semaineIndexDepuis, type Bloc } from "@/lib/seance-generator";
+import { genererSeance, genererSeanceMulti, graineOccurrence, type Bloc, type VariationPlan } from "@/lib/seance-generator";
 import { buildManualBlocs } from "@/lib/seance-manual";
 import { JOURS } from "@/lib/format";
 import { semaineEnVacances, type ZoneScolaire } from "@/lib/vacances-scolaires";
@@ -27,7 +27,7 @@ function joursEntre(a: Date, b: Date) {
 function contenuPourPlan(plan: Plan, date: Date): Bloc[] | null {
   if (plan.sections && plan.sections.length > 0) return buildManualBlocs(plan.heureDebut ?? "17:00", plan.sections);
   if (plan.combos && plan.combos.length > 0 && plan.volumeNage) {
-    const graine = `${plan.id}-s${semaineIndexDepuis(new Date(plan.dateDebut), date)}`;
+    const graine = graineOccurrence(plan.id, plan.variation as VariationPlan, new Date(plan.dateDebut), date);
     return genererSeanceMulti(plan.combos, plan.volumeNage, graine).blocs;
   }
   if (plan.variant && plan.intensite && plan.nage && plan.volumeNage) return genererSeance(plan.variant, plan.intensite, plan.nage, plan.volumeNage).blocs;

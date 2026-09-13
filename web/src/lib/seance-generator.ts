@@ -101,6 +101,23 @@ export function semaineIndexDepuis(base: Date, date: Date): number {
   return Math.floor((date.getTime() - base.getTime()) / (7 * 86400000));
 }
 
+// Rythme de variation d'un plan — décision du coach à la création, pas une
+// règle fixe : "aucune" garde le même contenu toute la durée (comportement
+// d'origine), "semaine" tire au sort une fois par semaine, "jour" à chaque
+// occurrence (utile si un même groupe a plusieurs créneaux/semaine et que
+// le coach veut aussi les différencier entre eux).
+export type VariationPlan = "aucune" | "semaine" | "jour";
+
+// Graine à passer à genererSeanceMulti pour une occurrence donnée d'un plan
+// — centralise la correspondance rythme → graine pour que tous les points
+// d'appel (génération réelle, aperçu du formulaire, liste des prochaines
+// séances) restent synchronisés.
+export function graineOccurrence(planId: string, variation: VariationPlan, dateDebutPlan: Date, date: Date): string | undefined {
+  if (variation === "aucune") return undefined;
+  if (variation === "jour") return `${planId}-j${Math.floor(date.getTime() / 86400000)}`;
+  return `${planId}-s${semaineIndexDepuis(dateDebutPlan, date)}`;
+}
+
 // Les combos existants en base (créés avant le passage au choix multiple
 // par axe, puis avant le % individuel par valeur) ont chaque axe en chaîne
 // simple ou en tableau de chaînes plutôt qu'en tableau {valeur,pourcentage}

@@ -36,6 +36,7 @@ const bodySchema = z.object({
   dateDebut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   dureeSemaines: z.number().int().min(1).optional(),
   groupeIds: z.array(z.string()).min(1).optional(),
+  variation: z.enum(["aucune", "semaine", "jour"]).optional(),
 });
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -49,7 +50,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
-  const { nom, theme, heureDebut, variant, intensite, nage, volumeNage, combos, sections, dateDebut, dureeSemaines, groupeIds } = parsed.data;
+  const { nom, theme, heureDebut, variant, intensite, nage, volumeNage, combos, sections, dateDebut, dureeSemaines, groupeIds, variation } = parsed.data;
   const comboUnique = combos && combos.length === 1 ? combos[0] : null;
 
   await prisma.planEntrainement.update({
@@ -72,6 +73,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       ...(volumeNage !== undefined ? { volumeNage } : {}),
       ...(combos !== undefined ? { combos: combos === null || combos.length === 0 ? Prisma.JsonNull : combos } : {}),
       ...(sections !== undefined ? { sections: sections === null ? Prisma.JsonNull : sections } : {}),
+      ...(variation !== undefined ? { variation } : {}),
       ...(dateDebut !== undefined && dureeSemaines !== undefined ? { dateDebut: new Date(`${dateDebut}T00:00:00`), dateFin: dateFinDe(dateDebut, dureeSemaines) } : {}),
       ...(groupeIds !== undefined ? { groupes: { set: groupeIds.map((gid) => ({ id: gid })) } } : {}),
     },

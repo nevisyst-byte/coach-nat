@@ -522,6 +522,13 @@ model PlanEntrainement {
   // (plans existants, ou plan à une seule ligne), pour compatibilité.
   combos      Json?
   sections    Json?
+  // Rythme auquel le contenu généré (combos) varie sur la durée du plan —
+  // "aucune" (même contenu toutes les occurrences, comme avant), "semaine"
+  // (une valeur tirée au sort par axe à choix multiple, par semaine) ou
+  // "jour" (à chaque occurrence). Décision du coach, pas une règle fixe :
+  // cf. seance-generator.ts:graineOccurrence(). Sans effet sur `sections`
+  // (saisie manuelle, déjà entièrement sous contrôle du coach).
+  variation   String   @default("semaine")
   dateDebut   DateTime
   dateFin     DateTime
   groupes     Groupe[] @relation("PlanEntrainementGroupes")
