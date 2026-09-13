@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/Card";
-import { EntrainementClient } from "@/components/portal/EntrainementClient";
+import { PlanningEntrainementClient } from "@/components/portal/PlanningEntrainementClient";
 import { getEntrainementData } from "@/lib/entrainement-data";
 
 export default async function EntrainementPage() {
@@ -7,7 +7,7 @@ export default async function EntrainementPage() {
 
   return (
     <Card>
-      <EntrainementClient groupesParPole={groupesParPole} creneauxParGroupe={creneauxParGroupe} plans={plans} />
+      <PlanningEntrainementClient groupesParPole={groupesParPole} creneauxParGroupe={creneauxParGroupe} plans={plans} />
     </Card>
   );
 }

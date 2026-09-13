@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
-import { mondayOf } from "@/lib/week";
+import { mondayOf, toDateInputValue } from "@/lib/week";
+import { genererSeance, genererSeanceMulti, type Bloc } from "@/lib/seance-generator";
+import { buildManualBlocs } from "@/lib/seance-manual";
+import { JOURS } from "@/lib/format";
 import { PlanModal, type Section, type CreneauLite, type Plan, type PlanModalOpen } from "./PlanModal";
 
 const SEMAINES_AFFICHEES = 16;
@@ -18,6 +22,15 @@ function ajouterJours(d: Date, n: number) {
 }
 function joursEntre(a: Date, b: Date) {
   return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+function contenuPourPlan(plan: Plan): Bloc[] | null {
+  if (plan.sections && plan.sections.length > 0) return buildManualBlocs(plan.heureDebut ?? "17:00", plan.sections);
+  if (plan.combos && plan.combos.length > 0 && plan.volumeNage) return genererSeanceMulti(plan.combos, plan.volumeNage).blocs;
+  if (plan.variant && plan.intensite && plan.nage && plan.volumeNage) return genererSeance(plan.variant, plan.intensite, plan.nage, plan.volumeNage).blocs;
+  return null;
+}
+function fmtDateCourte(d: Date) {
+  return `${JOURS[(d.getDay() + 6) % 7]} ${d.getDate()} ${MOIS[d.getMonth()]}`;
 }
 
 export function PlanningEntrainementClient({
@@ -47,6 +60,29 @@ export function PlanningEntrainementClient({
   const groupe = toutGroupes.find((g) => g.id === groupeId) ?? null;
   const plansGroupe = groupe
     ? plans.filter((p) => p.groupes.some((g) => g.id === groupe.id)).sort((a, b) => a.dateDebut.localeCompare(b.dateDebut))
+    : [];
+
+  // Prochaines séances réelles du groupe, à partir des plans déjà
+  // enregistrés — pour voir concrètement ce qui est programmé sans avoir à
+  // ouvrir Présences créneau par créneau. Toujours à partir d'aujourd'hui,
+  // indépendamment de la période affichée par le calendrier ci-dessus.
+  const lundiAujourdhui = mondayOf(new Date());
+  const aujourdhui = new Date();
+  aujourdhui.setHours(0, 0, 0, 0);
+  const prochainesSeances = groupe
+    ? (creneauxParGroupe[groupe.id] ?? [])
+        .flatMap((c) =>
+          Array.from({ length: SEMAINES_AFFICHEES }, (_, w) => ajouterJours(ajouterJours(lundiAujourdhui, w * 7), c.jour))
+            .filter((date) => date >= aujourdhui)
+            .map((date) => ({ date, creneau: c }))
+        )
+        .map(({ date, creneau }) => ({
+          date,
+          creneau,
+          plan: plansGroupe.find((p) => new Date(p.dateDebut) <= date && date <= new Date(p.dateFin)) ?? null,
+        }))
+        .sort((a, b) => a.date.getTime() - b.date.getTime() || a.creneau.debut.localeCompare(b.creneau.debut))
+        .slice(0, 12)
     : [];
 
   function barreStyle(plan: Plan) {
@@ -182,11 +218,9 @@ export function PlanningEntrainementClient({
                   </div>
                   <div className="relative flex" style={{ height: 44, width: SEMAINES_AFFICHEES * LARGEUR_SEMAINE }}>
                     {semaines.map((s, i) => {
-                      const celluleId = String(i);
                       return (
                         <div
                           key={i}
-                          data-cellule-id={celluleId}
                           className="shrink-0 cursor-pointer"
                           style={{
                             width: LARGEUR_SEMAINE,
@@ -200,6 +234,48 @@ export function PlanningEntrainementClient({
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+            <div className="px-3.5 py-2.5" style={{ borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.03)" }}>
+              <span className="font-display text-[15px] tracking-[0.03em]">Prochaines séances — {groupe.nom}</span>
+            </div>
+            <div className="flex flex-col" style={{ maxHeight: 360, overflowY: "auto" }}>
+              {prochainesSeances.length === 0 && (
+                <div className="px-3.5 py-4 text-[13px]" style={{ color: "var(--ink-secondary)" }}>
+                  Aucun créneau régulier pour ce groupe.
+                </div>
+              )}
+              {prochainesSeances.map(({ date, creneau, plan }, i) => {
+                const blocs = plan ? contenuPourPlan(plan) : null;
+                return (
+                  <Link
+                    key={i}
+                    href={`/presences?slot=reg:${creneau.id}&date=${toDateInputValue(date)}`}
+                    className="flex items-center gap-3 px-3.5 py-2.5"
+                    style={{ borderBottom: "1px solid var(--border)" }}
+                  >
+                    <div className="text-[13px] font-semibold shrink-0" style={{ width: 130, color: "var(--ink-body)" }}>
+                      {fmtDateCourte(date)} · {creneau.debut}
+                    </div>
+                    <div className="flex-1 min-w-0 text-[13px] truncate" style={{ color: plan ? "var(--ink-secondary)" : "var(--ink-muted)" }}>
+                      {plan ? (
+                        blocs ? (
+                          blocs.map((b) => b.phase).join(" · ")
+                        ) : (
+                          <span style={{ color: couleurObjectif(plan.theme) }}>{plan.theme} (pas encore détaillé)</span>
+                        )
+                      ) : (
+                        "Aucun plan programmé"
+                      )}
+                    </div>
+                    <span className="text-[12px] shrink-0" style={{ color: "#7FDCFF" }}>
+                      Voir →
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
