@@ -128,6 +128,17 @@ export function PlanModal({
   const toutGroupes = groupesParPole.flatMap((s) => s.groupes);
   const [form, setForm] = useState<Form>(() => formulaireDepuis(open));
   const [saving, setSaving] = useState(false);
+  const [dupliquer, setDupliquer] = useState(false);
+  const isEdit = open.mode === "edit" && !dupliquer;
+
+  // Reprendre un plan déjà créé plus tard (ex. "Reprise" en septembre, puis
+  // à nouveau en janvier) sans tout ressaisir — même contenu, nouvelle
+  // période à choisir, enregistré comme un plan indépendant (pas un PATCH).
+  function activerDuplication() {
+    if (open.mode !== "edit") return;
+    setDupliquer(true);
+    setForm((f) => ({ ...f, dateDebut: toDateInputValue(ajouterJours(new Date(open.plan.dateFin), 1)) }));
+  }
 
   function toggleGroupe(id: string) {
     setForm((f) => ({ ...f, groupeIds: f.groupeIds.includes(id) ? f.groupeIds.filter((x) => x !== id) : [...f.groupeIds, id] }));
@@ -148,7 +159,6 @@ export function PlanModal({
     if (!form.nom.trim() || form.groupeIds.length === 0) return;
     setSaving(true);
     try {
-      const isEdit = open.mode === "edit";
       const payload: Record<string, unknown> = {
         nom: form.nom.trim(),
         theme: form.theme,
@@ -172,7 +182,7 @@ export function PlanModal({
         if (isEdit) payload.sections = null;
       }
 
-      if (isEdit) {
+      if (open.mode === "edit" && !dupliquer) {
         await fetch(`/api/plans-entrainement/${open.plan.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       } else {
         await fetch("/api/plans-entrainement", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -185,7 +195,7 @@ export function PlanModal({
   }
 
   async function supprimer() {
-    if (open.mode !== "edit") return;
+    if (open.mode !== "edit" || dupliquer) return;
     await fetch(`/api/plans-entrainement/${open.plan.id}`, { method: "DELETE" });
     onSaved();
     onClose();
@@ -203,7 +213,9 @@ export function PlanModal({
     <div onClick={onClose} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
       <div onClick={(e) => e.stopPropagation()} className="w-full rounded-2xl overflow-hidden flex flex-col" style={{ maxWidth: 780, maxHeight: "90vh", background: "#101A2B", border: "1px solid var(--border-strong)" }}>
         <div className="px-6 py-5 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-strong)" }}>
-          <h2 className="font-display text-[20px] tracking-[0.05em]">{open.mode === "new" ? "Nouveau plan d'entraînement" : "Modifier le plan"}</h2>
+          <h2 className="font-display text-[20px] tracking-[0.05em]">
+            {open.mode === "new" ? "Nouveau plan d'entraînement" : dupliquer ? "Dupliquer le plan" : "Modifier le plan"}
+          </h2>
           <div className="flex items-center gap-2.5">
             <Link href="/outils/allures" target="_blank" className="text-[12px] font-semibold underline" style={{ color: "#7FDCFF" }}>
               Tableaux d&apos;allures →
@@ -331,10 +343,20 @@ export function PlanModal({
         </div>
 
         <div className="px-6 py-4 flex gap-2.5" style={{ borderTop: "1px solid var(--border)" }}>
-          {open.mode === "edit" && (
-            <button onClick={supprimer} className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid rgba(232,68,43,0.35)", color: "#FF9179" }}>
-              Supprimer
-            </button>
+          {open.mode === "edit" && !dupliquer && (
+            <>
+              <button onClick={supprimer} className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer" style={{ border: "1px solid rgba(232,68,43,0.35)", color: "#FF9179" }}>
+                Supprimer
+              </button>
+              <button
+                onClick={activerDuplication}
+                className="rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer"
+                style={{ border: "1px solid var(--border-strong)", color: "#7FDCFF" }}
+                title="Reprendre ce plan sur une nouvelle période, sans toucher à celui-ci"
+              >
+                Dupliquer sur une nouvelle période
+              </button>
+            </>
           )}
           <button
             onClick={enregistrer}
@@ -342,7 +364,7 @@ export function PlanModal({
             className="flex-1 rounded-[10px] py-2.5 text-[13px] font-bold cursor-pointer"
             style={{ background: "linear-gradient(135deg,#1E7BFF,#0F5FD6)", color: "#fff", opacity: saving || !form.nom.trim() || form.groupeIds.length === 0 || !combosValides ? 0.6 : 1 }}
           >
-            {saving ? "Enregistrement…" : open.mode === "new" ? "+ Créer le plan" : "Enregistrer les modifications"}
+            {saving ? "Enregistrement…" : isEdit ? "Enregistrer les modifications" : dupliquer ? "+ Créer la copie" : "+ Créer le plan"}
           </button>
         </div>
       </div>

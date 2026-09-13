@@ -40,10 +40,16 @@ export function PlanningEntrainementClient({
   const [modalOpen, setModalOpen] = useState<PlanModalOpen | null>(null);
   const [survolCellule, setSurvolCellule] = useState<string | null>(null);
   const [creation, setCreation] = useState(false);
+  const [decalageSemaines, setDecalageSemaines] = useState(0);
 
-  const lundiCourant = mondayOf(new Date());
+  const lundiCourant = ajouterJours(mondayOf(new Date()), decalageSemaines * 7);
   const semaines = Array.from({ length: SEMAINES_AFFICHEES }, (_, i) => ajouterJours(lundiCourant, i * 7));
   const fenetreFin = ajouterJours(lundiCourant, SEMAINES_AFFICHEES * 7);
+  const dernierJourAffiche = ajouterJours(fenetreFin, -1);
+  const libellePeriode =
+    lundiCourant.getFullYear() === dernierJourAffiche.getFullYear()
+      ? `${MOIS[lundiCourant.getMonth()]} – ${MOIS[dernierJourAffiche.getMonth()]} ${lundiCourant.getFullYear()}`
+      : `${MOIS[lundiCourant.getMonth()]} ${lundiCourant.getFullYear()} – ${MOIS[dernierJourAffiche.getMonth()]} ${dernierJourAffiche.getFullYear()}`;
 
   const groupe = toutGroupes.find((g) => g.id === groupeId) ?? null;
   const plansGroupe = groupe
@@ -140,7 +146,7 @@ export function PlanningEntrainementClient({
       window.removeEventListener("mouseup", onUp);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modeles, groupe?.id]);
+  }, [modeles, groupe?.id, decalageSemaines]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -151,26 +157,59 @@ export function PlanningEntrainementClient({
         depuis la liste pour l&apos;appliquer directement.
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[12px] tracking-[0.12em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
-          Groupe
-        </span>
-        <select
-          value={groupeId}
-          onChange={(e) => setGroupeId(e.target.value)}
-          className="rounded-[9px] px-3 py-2 text-sm outline-none"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-        >
-          {groupesParPole.map((section) => (
-            <optgroup key={section.pole} label={section.nom}>
-              {section.groupes.map((g) => (
-                <option key={g.id} value={g.id} style={{ background: "#101A2B" }}>
-                  {g.nom}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+      <div className="flex items-center gap-2 flex-wrap justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[12px] tracking-[0.12em] uppercase" style={{ color: "var(--ink-tertiary)" }}>
+            Groupe
+          </span>
+          <select
+            value={groupeId}
+            onChange={(e) => setGroupeId(e.target.value)}
+            className="rounded-[9px] px-3 py-2 text-sm outline-none"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+          >
+            {groupesParPole.map((section) => (
+              <optgroup key={section.pole} label={section.nom}>
+                {section.groupes.map((g) => (
+                  <option key={g.id} value={g.id} style={{ background: "#101A2B" }}>
+                    {g.nom}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setDecalageSemaines((d) => d - SEMAINES_AFFICHEES)}
+            className="w-[30px] h-[30px] rounded-[9px] cursor-pointer text-sm"
+            style={{ border: "1px solid var(--border-strong)", color: "var(--ink-body)" }}
+            title="Période précédente"
+          >
+            ‹
+          </button>
+          <span className="text-[13px] font-semibold min-w-[150px] text-center" style={{ color: "var(--ink-body)" }}>
+            {libellePeriode}
+          </span>
+          <button
+            onClick={() => setDecalageSemaines((d) => d + SEMAINES_AFFICHEES)}
+            className="w-[30px] h-[30px] rounded-[9px] cursor-pointer text-sm"
+            style={{ border: "1px solid var(--border-strong)", color: "var(--ink-body)" }}
+            title="Période suivante"
+          >
+            ›
+          </button>
+          {decalageSemaines !== 0 && (
+            <button
+              onClick={() => setDecalageSemaines(0)}
+              className="text-[12px] font-semibold underline cursor-pointer"
+              style={{ color: "#7FDCFF" }}
+            >
+              Aujourd&apos;hui
+            </button>
+          )}
+        </div>
       </div>
 
       {!groupe ? (
