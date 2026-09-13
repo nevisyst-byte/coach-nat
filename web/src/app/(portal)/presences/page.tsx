@@ -191,7 +191,12 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
 
         <Card>
           <div className="flex items-baseline justify-between mb-1 gap-3 flex-wrap">
-            <h2 className="font-display text-[19px] tracking-[0.06em]">Séance prévue</h2>
+            <div className="flex items-baseline gap-2">
+              <h2 className="font-display text-[19px] tracking-[0.06em]">Séance prévue</h2>
+              <span className="text-[13px] font-semibold" style={{ color: "var(--ink-secondary)" }}>
+                · {heureDebutInitiale}
+              </span>
+            </div>
             {session && kind === "reg" && <EditerSeanceInstance instanceId={instance.id} heureDebutInitial={heureDebutInitiale} sectionsInitiales={sectionsInitiales} />}
           </div>
           {seancePrevue ? (
