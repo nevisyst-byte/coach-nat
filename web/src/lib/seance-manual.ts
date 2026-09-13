@@ -1,4 +1,4 @@
-import type { Bloc } from "./seance-generator";
+import type { Bloc, ValeurPourcentage } from "./seance-generator";
 
 export type SetLigne = {
   id: string;
@@ -7,9 +7,10 @@ export type SetLigne = {
   label: string;
   allure: string;
   repos: string;
-  // Plusieurs nages sur le même exercice (ex. crawl + dos en alternance) —
-  // vide = pas de nage précisée, comme avant l'ajout de ce champ.
-  nages: string[];
+  // Plusieurs nages sur le même exercice (ex. 60% crawl + 40% dos), chacune
+  // avec son propre % réglable via la même barre glissable que sur un plan
+  // — vide = pas de nage précisée, comme avant l'ajout de ce champ.
+  nages: ValeurPourcentage[];
 };
 
 export type SectionManuelle = {
@@ -96,8 +97,8 @@ export function volumeParNage(sections: SectionManuelle[]): { nage: string; m: n
   for (const section of sections) {
     for (const s of section.sets) {
       if (s.nages.length === 0) continue;
-      const part = distanceSet(s) / s.nages.length;
-      for (const nage of s.nages) parNage.set(nage, (parNage.get(nage) ?? 0) + part);
+      const d = distanceSet(s);
+      for (const n of s.nages) parNage.set(n.valeur, (parNage.get(n.valeur) ?? 0) + (d * (n.pourcentage || 0)) / 100);
     }
   }
   return Array.from(parNage.entries()).map(([nage, m]) => ({ nage, m: Math.round(m) }));
@@ -127,7 +128,7 @@ export function buildManualBlocs(heureDebut: string, sections: SectionManuelle[]
         const reposSec = parseMinSec(s.repos);
         curseur += (s.reps * allureSec + reposSec) / 60;
 
-        const titre = [`${s.reps}×${s.distance}`, s.nages.join(" + "), s.label.trim()].filter(Boolean).join(" ");
+        const titre = [`${s.reps}×${s.distance}`, s.nages.map((n) => n.valeur).join(" + "), s.label.trim()].filter(Boolean).join(" ");
         const details = [s.allure ? `départ ${s.allure}` : null, s.repos ? `repos ${s.repos}` : null].filter(Boolean).join(" · ");
         lignes.push(`${heureLigne} — ${titre}${details ? ` (${details})` : ""}`);
       }

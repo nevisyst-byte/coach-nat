@@ -2,6 +2,8 @@
 
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
 import { nouvelleSection, nouvelleSet, distanceSection, fmtDistance, type SectionManuelle } from "@/lib/seance-manual";
+import { BarreRepartition, repartirEgal } from "@/components/ui/BarreRepartition";
+import type { ValeurPourcentage } from "@/lib/seance-generator";
 
 const NAGES = ["Papillon", "Dos", "Brasse", "Crawl"];
 const NAGE_ABBR: Record<string, string> = { Papillon: "Pap", Dos: "Dos", Brasse: "Bra", Crawl: "Cr" };
@@ -44,11 +46,19 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
         s.id === sectionId
           ? {
               ...s,
-              sets: s.sets.map((x) => (x.id === setId ? { ...x, nages: x.nages.includes(nage) ? x.nages.filter((n) => n !== nage) : [...x.nages, nage] } : x)),
+              sets: s.sets.map((x) => {
+                if (x.id !== setId) return x;
+                const dejaCoche = x.nages.some((n) => n.valeur === nage);
+                const valeurs = dejaCoche ? x.nages.filter((n) => n.valeur !== nage).map((n) => n.valeur) : [...x.nages.map((n) => n.valeur), nage];
+                return { ...x, nages: repartirEgal(valeurs) };
+              }),
             }
           : s
       )
     );
+  }
+  function updateNagePourcentages(sectionId: string, setId: string, nages: ValeurPourcentage[]) {
+    onChange(sections.map((s) => (s.id === sectionId ? { ...s, sets: s.sets.map((x) => (x.id === setId ? { ...x, nages } : x)) } : s)));
   }
 
   return (
@@ -101,63 +111,66 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
           </div>
           <div className="flex flex-col gap-1.5">
             {section.sets.map((s) => (
-              <div key={s.id} className="grid gap-1.5 items-center" style={{ gridTemplateColumns: "56px 64px 1fr 150px 64px 64px 20px" }}>
-                <input
-                  type="number"
-                  value={s.reps}
-                  onChange={(e) => updateSet(section.id, s.id, "reps", e.target.value)}
-                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                />
-                <input
-                  type="number"
-                  value={s.distance}
-                  onChange={(e) => updateSet(section.id, s.id, "distance", e.target.value)}
-                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                />
-                <input
-                  value={s.label}
-                  onChange={(e) => updateSet(section.id, s.id, "label", e.target.value)}
-                  placeholder="ex. Éducatif, jambes…"
-                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none min-w-0"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                />
-                <div className="flex gap-1 flex-wrap" title="Une ou plusieurs nages pour cet exercice (ex. crawl + dos)">
-                  {NAGES.map((n) => {
-                    const on = s.nages.includes(n);
-                    return (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => toggleNageSet(section.id, s.id, n)}
-                        className="rounded-md px-1.5 py-1 text-[10px] font-bold cursor-pointer"
-                        style={{ border: `1px solid ${on ? "#1E7BFF" : "var(--border-strong)"}`, background: on ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)", color: on ? "#7FDCFF" : "var(--ink-secondary)" }}
-                      >
-                        {NAGE_ABBR[n]}
-                      </button>
-                    );
-                  })}
+              <div key={s.id} className="flex flex-col gap-1">
+                <div className="grid gap-1.5 items-center" style={{ gridTemplateColumns: "56px 64px 1fr 150px 64px 64px 20px" }}>
+                  <input
+                    type="number"
+                    value={s.reps}
+                    onChange={(e) => updateSet(section.id, s.id, "reps", e.target.value)}
+                    className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                  />
+                  <input
+                    type="number"
+                    value={s.distance}
+                    onChange={(e) => updateSet(section.id, s.id, "distance", e.target.value)}
+                    className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                  />
+                  <input
+                    value={s.label}
+                    onChange={(e) => updateSet(section.id, s.id, "label", e.target.value)}
+                    placeholder="ex. Éducatif, jambes…"
+                    className="rounded-md px-1.5 py-1.5 text-[13px] outline-none min-w-0"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                  />
+                  <div className="flex gap-1 flex-wrap" title="Une ou plusieurs nages pour cet exercice (ex. crawl + dos)">
+                    {NAGES.map((n) => {
+                      const on = s.nages.some((x) => x.valeur === n);
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => toggleNageSet(section.id, s.id, n)}
+                          className="rounded-md px-1.5 py-1 text-[10px] font-bold cursor-pointer"
+                          style={{ border: `1px solid ${on ? "#1E7BFF" : "var(--border-strong)"}`, background: on ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)", color: on ? "#7FDCFF" : "var(--ink-secondary)" }}
+                        >
+                          {NAGE_ABBR[n]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <input
+                    value={s.allure}
+                    onChange={(e) => updateSet(section.id, s.id, "allure", e.target.value)}
+                    placeholder="3:40"
+                    title="Départ / allure par répétition (mm:ss)"
+                    className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                  />
+                  <input
+                    value={s.repos}
+                    onChange={(e) => updateSet(section.id, s.id, "repos", e.target.value)}
+                    placeholder="0:40"
+                    title="Repos après la série (mm:ss)"
+                    className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
+                  />
+                  <button onClick={() => supprimerSet(section.id, s.id)} className="text-[13px] cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer cette série">
+                    ✕
+                  </button>
                 </div>
-                <input
-                  value={s.allure}
-                  onChange={(e) => updateSet(section.id, s.id, "allure", e.target.value)}
-                  placeholder="3:40"
-                  title="Départ / allure par répétition (mm:ss)"
-                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                />
-                <input
-                  value={s.repos}
-                  onChange={(e) => updateSet(section.id, s.id, "repos", e.target.value)}
-                  placeholder="0:40"
-                  title="Repos après la série (mm:ss)"
-                  className="rounded-md px-1.5 py-1.5 text-[13px] outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
-                />
-                <button onClick={() => supprimerSet(section.id, s.id)} className="text-[13px] cursor-pointer" style={{ color: "var(--ink-muted)" }} title="Supprimer cette série">
-                  ✕
-                </button>
+                {s.nages.length > 1 && <BarreRepartition valeurs={s.nages} onChange={(nages) => updateNagePourcentages(section.id, s.id, nages)} />}
               </div>
             ))}
           </div>

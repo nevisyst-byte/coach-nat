@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCoachOrAdmin } from "@/lib/auth";
 import { buildManualBlocs } from "@/lib/seance-manual";
 
+const valeurPourcentageSchema = z.object({ valeur: z.string().min(1), pourcentage: z.number().min(0).max(100) });
 const setSchema = z.object({
   id: z.string(),
   reps: z.number().int().min(1),
@@ -11,7 +12,7 @@ const setSchema = z.object({
   label: z.string(),
   allure: z.string(),
   repos: z.string(),
-  nages: z.array(z.string()).default([]),
+  nages: z.array(valeurPourcentageSchema).default([]),
 });
 const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.string(), sets: z.array(setSchema) });
 
