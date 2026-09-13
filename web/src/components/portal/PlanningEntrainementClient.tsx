@@ -8,6 +8,7 @@ import { mondayOf, toDateInputValue } from "@/lib/week";
 import { genererSeance, genererSeanceMulti, type Bloc } from "@/lib/seance-generator";
 import { buildManualBlocs } from "@/lib/seance-manual";
 import { JOURS } from "@/lib/format";
+import { semaineEnVacances, type ZoneScolaire } from "@/lib/vacances-scolaires";
 import { PlanModal, type Section, type CreneauLite, type Plan, type PlanModalOpen } from "./PlanModal";
 
 const SEMAINES_AFFICHEES = 16;
@@ -37,10 +38,12 @@ export function PlanningEntrainementClient({
   groupesParPole,
   plans,
   creneauxParGroupe,
+  zone,
 }: {
   groupesParPole: Section[];
   plans: Plan[];
   creneauxParGroupe: Record<string, CreneauLite[]>;
+  zone: ZoneScolaire;
 }) {
   const router = useRouter();
   const toutGroupes = groupesParPole.flatMap((s) => s.groupes);
@@ -50,6 +53,7 @@ export function PlanningEntrainementClient({
 
   const lundiCourant = ajouterJours(mondayOf(new Date()), decalageSemaines * 7);
   const semaines = Array.from({ length: SEMAINES_AFFICHEES }, (_, i) => ajouterJours(lundiCourant, i * 7));
+  const vacancesParSemaine = semaines.map((s) => semaineEnVacances(Array.from({ length: 7 }, (_, d) => ajouterJours(s, d)), zone));
   const fenetreFin = ajouterJours(lundiCourant, SEMAINES_AFFICHEES * 7);
   const dernierJourAffiche = ajouterJours(fenetreFin, -1);
   const libellePeriode =
@@ -100,9 +104,9 @@ export function PlanningEntrainementClient({
     <div className="flex flex-col gap-4">
       <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
         Vue calendaire d&apos;un groupe : chaque ligne est un plan d&apos;entraînement déjà enregistré (nom libre, objectif et
-        durée choisis à sa création), positionné sur ses vraies dates — clique sa barre pour l&apos;éditer. Utilise la
-        dernière ligne pour en enregistrer un nouveau, ou &laquo; Dupliquer sur une nouvelle période &raquo; depuis un plan
-        existant pour le réappliquer plus tard.
+        durée choisis à sa création), positionné sur ses vraies dates — clique sa barre pour l&apos;éditer. Clique une case
+        vide sur la même ligne (ex. en janvier pour « Reprise ») pour reprendre ce plan sur une nouvelle période. Utilise
+        la dernière ligne pour en enregistrer un nouveau. Les semaines de vacances scolaires sont surlignées 🏖.
       </div>
 
       <div className="flex items-center gap-2 flex-wrap justify-between">
@@ -174,8 +178,14 @@ export function PlanningEntrainementClient({
                     Plan
                   </div>
                   {semaines.map((s, i) => (
-                    <div key={i} className="shrink-0 text-center py-2.5 text-[12px]" style={{ width: LARGEUR_SEMAINE, color: "var(--ink-tertiary)" }}>
+                    <div
+                      key={i}
+                      className="shrink-0 text-center py-2.5 text-[12px]"
+                      style={{ width: LARGEUR_SEMAINE, color: "var(--ink-tertiary)", background: vacancesParSemaine[i] ? "rgba(242,179,61,0.14)" : undefined }}
+                      title={vacancesParSemaine[i]?.nom}
+                    >
                       {s.getDate()} {MOIS[s.getMonth()]}
+                      {vacancesParSemaine[i] && " 🏖"}
                     </div>
                   ))}
                 </div>
@@ -192,8 +202,19 @@ export function PlanningEntrainementClient({
                         </span>
                       </div>
                       <div className="relative flex" style={{ height: 44, width: SEMAINES_AFFICHEES * LARGEUR_SEMAINE }}>
-                        {semaines.map((_, i) => (
-                          <div key={i} className="shrink-0" style={{ width: LARGEUR_SEMAINE, height: "100%", borderLeft: i > 0 ? "1px solid var(--border)" : undefined }} />
+                        {semaines.map((s, i) => (
+                          <div
+                            key={i}
+                            className="shrink-0 cursor-pointer"
+                            style={{
+                              width: LARGEUR_SEMAINE,
+                              height: "100%",
+                              borderLeft: i > 0 ? "1px solid var(--border)" : undefined,
+                              background: vacancesParSemaine[i] ? "rgba(242,179,61,0.09)" : undefined,
+                            }}
+                            title={`Dupliquer « ${p.nom} » à partir de cette semaine`}
+                            onClick={() => setModalOpen({ mode: "duplicate", plan: p, presetDate: s })}
+                          />
                         ))}
                         {style && (
                           <button
@@ -226,6 +247,7 @@ export function PlanningEntrainementClient({
                             width: LARGEUR_SEMAINE,
                             height: "100%",
                             borderLeft: i > 0 ? "1px dashed var(--border)" : undefined,
+                            background: vacancesParSemaine[i] ? "rgba(242,179,61,0.09)" : undefined,
                           }}
                           onClick={() => setModalOpen({ mode: "new", presetTheme: OBJECTIFS[0].nom, presetDate: s, groupeId: groupe.id })}
                         />

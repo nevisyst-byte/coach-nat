@@ -31,7 +31,10 @@ export type Plan = {
   groupes: Groupe[];
 };
 
-export type PlanModalOpen = { mode: "new"; presetTheme: string; presetDate: Date; groupeId: string } | { mode: "edit"; plan: Plan };
+export type PlanModalOpen =
+  | { mode: "new"; presetTheme: string; presetDate: Date; groupeId: string }
+  | { mode: "edit"; plan: Plan }
+  | { mode: "duplicate"; plan: Plan; presetDate: Date };
 
 type Form = SeanceContenu & {
   nom: string;
@@ -74,13 +77,13 @@ function occurrences(creneau: CreneauLite, dateDebut: string, dureeSemaines: num
 }
 
 function formulaireDepuis(open: PlanModalOpen): Form {
-  if (open.mode === "edit") {
+  if (open.mode === "edit" || open.mode === "duplicate") {
     const plan = open.plan;
     const aSections = !!plan.sections;
     return {
       nom: plan.nom,
       theme: plan.theme,
-      dateDebut: toDateInputValue(new Date(plan.dateDebut)),
+      dateDebut: toDateInputValue(open.mode === "duplicate" ? open.presetDate : new Date(plan.dateDebut)),
       dureeSemaines: dureeEnSemaines(plan.dateDebut, plan.dateFin),
       groupeIds: plan.groupes.map((g) => g.id),
       mode: aSections ? "manuel" : "auto",
@@ -133,9 +136,9 @@ export function PlanModal({
   const toutGroupes = groupesParPole.flatMap((s) => s.groupes);
   const [form, setForm] = useState<Form>(() => formulaireDepuis(open));
   const [saving, setSaving] = useState(false);
-  const [dupliquer, setDupliquer] = useState(false);
+  const [dupliquer, setDupliquer] = useState(open.mode === "duplicate");
   const isEdit = open.mode === "edit" && !dupliquer;
-  const planActuelId = open.mode === "edit" ? open.plan.id : null;
+  const planActuelId = open.mode === "edit" || open.mode === "duplicate" ? open.plan.id : null;
   const modelesDepuisPlans = plans.filter((p) => p.id !== planActuelId).map(planEnModele);
 
   // Reprendre un plan déjà créé plus tard (ex. "Reprise" en septembre, puis

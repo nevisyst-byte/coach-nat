@@ -2,16 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { POLE_LABELS, POLE_COLORS, POLE_ORDER } from "@/lib/theme";
 import type { SectionManuelle } from "@/lib/seance-manual";
 import { normalizeCombos } from "@/lib/seance-generator";
+import type { ZoneScolaire } from "@/lib/vacances-scolaires";
 
 // Données communes aux deux écrans de planification d'un plan
 // d'entraînement (grille par objectif, calendrier par groupe) — une seule
 // requête partagée pour que les deux restent en phase.
 export async function getEntrainementData() {
-  const [groupes, plans, creneaux] = await Promise.all([
+  const [groupes, plans, creneaux, settings] = await Promise.all([
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.planEntrainement.findMany({ include: { groupes: { select: { id: true, nom: true } } }, orderBy: { dateDebut: "desc" } }),
     prisma.creneau.findMany({ orderBy: [{ jour: "asc" }, { debut: "asc" }] }),
+    prisma.appSettings.findUnique({ where: { id: "singleton" } }),
   ]);
+  const zone = (settings?.zoneScolaire ?? "B") as ZoneScolaire;
 
   const groupesParPole = POLE_ORDER.map((pole) => ({
     pole,
@@ -26,6 +29,7 @@ export async function getEntrainementData() {
   return {
     groupesParPole,
     creneauxParGroupe,
+    zone,
     plans: plans.map((p) => ({
       id: p.id,
       nom: p.nom,
