@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
@@ -33,6 +33,12 @@ function contenuPourPlan(plan: Plan): Bloc[] | null {
 function fmtDateCourte(d: Date) {
   return `${JOURS[(d.getDay() + 6) % 7]} ${d.getDate()} ${MOIS[d.getMonth()]}`;
 }
+function dureeEnSemaines(dateDebut: string, dateFin: string) {
+  const jours = Math.round((new Date(dateFin).getTime() - new Date(dateDebut).getTime()) / 86400000) + 1;
+  return Math.max(1, Math.round(jours / 7));
+}
+
+type DragPlan = { planId: string; startX: number; deltaSemaines: number };
 
 export function PlanningEntrainementClient({
   groupesParPole,
@@ -50,6 +56,8 @@ export function PlanningEntrainementClient({
   const [groupeId, setGroupeId] = useState<string>(toutGroupes[0]?.id ?? "");
   const [modalOpen, setModalOpen] = useState<PlanModalOpen | null>(null);
   const [decalageSemaines, setDecalageSemaines] = useState(0);
+  const dragRef = useRef<DragPlan | null>(null);
+  const [dragState, setDragState] = useState<DragPlan | null>(null);
 
   const lundiCourant = ajouterJours(mondayOf(new Date()), decalageSemaines * 7);
   const semaines = Array.from({ length: SEMAINES_AFFICHEES }, (_, i) => ajouterJours(lundiCourant, i * 7));
@@ -100,13 +108,58 @@ export function PlanningEntrainementClient({
     return { left, width: Math.max(width - 4, 8) };
   }
 
+  async function deplacerPlan(plan: Plan, deltaSemaines: number) {
+    const nouveauDebut = toDateInputValue(ajouterJours(new Date(plan.dateDebut), deltaSemaines * 7));
+    await fetch(`/api/plans-entrainement/${plan.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dateDebut: nouveauDebut, dureeSemaines: dureeEnSemaines(plan.dateDebut, plan.dateFin) }),
+    });
+    router.refresh();
+  }
+
+  // Glisser une barre pour décaler son plan dans le temps (ex. repousser
+  // "Technique" plus loin pour libérer la place à "Vitesse") — souris/tactile
+  // natifs, la poignée se déplace par semaine entière (donc pas de seuil à
+  // gérer : un simple clic donne un delta de 0, traité comme une édition).
+  function onBarMouseDown(e: React.MouseEvent, plan: Plan) {
+    e.preventDefault();
+    const info: DragPlan = { planId: plan.id, startX: e.clientX, deltaSemaines: 0 };
+    dragRef.current = info;
+    setDragState(info);
+
+    function onMove(ev: MouseEvent) {
+      const courant = dragRef.current;
+      if (!courant) return;
+      const deltaSemaines = Math.round((ev.clientX - courant.startX) / LARGEUR_SEMAINE);
+      if (deltaSemaines !== courant.deltaSemaines) {
+        const next = { ...courant, deltaSemaines };
+        dragRef.current = next;
+        setDragState(next);
+      }
+    }
+    function onUp() {
+      const fin = dragRef.current;
+      dragRef.current = null;
+      setDragState(null);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      if (!fin) return;
+      if (fin.deltaSemaines === 0) setModalOpen({ mode: "edit", plan });
+      else deplacerPlan(plan, fin.deltaSemaines);
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
         Vue calendaire d&apos;un groupe : chaque ligne est un plan d&apos;entraînement déjà enregistré (nom libre, objectif et
-        durée choisis à sa création), positionné sur ses vraies dates — clique sa barre pour l&apos;éditer. Clique une case
-        vide sur la même ligne (ex. en janvier pour « Reprise ») pour reprendre ce plan sur une nouvelle période. Utilise
-        la dernière ligne pour en enregistrer un nouveau. Les semaines de vacances scolaires sont surlignées 🏖.
+        durée choisis à sa création), positionné sur ses vraies dates — clique sa barre pour l&apos;éditer, ou glisse-la pour
+        la décaler dans le temps (ex. repousser « Technique » plus loin pour libérer la place à « Vitesse »). Clique une
+        case vide sur la même ligne pour reprendre ce plan sur une nouvelle période. Utilise la dernière ligne pour en
+        enregistrer un nouveau. Les semaines de vacances scolaires sont surlignées 🏖.
       </div>
 
       <div className="flex items-center gap-2 flex-wrap justify-between">
@@ -218,10 +271,20 @@ export function PlanningEntrainementClient({
                         ))}
                         {style && (
                           <button
-                            onClick={() => setModalOpen({ mode: "edit", plan: p })}
-                            className="absolute rounded-md px-2 flex items-center text-[12px] font-semibold truncate cursor-pointer"
-                            style={{ top: 8, height: 28, left: style.left + 2, width: style.width, background: `${color}55`, border: `1px solid ${color}` }}
-                            title={p.nom}
+                            onMouseDown={(e) => onBarMouseDown(e, p)}
+                            className="absolute rounded-md px-2 flex items-center text-[12px] font-semibold truncate select-none"
+                            style={{
+                              top: 8,
+                              height: 28,
+                              left: style.left + 2 + (dragState?.planId === p.id ? dragState.deltaSemaines * LARGEUR_SEMAINE : 0),
+                              width: style.width,
+                              background: `${color}55`,
+                              border: `1px solid ${color}`,
+                              cursor: dragState?.planId === p.id ? "grabbing" : "grab",
+                              zIndex: dragState?.planId === p.id ? 10 : undefined,
+                              boxShadow: dragState?.planId === p.id && dragState.deltaSemaines !== 0 ? "0 4px 16px rgba(0,0,0,0.5)" : undefined,
+                            }}
+                            title={`${p.nom} — glisser pour décaler, cliquer pour éditer`}
                           >
                             {p.nom}
                           </button>
