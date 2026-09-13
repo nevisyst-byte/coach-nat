@@ -34,6 +34,7 @@ export const NAV_GROUPS = [
     items: [
       { id: "entrainement", href: "/entrainement", icon: "✦", label: "Plan d'entraînement" },
       { id: "entrainement-planning", href: "/entrainement/planning", icon: "▨", label: "Calendrier des plans" },
+      { id: "entrainement-modeles", href: "/entrainement/modeles", icon: "▧", label: "Bibliothèque de séances" },
     ],
   },
   {

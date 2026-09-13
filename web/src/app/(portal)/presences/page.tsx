@@ -16,10 +16,20 @@ import { getSession } from "@/lib/auth";
 import { buildManualBlocs, blocsToSections, type SectionManuelle } from "@/lib/seance-manual";
 
 export default async function PresencesPage({ searchParams }: { searchParams: Promise<{ slot?: string; date?: string }> }) {
-  const [creneaux, creneauxStage] = await Promise.all([
+  const [creneaux, creneauxStage, modelesSeance] = await Promise.all([
     prisma.creneau.findMany({ include: { groupe: true } }),
     prisma.creneauStage.findMany({ include: { stage: true } }),
+    prisma.modeleSeance.findMany({ orderBy: { createdAt: "desc" } }),
   ]);
+  const modeles = modelesSeance.map((m) => ({
+    id: m.id,
+    nom: m.nom,
+    theme: m.theme,
+    heureDebut: m.heureDebut,
+    combos: normalizeCombos(m.combos),
+    volumeNage: m.volumeNage,
+    sections: m.sections as unknown as SectionManuelle[] | null,
+  }));
 
   const options = [
     ...creneaux.map((c) => ({ value: `reg:${c.id}`, label: `${JOURS[c.jour]} ${c.debut} · ${c.groupe.nom}` })),
@@ -197,7 +207,7 @@ export default async function PresencesPage({ searchParams }: { searchParams: Pr
                 · {heureDebutInitiale}
               </span>
             </div>
-            {session && kind === "reg" && <EditerSeanceInstance instanceId={instance.id} heureDebutInitial={heureDebutInitiale} sectionsInitiales={sectionsInitiales} />}
+            {session && kind === "reg" && <EditerSeanceInstance instanceId={instance.id} heureDebutInitial={heureDebutInitiale} sectionsInitiales={sectionsInitiales} modeles={modeles} />}
           </div>
           {seancePrevue ? (
             <>

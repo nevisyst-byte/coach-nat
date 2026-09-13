@@ -20,6 +20,7 @@ export const TITLES: Record<string, [string, string, string]> = {
   "/groupes": ["Groupes", "Pôle, catégorie, coach responsable et objectif en cours", "Nageurs"],
   "/entrainement": ["Entraînement", "Un plan par groupe, du thème macro au contenu chiffré", "Entraînement"],
   "/entrainement/planning": ["Calendrier des plans", "Un groupe, tous ses plans sur un vrai calendrier", "Entraînement"],
+  "/entrainement/modeles": ["Bibliothèque de séances", "Enregistre, réutilise et gère tes séances déjà construites", "Entraînement"],
   "/outils/allures": ["Allures & VMA", "Temps test 100m nage complète → allures cibles par type d'entraînement", "Outils"],
 };
 
@@ -88,6 +89,12 @@ export const HERO: Record<string, Hero> = {
     img: "/assets/flip-turn.jpg", pos: "center 40%", veil: "corner",
     kicker: "Vue calendaire", title: "Tous les plans d'un groupe, sur un vrai calendrier",
     text: "Une barre par plan, positionnée sur ses vraies dates — glisse un modèle enregistré sur une semaine pour l'appliquer directement.",
+    cta1: { label: "Plan d'entraînement", href: "/entrainement" },
+  },
+  "/entrainement/modeles": {
+    img: "/assets/flip-turn.jpg", pos: "center 40%", veil: "corner",
+    kicker: "Séances réutilisables", title: "Ta bibliothèque de séances",
+    text: "Chaque séance déjà construite, à portée de main : crée-la une fois, réutilise-la partout, modifie ou supprime-la quand elle ne sert plus.",
     cta1: { label: "Plan d'entraînement", href: "/entrainement" },
   },
   "/outils/allures": {
