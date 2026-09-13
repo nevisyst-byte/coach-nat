@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
 import { mondayOf, toDateInputValue } from "@/lib/week";
-import { genererSeance, genererSeanceMulti, type Bloc } from "@/lib/seance-generator";
+import { genererSeance, genererSeanceMulti, semaineIndexDepuis, type Bloc } from "@/lib/seance-generator";
 import { buildManualBlocs } from "@/lib/seance-manual";
 import { JOURS } from "@/lib/format";
 import { semaineEnVacances, type ZoneScolaire } from "@/lib/vacances-scolaires";
@@ -24,9 +24,12 @@ function ajouterJours(d: Date, n: number) {
 function joursEntre(a: Date, b: Date) {
   return Math.round((b.getTime() - a.getTime()) / 86400000);
 }
-function contenuPourPlan(plan: Plan): Bloc[] | null {
+function contenuPourPlan(plan: Plan, date: Date): Bloc[] | null {
   if (plan.sections && plan.sections.length > 0) return buildManualBlocs(plan.heureDebut ?? "17:00", plan.sections);
-  if (plan.combos && plan.combos.length > 0 && plan.volumeNage) return genererSeanceMulti(plan.combos, plan.volumeNage).blocs;
+  if (plan.combos && plan.combos.length > 0 && plan.volumeNage) {
+    const graine = `${plan.id}-s${semaineIndexDepuis(new Date(plan.dateDebut), date)}`;
+    return genererSeanceMulti(plan.combos, plan.volumeNage, graine).blocs;
+  }
   if (plan.variant && plan.intensite && plan.nage && plan.volumeNage) return genererSeance(plan.variant, plan.intensite, plan.nage, plan.volumeNage).blocs;
   return null;
 }
@@ -394,7 +397,7 @@ export function PlanningEntrainementClient({
                 </div>
               )}
               {prochainesSeances.map(({ date, creneau, plan }, i) => {
-                const blocs = plan ? contenuPourPlan(plan) : null;
+                const blocs = plan ? contenuPourPlan(plan, date) : null;
                 return (
                   <Link
                     key={i}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
-import { genererSeanceMulti, type Combo } from "@/lib/seance-generator";
+import { genererSeanceMulti, semaineIndexDepuis, type Combo } from "@/lib/seance-generator";
 import { nouvelleSection, buildManualBlocs, type SectionManuelle } from "@/lib/seance-manual";
 import { SeanceContenuEditor, contenuVide, combosValidesPour, type SeanceContenu, type Modele } from "./SeanceContenuEditor";
 import { mondayOf, toDateInputValue } from "@/lib/week";
@@ -200,13 +200,24 @@ export function PlanModal({
     onClose();
   }
 
-  const blocsApercu = form.mode === "auto" ? genererSeanceMulti(form.combos, form.volume || 0).blocs : buildManualBlocs(form.heureDebut, form.sections);
   const combosValides = combosValidesPour(form);
+  // Une graine par semaine (dérivée du plan existant, ou du nom+date pour un
+  // plan pas encore créé) fait varier le contenu généré d'une occurrence à
+  // l'autre dans l'aperçu — comme dans la vraie séance servie ensuite —
+  // pour ne pas donner l'impression trompeuse d'un contenu identique
+  // pendant toute la durée du plan.
+  const graineBase = open.mode === "edit" ? open.plan.id : `${form.nom}-${form.dateDebut}`;
+  const debutForm = new Date(`${form.dateDebut}T00:00:00`);
   const seancesApercu = form.groupeIds
     .flatMap((gid) => (creneauxParGroupe[gid] ?? []).map((c) => ({ gid, c })))
     .flatMap(({ gid, c }) => occurrences(c, form.dateDebut, form.dureeSemaines).map((date) => ({ date, creneau: c, groupeNom: toutGroupes.find((g) => g.id === gid)?.nom ?? "" })))
     .sort((a, b) => a.date.getTime() - b.date.getTime() || a.creneau.debut.localeCompare(b.creneau.debut))
-    .slice(0, SEMAINES_APERCU * 3);
+    .slice(0, SEMAINES_APERCU * 3)
+    .map((s) => {
+      const graine = `${graineBase}-s${semaineIndexDepuis(debutForm, s.date)}`;
+      const blocs = form.mode === "auto" ? genererSeanceMulti(form.combos, form.volume || 0, graine).blocs : buildManualBlocs(form.heureDebut, form.sections);
+      return { ...s, blocs };
+    });
 
   return (
     <div onClick={onClose} className="fixed inset-0 z-[100] flex items-center justify-center p-5" style={{ background: "rgba(4,7,14,0.78)", backdropFilter: "blur(6px)" }}>
@@ -333,7 +344,7 @@ export function PlanModal({
                     {fmtDateCourte(s.date)} · {s.creneau.debut} · {s.groupeNom}
                   </div>
                   <div className="flex-1 min-w-0 text-[11px] truncate" style={{ color: "var(--ink-secondary)" }}>
-                    {blocsApercu.map((b) => `${b.phase} (${b.distance})`).join(" · ")}
+                    {s.blocs.map((b) => `${b.phase} (${b.distance})`).join(" · ")}
                   </div>
                 </div>
               ))}

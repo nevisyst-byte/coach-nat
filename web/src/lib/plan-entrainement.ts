@@ -1,6 +1,6 @@
 import { prisma } from "./prisma";
 import { buildManualBlocs, distanceSection, type SectionManuelle } from "./seance-manual";
-import { genererSeance, genererSeanceMulti, normalizeCombos, type Bloc } from "./seance-generator";
+import { genererSeance, genererSeanceMulti, normalizeCombos, semaineIndexDepuis, type Bloc } from "./seance-generator";
 
 export type SeanceDepuisPlan = {
   planId: string;
@@ -57,7 +57,8 @@ export async function seanceDepuisPlan(groupeId: string, date: Date): Promise<Se
 
   const combos = normalizeCombos(plan.combos);
   if (combos && combos.length > 0 && plan.volumeNage) {
-    const blocs = genererSeanceMulti(combos, plan.volumeNage).blocs;
+    const graine = `${plan.id}-s${semaineIndexDepuis(plan.dateDebut, date)}`;
+    const blocs = genererSeanceMulti(combos, plan.volumeNage, graine).blocs;
     return {
       planId: plan.id,
       nomPlan: plan.nom,
