@@ -7,11 +7,10 @@ import { normalizeCombos } from "@/lib/seance-generator";
 // d'entraînement (grille par objectif, calendrier par groupe) — une seule
 // requête partagée pour que les deux restent en phase.
 export async function getEntrainementData() {
-  const [groupes, plans, creneaux, modeles] = await Promise.all([
+  const [groupes, plans, creneaux] = await Promise.all([
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.planEntrainement.findMany({ include: { groupes: { select: { id: true, nom: true } } }, orderBy: { dateDebut: "desc" } }),
     prisma.creneau.findMany({ orderBy: [{ jour: "asc" }, { debut: "asc" }] }),
-    prisma.modeleSeance.findMany({ orderBy: { createdAt: "desc" } }),
   ]);
 
   const groupesParPole = POLE_ORDER.map((pole) => ({
@@ -41,15 +40,6 @@ export async function getEntrainementData() {
       dateDebut: p.dateDebut.toISOString(),
       dateFin: p.dateFin.toISOString(),
       groupes: p.groupes,
-    })),
-    modeles: modeles.map((m) => ({
-      id: m.id,
-      nom: m.nom,
-      theme: m.theme,
-      heureDebut: m.heureDebut,
-      combos: normalizeCombos(m.combos),
-      volumeNage: m.volumeNage,
-      sections: m.sections as unknown as SectionManuelle[] | null,
     })),
   };
 }

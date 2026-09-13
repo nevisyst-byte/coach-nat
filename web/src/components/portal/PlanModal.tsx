@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
 import { genererSeanceMulti, type Combo } from "@/lib/seance-generator";
@@ -53,6 +52,13 @@ function dureeEnSemaines(dateDebut: string, dateFin: string) {
 }
 function fmtDateCourte(d: Date) {
   return `${JOURS[(d.getDay() + 6) % 7]} ${d.getDate()} ${MOIS[d.getMonth()]}`;
+}
+// "Charger un modèle" dans le formulaire d'un plan reprend le contenu d'un
+// AUTRE plan déjà créé — jamais une séance de la bibliothèque : un plan
+// (1 ou plusieurs semaines) et une séance (un seul jour) sont deux types
+// distincts qui ne s'interchangent pas.
+function planEnModele(p: Plan): Modele {
+  return { id: p.id, nom: p.nom, theme: p.theme, heureDebut: p.heureDebut, combos: p.combos, volumeNage: p.volumeNage, sections: p.sections };
 }
 // Occurrences réelles d'un créneau (jour+heure) sur une période donnée —
 // une par semaine, à partir de la première dont la date tombe à/après le
@@ -114,22 +120,23 @@ export function PlanModal({
   onClose,
   groupesParPole,
   creneauxParGroupe,
-  modeles,
+  plans,
   onSaved,
 }: {
   open: PlanModalOpen;
   onClose: () => void;
   groupesParPole: Section[];
   creneauxParGroupe: Record<string, CreneauLite[]>;
-  modeles: Modele[];
+  plans: Plan[];
   onSaved: () => void;
 }) {
-  const router = useRouter();
   const toutGroupes = groupesParPole.flatMap((s) => s.groupes);
   const [form, setForm] = useState<Form>(() => formulaireDepuis(open));
   const [saving, setSaving] = useState(false);
   const [dupliquer, setDupliquer] = useState(false);
   const isEdit = open.mode === "edit" && !dupliquer;
+  const planActuelId = open.mode === "edit" ? open.plan.id : null;
+  const modelesDepuisPlans = plans.filter((p) => p.id !== planActuelId).map(planEnModele);
 
   // Reprendre un plan déjà créé plus tard (ex. "Reprise" en septembre, puis
   // à nouveau en janvier) sans tout ressaisir — même contenu, nouvelle
@@ -142,17 +149,6 @@ export function PlanModal({
 
   function toggleGroupe(id: string) {
     setForm((f) => ({ ...f, groupeIds: f.groupeIds.includes(id) ? f.groupeIds.filter((x) => x !== id) : [...f.groupeIds, id] }));
-  }
-
-  async function enregistrerModeleDepuisForm(nom: string) {
-    const payload: Record<string, unknown> = { nom, theme: form.theme, heureDebut: form.heureDebut };
-    if (form.mode === "manuel") payload.sections = form.sections;
-    else {
-      payload.combos = form.combos;
-      payload.volumeNage = form.volume;
-    }
-    await fetch("/api/modeles-seance", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-    router.refresh();
   }
 
   async function enregistrer() {
@@ -316,7 +312,7 @@ export function PlanModal({
             </div>
           </div>
 
-          <SeanceContenuEditor value={form} onChange={(updater) => setForm((f) => ({ ...f, ...updater(f) }))} modeles={modeles} onEnregistrerModele={enregistrerModeleDepuisForm} />
+          <SeanceContenuEditor value={form} onChange={(updater) => setForm((f) => ({ ...f, ...updater(f) }))} modeles={modelesDepuisPlans} />
 
           <div>
             <div className="text-[12px] tracking-[0.12em] uppercase mb-2" style={{ color: "var(--ink-tertiary)" }}>

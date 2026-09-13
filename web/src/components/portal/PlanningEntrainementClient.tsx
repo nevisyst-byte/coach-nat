@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
-import { mondayOf, toDateInputValue } from "@/lib/week";
+import { mondayOf } from "@/lib/week";
 import { PlanModal, type Section, type CreneauLite, type Plan, type PlanModalOpen } from "./PlanModal";
-import type { Modele } from "./SeanceContenuEditor";
 
 const SEMAINES_AFFICHEES = 16;
 const LARGEUR_LABEL = 140;
@@ -21,25 +20,19 @@ function joursEntre(a: Date, b: Date) {
   return Math.round((b.getTime() - a.getTime()) / 86400000);
 }
 
-type DragModele = { modeleId: string; modeleNom: string; x: number; y: number };
-
 export function PlanningEntrainementClient({
   groupesParPole,
   plans,
   creneauxParGroupe,
-  modeles,
 }: {
   groupesParPole: Section[];
   plans: Plan[];
   creneauxParGroupe: Record<string, CreneauLite[]>;
-  modeles: Modele[];
 }) {
   const router = useRouter();
   const toutGroupes = groupesParPole.flatMap((s) => s.groupes);
   const [groupeId, setGroupeId] = useState<string>(toutGroupes[0]?.id ?? "");
   const [modalOpen, setModalOpen] = useState<PlanModalOpen | null>(null);
-  const [survolCellule, setSurvolCellule] = useState<string | null>(null);
-  const [creation, setCreation] = useState(false);
   const [decalageSemaines, setDecalageSemaines] = useState(0);
 
   const lundiCourant = ajouterJours(mondayOf(new Date()), decalageSemaines * 7);
@@ -67,94 +60,13 @@ export function PlanningEntrainementClient({
     return { left, width: Math.max(width - 4, 8) };
   }
 
-  async function creerDepuisModele(semaine: Date, modele: Modele) {
-    if (!groupe) return;
-    setCreation(true);
-    try {
-      const payload: Record<string, unknown> = {
-        nom: modele.nom,
-        theme: modele.theme,
-        dateDebut: toDateInputValue(semaine),
-        dureeSemaines: 4,
-        groupeIds: [groupe.id],
-        heureDebut: modele.heureDebut ?? "18:00",
-      };
-      if (modele.sections && modele.sections.length > 0) payload.sections = modele.sections;
-      else {
-        payload.combos = modele.combos && modele.combos.length > 0 ? modele.combos : undefined;
-        payload.volumeNage = modele.volumeNage ?? 3000;
-      }
-      await fetch("/api/plans-entrainement", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      router.refresh();
-    } finally {
-      setCreation(false);
-      setSurvolCellule(null);
-    }
-  }
-
-  // Glisser un modèle depuis la liste jusqu'à une case du calendrier — en
-  // souris/tactile natifs (mousedown/mousemove/mouseup), pas le drag&drop
-  // HTML5 (draggable/dragstart) qui ne déclenche rien sur tablette : même
-  // pattern que le glisser-déposer déjà utilisé sur le Planning hebdo.
-  const dragRef = useRef<DragModele | null>(null);
-  const [dragState, setDragState] = useState<DragModele | null>(null);
-
-  function startDragModele(e: React.MouseEvent, m: Modele) {
-    e.preventDefault();
-    dragRef.current = { modeleId: m.id, modeleNom: m.nom, x: e.clientX, y: e.clientY };
-    setDragState(dragRef.current);
-  }
-
-  useEffect(() => {
-    function celluleSous(x: number, y: number) {
-      // elementFromPoint ne renvoie que l'élément le plus haut dans la pile :
-      // une barre de plan déjà posée (bouton positionné en absolute, frère
-      // des cases) peut recouvrir la case visée et masquer son data-cellule-id.
-      // elementsFromPoint renvoie toute la pile empilée à ce point, du haut
-      // vers le bas — on cherche la case dans l'ensemble.
-      for (const el of document.elementsFromPoint(x, y)) {
-        const cellule = (el as HTMLElement).closest<HTMLElement>("[data-cellule-id]");
-        if (cellule) return cellule.dataset.celluleId ?? null;
-      }
-      return null;
-    }
-
-    function onMove(e: MouseEvent) {
-      const info = dragRef.current;
-      if (!info) return;
-      dragRef.current = { ...info, x: e.clientX, y: e.clientY };
-      setDragState(dragRef.current);
-      setSurvolCellule(celluleSous(e.clientX, e.clientY));
-    }
-
-    function onUp(e: MouseEvent) {
-      const info = dragRef.current;
-      dragRef.current = null;
-      setDragState(null);
-      setSurvolCellule(null);
-      if (!info) return;
-      const celluleId = celluleSous(e.clientX, e.clientY);
-      if (!celluleId) return;
-      const modele = modeles.find((m) => m.id === info.modeleId);
-      if (modele) creerDepuisModele(semaines[Number(celluleId)], modele);
-    }
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modeles, groupe?.id, decalageSemaines]);
-
   return (
     <div className="flex flex-col gap-4">
       <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
         Vue calendaire d&apos;un groupe : chaque ligne est un plan d&apos;entraînement déjà enregistré (nom libre, objectif et
         durée choisis à sa création), positionné sur ses vraies dates — clique sa barre pour l&apos;éditer. Utilise la
-        dernière ligne pour en enregistrer un nouveau : clique une case pour le créer toi-même, ou glisse un modèle
-        depuis la liste pour l&apos;appliquer directement.
+        dernière ligne pour en enregistrer un nouveau, ou &laquo; Dupliquer sur une nouvelle période &raquo; depuis un plan
+        existant pour le réappliquer plus tard.
       </div>
 
       <div className="flex items-center gap-2 flex-wrap justify-between">
@@ -217,7 +129,7 @@ export function PlanningEntrainementClient({
           Aucun groupe disponible.
         </div>
       ) : (
-        <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 220px" }}>
+        <div className="flex flex-col gap-4">
           <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
             <div className="overflow-x-auto">
               <div style={{ minWidth: LARGEUR_LABEL + SEMAINES_AFFICHEES * LARGEUR_SEMAINE }}>
@@ -280,7 +192,6 @@ export function PlanningEntrainementClient({
                             width: LARGEUR_SEMAINE,
                             height: "100%",
                             borderLeft: i > 0 ? "1px dashed var(--border)" : undefined,
-                            background: survolCellule === celluleId ? "rgba(30,123,255,0.14)" : undefined,
                           }}
                           onClick={() => setModalOpen({ mode: "new", presetTheme: OBJECTIFS[0].nom, presetDate: s, groupeId: groupe.id })}
                         />
@@ -291,44 +202,6 @@ export function PlanningEntrainementClient({
               </div>
             </div>
           </div>
-
-          <div className="rounded-2xl p-3.5" style={{ border: "1px solid var(--border)" }}>
-            <div className="text-[12px] tracking-[0.12em] uppercase mb-2.5" style={{ color: "var(--ink-tertiary)" }}>
-              Modèles enregistrés
-            </div>
-            <div className="flex flex-col gap-1.5">
-              {modeles.length === 0 && (
-                <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
-                  Aucun modèle pour l&apos;instant — enregistre-en un depuis un plan.
-                </div>
-              )}
-              {modeles.map((m) => (
-                <div
-                  key={m.id}
-                  onMouseDown={(e) => startDragModele(e, m)}
-                  className="rounded-lg px-2.5 py-2 text-[13px] font-semibold cursor-grab truncate select-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink-body)" }}
-                  title={`${m.nom} — glisser sur une case`}
-                >
-                  {m.nom}
-                </div>
-              ))}
-            </div>
-            {creation && (
-              <div className="mt-2.5 text-[12px]" style={{ color: "#7FDCFF" }}>
-                Application du modèle…
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {dragState && (
-        <div
-          className="fixed z-[200] rounded-lg px-3 py-2 text-[12px] font-bold pointer-events-none"
-          style={{ left: dragState.x + 14, top: dragState.y + 14, background: "#1E7BFF", color: "#fff", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}
-        >
-          {dragState.modeleNom}
         </div>
       )}
 
@@ -338,7 +211,7 @@ export function PlanningEntrainementClient({
           onClose={() => setModalOpen(null)}
           groupesParPole={groupesParPole}
           creneauxParGroupe={creneauxParGroupe}
-          modeles={modeles}
+          plans={plans}
           onSaved={() => router.refresh()}
         />
       )}

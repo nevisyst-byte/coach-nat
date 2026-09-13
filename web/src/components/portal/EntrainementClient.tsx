@@ -9,7 +9,6 @@ import { buildManualBlocs } from "@/lib/seance-manual";
 import { mondayOf, toDateInputValue } from "@/lib/week";
 import { JOURS } from "@/lib/format";
 import { PlanModal, type Groupe, type Section, type CreneauLite, type Plan, type PlanModalOpen } from "./PlanModal";
-import type { Modele } from "./SeanceContenuEditor";
 
 const SEMAINES_AFFICHEES = 16;
 const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
@@ -40,12 +39,10 @@ export function EntrainementClient({
   groupesParPole,
   plans,
   creneauxParGroupe,
-  modeles,
 }: {
   groupesParPole: Section[];
   plans: Plan[];
   creneauxParGroupe: Record<string, CreneauLite[]>;
-  modeles: Modele[];
 }) {
   const router = useRouter();
   const lundiCourant = mondayOf(new Date());
@@ -284,7 +281,7 @@ export function EntrainementClient({
       })}
 
       {modalOpen && (
-        <PlanModal open={modalOpen} onClose={() => setModalOpen(null)} groupesParPole={groupesParPole} creneauxParGroupe={creneauxParGroupe} modeles={modeles} onSaved={() => router.refresh()} />
+        <PlanModal open={modalOpen} onClose={() => setModalOpen(null)} groupesParPole={groupesParPole} creneauxParGroupe={creneauxParGroupe} plans={plans} onSaved={() => router.refresh()} />
       )}
     </div>
   );

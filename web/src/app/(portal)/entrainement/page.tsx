@@ -3,11 +3,11 @@ import { EntrainementClient } from "@/components/portal/EntrainementClient";
 import { getEntrainementData } from "@/lib/entrainement-data";
 
 export default async function EntrainementPage() {
-  const { groupesParPole, plans, creneauxParGroupe, modeles } = await getEntrainementData();
+  const { groupesParPole, plans, creneauxParGroupe } = await getEntrainementData();
 
   return (
     <Card>
-      <EntrainementClient groupesParPole={groupesParPole} creneauxParGroupe={creneauxParGroupe} plans={plans} modeles={modeles} />
+      <EntrainementClient groupesParPole={groupesParPole} creneauxParGroupe={creneauxParGroupe} plans={plans} />
     </Card>
   );
 }
