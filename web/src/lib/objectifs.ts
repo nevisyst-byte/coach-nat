@@ -22,6 +22,11 @@ export type PlanThemeLite = { theme: string; dateDebut: Date; dateFin: Date };
 // d'entraînement (niveau macro) dont la période couvre cette date si il
 // existe, sinon le champ manuel de repli (Groupe.objectif) — pour ne rien
 // casser pour les groupes qui n'ont pas (encore) de plan planifié.
+// Si plusieurs plans se chevauchent sur cette date (ex. un plan général sur
+// plusieurs mois + un plan ciblé créé ensuite sur une sous-période), le
+// premier de `plans` gagne : les appelants doivent donc trier par date de
+// création décroissante, pour que le plan le plus récent (le plus probable
+// à représenter une intention plus précise) prenne le dessus.
 export function objectifActuel(plans: PlanThemeLite[], objectifManuel: string | null, date: Date = new Date()): string | null {
   const t = date.getTime();
   const plan = plans.find((p) => p.dateDebut.getTime() <= t && t <= p.dateFin.getTime());

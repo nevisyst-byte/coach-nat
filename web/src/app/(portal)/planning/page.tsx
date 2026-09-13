@@ -33,7 +33,11 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
   const [creneaux, groupes, coachs, nageurs, settings, stagesSemaine, echeancesSemaine] = await Promise.all([
     prisma.creneau.findMany({
       where: mine ? { coachId: session!.coachId! } : undefined,
-      include: { groupe: { include: { plansEntrainement: { select: { theme: true, dateDebut: true, dateFin: true } } } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } },
+      include: {
+        groupe: { include: { plansEntrainement: { select: { theme: true, dateDebut: true, dateFin: true }, orderBy: { createdAt: "desc" } } } },
+        coach: { include: { user: true } },
+        effectifNageurs: { select: { nageurId: true } },
+      },
     }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
@@ -73,10 +77,13 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
     }
   }
 
-  const aujourdhui = new Date();
+  // L'objectif affiché doit correspondre au plan actif ce jour-là (celui de
+  // la semaine consultée), pas à "aujourd'hui" — sinon toute la semaine
+  // affiche le plan en cours au moment de la visite plutôt que celui
+  // réellement actif sur chaque occurrence du créneau.
   const creneauxAvecObjectif = creneaux.map((c) => ({
     ...c,
-    groupe: { ...c.groupe, objectif: objectifActuel(c.groupe.plansEntrainement, c.groupe.objectif, aujourdhui) },
+    groupe: { ...c.groupe, objectif: objectifActuel(c.groupe.plansEntrainement, c.groupe.objectif, dates[c.jour]) },
   }));
 
   return (

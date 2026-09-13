@@ -20,7 +20,13 @@ const MOIS_LONG = [
 export default async function CalendrierPage({ searchParams }: { searchParams: Promise<{ mois?: string }> }) {
   const { mois: moisParam } = await searchParams;
   const [creneaux, groupes, coachs, nageurs, echeances, stages, evenementsSemaine, settings] = await Promise.all([
-    prisma.creneau.findMany({ include: { groupe: { include: { plansEntrainement: { select: { theme: true, dateDebut: true, dateFin: true } } } }, coach: { include: { user: true } }, effectifNageurs: { select: { nageurId: true } } } }),
+    prisma.creneau.findMany({
+      include: {
+        groupe: { include: { plansEntrainement: { select: { theme: true, dateDebut: true, dateFin: true }, orderBy: { createdAt: "desc" } } } },
+        coach: { include: { user: true } },
+        effectifNageurs: { select: { nageurId: true } },
+      },
+    }),
     prisma.groupe.findMany({ orderBy: { nom: "asc" } }),
     prisma.coach.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
     prisma.nageur.findMany({ orderBy: { nom: "asc" } }),
