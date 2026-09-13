@@ -39,6 +39,7 @@ function dureeEnSemaines(dateDebut: string, dateFin: string) {
 }
 
 type DragPlan = { planId: string; startX: number; deltaSemaines: number };
+type ResizePlan = { planId: string; edge: "debut" | "fin"; startX: number; delta: number };
 
 export function PlanningEntrainementClient({
   groupesParPole,
@@ -58,6 +59,8 @@ export function PlanningEntrainementClient({
   const [decalageSemaines, setDecalageSemaines] = useState(0);
   const dragRef = useRef<DragPlan | null>(null);
   const [dragState, setDragState] = useState<DragPlan | null>(null);
+  const resizeRef = useRef<ResizePlan | null>(null);
+  const [resizeState, setResizeState] = useState<ResizePlan | null>(null);
 
   const lundiCourant = ajouterJours(mondayOf(new Date()), decalageSemaines * 7);
   const semaines = Array.from({ length: SEMAINES_AFFICHEES }, (_, i) => ajouterJours(lundiCourant, i * 7));
@@ -152,14 +155,66 @@ export function PlanningEntrainementClient({
     window.addEventListener("mouseup", onUp);
   }
 
+  async function redimensionnerPlan(plan: Plan, edge: "debut" | "fin", delta: number) {
+    const dureeOriginale = dureeEnSemaines(plan.dateDebut, plan.dateFin);
+    const nouveauDebut = edge === "fin" ? new Date(plan.dateDebut) : ajouterJours(new Date(plan.dateDebut), delta * 7);
+    const nouvelleDuree = edge === "fin" ? dureeOriginale + delta : dureeOriginale - delta;
+    await fetch(`/api/plans-entrainement/${plan.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dateDebut: toDateInputValue(nouveauDebut), dureeSemaines: nouvelleDuree }),
+    });
+    router.refresh();
+  }
+
+  // Poignées aux deux bouts de la barre pour allonger ou raccourcir la durée
+  // du plan (garde toujours au moins 1 semaine) — glisser le bord droit
+  // change la fin, le bord gauche change le début sans toucher à la fin.
+  function onHandleMouseDown(e: React.MouseEvent, plan: Plan, edge: "debut" | "fin") {
+    e.preventDefault();
+    e.stopPropagation();
+    const dureeOriginale = dureeEnSemaines(plan.dateDebut, plan.dateFin);
+    function clamp(deltaBrut: number) {
+      if (edge === "fin") return Math.max(1, dureeOriginale + deltaBrut) - dureeOriginale;
+      return dureeOriginale - Math.max(1, dureeOriginale - deltaBrut);
+    }
+    const info: ResizePlan = { planId: plan.id, edge, startX: e.clientX, delta: 0 };
+    resizeRef.current = info;
+    setResizeState(info);
+
+    function onMove(ev: MouseEvent) {
+      const courant = resizeRef.current;
+      if (!courant) return;
+      const deltaBrut = Math.round((ev.clientX - courant.startX) / LARGEUR_SEMAINE);
+      const delta = clamp(deltaBrut);
+      if (delta !== courant.delta) {
+        const next = { ...courant, delta };
+        resizeRef.current = next;
+        setResizeState(next);
+      }
+    }
+    function onUp() {
+      const fin = resizeRef.current;
+      resizeRef.current = null;
+      setResizeState(null);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      if (!fin || fin.delta === 0) return;
+      redimensionnerPlan(plan, fin.edge, fin.delta);
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="text-[13px]" style={{ color: "var(--ink-secondary)" }}>
         Vue calendaire d&apos;un groupe : chaque ligne est un plan d&apos;entraînement déjà enregistré (nom libre, objectif et
         durée choisis à sa création), positionné sur ses vraies dates — clique sa barre pour l&apos;éditer, ou glisse-la pour
-        la décaler dans le temps (ex. repousser « Technique » plus loin pour libérer la place à « Vitesse »). Clique une
-        case vide sur la même ligne pour reprendre ce plan sur une nouvelle période. Utilise la dernière ligne pour en
-        enregistrer un nouveau. Les semaines de vacances scolaires sont surlignées 🏖.
+        la décaler dans le temps (ex. repousser « Technique » plus loin pour libérer la place à « Vitesse »). Glisse une
+        des extrémités de la barre pour allonger ou raccourcir sa durée. Clique une case vide sur la même ligne pour
+        reprendre ce plan sur une nouvelle période. Utilise la dernière ligne pour en enregistrer un nouveau. Les
+        semaines de vacances scolaires sont surlignées 🏖.
       </div>
 
       <div className="flex items-center gap-2 flex-wrap justify-between">
@@ -246,6 +301,10 @@ export function PlanningEntrainementClient({
                 {plansGroupe.map((p) => {
                   const style = barreStyle(p);
                   const color = couleurObjectif(p.theme);
+                  const enDrag = dragState?.planId === p.id;
+                  const enResize = resizeState?.planId === p.id;
+                  const offsetGauche = enDrag ? dragState.deltaSemaines * LARGEUR_SEMAINE : enResize && resizeState.edge === "debut" ? resizeState.delta * LARGEUR_SEMAINE : 0;
+                  const offsetLargeur = enResize ? (resizeState.edge === "fin" ? resizeState.delta : -resizeState.delta) * LARGEUR_SEMAINE : 0;
                   return (
                     <div key={p.id} className="flex items-stretch" style={{ borderBottom: "1px solid var(--border)" }}>
                       <div style={{ width: LARGEUR_LABEL }} className="shrink-0 px-3.5 py-2.5 flex items-center gap-2">
@@ -270,24 +329,26 @@ export function PlanningEntrainementClient({
                           />
                         ))}
                         {style && (
-                          <button
-                            onMouseDown={(e) => onBarMouseDown(e, p)}
-                            className="absolute rounded-md px-2 flex items-center text-[12px] font-semibold truncate select-none"
-                            style={{
-                              top: 8,
-                              height: 28,
-                              left: style.left + 2 + (dragState?.planId === p.id ? dragState.deltaSemaines * LARGEUR_SEMAINE : 0),
-                              width: style.width,
-                              background: `${color}55`,
-                              border: `1px solid ${color}`,
-                              cursor: dragState?.planId === p.id ? "grabbing" : "grab",
-                              zIndex: dragState?.planId === p.id ? 10 : undefined,
-                              boxShadow: dragState?.planId === p.id && dragState.deltaSemaines !== 0 ? "0 4px 16px rgba(0,0,0,0.5)" : undefined,
-                            }}
-                            title={`${p.nom} — glisser pour décaler, cliquer pour éditer`}
+                          <div
+                            className="absolute select-none"
+                            style={{ top: 8, height: 28, left: style.left + 2 + offsetGauche, width: Math.max(style.width + offsetLargeur, 8), zIndex: enDrag || enResize ? 10 : undefined }}
                           >
-                            {p.nom}
-                          </button>
+                            <button
+                              onMouseDown={(e) => onBarMouseDown(e, p)}
+                              className="w-full h-full rounded-md px-2 flex items-center text-[12px] font-semibold truncate"
+                              style={{
+                                background: `${color}55`,
+                                border: `1px solid ${color}`,
+                                cursor: enDrag ? "grabbing" : "grab",
+                                boxShadow: (enDrag && dragState.deltaSemaines !== 0) || (enResize && resizeState.delta !== 0) ? "0 4px 16px rgba(0,0,0,0.5)" : undefined,
+                              }}
+                              title={`${p.nom} — glisser pour décaler, cliquer pour éditer`}
+                            >
+                              {p.nom}
+                            </button>
+                            <div onMouseDown={(e) => onHandleMouseDown(e, p, "debut")} className="absolute top-0 h-full" style={{ left: -4, width: 10, cursor: "ew-resize" }} title="Avancer ou reculer le début" />
+                            <div onMouseDown={(e) => onHandleMouseDown(e, p, "fin")} className="absolute top-0 h-full" style={{ right: -4, width: 10, cursor: "ew-resize" }} title="Allonger ou raccourcir la fin" />
+                          </div>
                         )}
                       </div>
                     </div>
