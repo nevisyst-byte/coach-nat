@@ -12,6 +12,8 @@ const setSchema = z.object({
   allure: z.string(),
   repos: z.string(),
   nages: z.array(valeurPourcentageSchema).default([]),
+  variant: z.array(valeurPourcentageSchema).default([]),
+  intensite: z.array(valeurPourcentageSchema).default([]),
 });
 const sectionSchema = z.object({ id: z.string(), nom: z.string(), objectif: z.string(), sets: z.array(setSchema) });
 const comboSchema = z.object({

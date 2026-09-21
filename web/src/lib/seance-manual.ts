@@ -7,10 +7,14 @@ export type SetLigne = {
   label: string;
   allure: string;
   repos: string;
-  // Plusieurs nages sur le même exercice (ex. 60% crawl + 40% dos), chacune
-  // avec son propre % réglable via la même barre glissable que sur un plan
-  // — vide = pas de nage précisée, comme avant l'ajout de ce champ.
+  // Plusieurs valeurs par axe sur le même exercice (ex. 60% crawl + 40%
+  // dos), chacune avec son propre % réglable via la même barre glissable
+  // que sur un plan — vide = axe non précisé. `nages` garde son nom au
+  // pluriel (déjà stocké ainsi dans les séances/plans existants) alors que
+  // `variant`/`intensite` sont au singulier, comme dans un Combo.
   nages: ValeurPourcentage[];
+  variant: ValeurPourcentage[];
+  intensite: ValeurPourcentage[];
 };
 
 export type SectionManuelle = {
@@ -25,7 +29,7 @@ function uid() {
 }
 
 export function nouvelleSet(): SetLigne {
-  return { id: uid(), reps: 4, distance: 50, label: "", allure: "", repos: "", nages: [] };
+  return { id: uid(), reps: 4, distance: 50, label: "", allure: "", repos: "", nages: [], variant: [], intensite: [] };
 }
 
 export function nouvelleSection(nom = ""): SectionManuelle {
@@ -88,20 +92,28 @@ export function blocsToSections(blocs: Bloc[]): SectionManuelle[] {
     id: uid(),
     nom: b.phase,
     objectif: b.objectif ?? "",
-    sets: [{ id: uid(), reps: 1, distance: parseDistance(b.distance), label: b.contenu, allure: "", repos: "", nages: [] }],
+    sets: [{ id: uid(), reps: 1, distance: parseDistance(b.distance), label: b.contenu, allure: "", repos: "", nages: [], variant: [], intensite: [] }],
   }));
 }
 
-export function volumeParNage(sections: SectionManuelle[]): { nage: string; m: number }[] {
-  const parNage = new Map<string, number>();
+// `?? []` défensif : les sets enregistrés avant l'ajout de variant/intensite
+// (ou avant nages) n'ont pas ces clés du tout dans le JSON stocké — sans ça,
+// une séance/plan déjà sauvegardé planterait à la première lecture.
+export function valeursAxe(s: SetLigne, champ: "nages" | "variant" | "intensite"): ValeurPourcentage[] {
+  return s[champ] ?? [];
+}
+
+export function volumeParAxe(sections: SectionManuelle[], axe: "nage" | "variant" | "intensite"): { nom: string; m: number }[] {
+  const sums = new Map<string, number>();
   for (const section of sections) {
     for (const s of section.sets) {
-      if (s.nages.length === 0) continue;
+      const valeurs = valeursAxe(s, axe === "nage" ? "nages" : axe);
+      if (valeurs.length === 0) continue;
       const d = distanceSet(s);
-      for (const n of s.nages) parNage.set(n.valeur, (parNage.get(n.valeur) ?? 0) + (d * (n.pourcentage || 0)) / 100);
+      for (const v of valeurs) sums.set(v.valeur, (sums.get(v.valeur) ?? 0) + (d * (v.pourcentage || 0)) / 100);
     }
   }
-  return Array.from(parNage.entries()).map(([nage, m]) => ({ nage, m: Math.round(m) }));
+  return Array.from(sums.entries()).map(([nom, m]) => ({ nom, m: Math.round(m) }));
 }
 
 // Compile les sections saisies à la main en Bloc[] — le même format que le
@@ -128,7 +140,12 @@ export function buildManualBlocs(heureDebut: string, sections: SectionManuelle[]
         const reposSec = parseMinSec(s.repos);
         curseur += (s.reps * allureSec + reposSec) / 60;
 
-        const titre = [`${s.reps}×${s.distance}`, s.nages.map((n) => n.valeur).join(" + "), s.label.trim()].filter(Boolean).join(" ");
+        const nageTxt = valeursAxe(s, "nages").map((n) => n.valeur).join(" + ");
+        const variantTxt = valeursAxe(s, "variant").map((n) => n.valeur).join(" + ");
+        const intensiteTxt = valeursAxe(s, "intensite").map((n) => n.valeur).join(" + ");
+        const titre = [`${s.reps}×${s.distance}`, nageTxt, variantTxt && `(${variantTxt})`, s.label.trim(), intensiteTxt && `à ${intensiteTxt}`]
+          .filter(Boolean)
+          .join(" ");
         const details = [s.allure ? `départ ${s.allure}` : null, s.repos ? `repos ${s.repos}` : null].filter(Boolean).join(" · ");
         lignes.push(`${heureLigne} — ${titre}${details ? ` (${details})` : ""}`);
       }

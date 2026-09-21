@@ -5,16 +5,11 @@ import { Chip } from "@/components/ui/Card";
 import { Camembert, type CamembertItem } from "@/components/ui/Camembert";
 import { BarreRepartition, PALETTE, repartirEgal, sommeRepartition } from "@/components/ui/BarreRepartition";
 import { SectionsEditor } from "./SectionsEditor";
-import { nouvelleSection, volumeTotalManuel, volumeParNage, fmtDistance, type SectionManuelle } from "@/lib/seance-manual";
+import { nouvelleSection, volumeTotalManuel, volumeParAxe, fmtDistance, type SectionManuelle } from "@/lib/seance-manual";
+import { AXES } from "@/lib/axes";
 import type { Combo, ValeurPourcentage } from "@/lib/seance-generator";
 
-export { PALETTE };
-
-export const AXES = [
-  { key: "variant" as const, titre: "Variant", aide: "Support technique", options: ["Nage complète", "Bras", "Jambes", "Éducatif"] },
-  { key: "intensite" as const, titre: "Intensité", aide: "Allure de travail", options: ["Allure neutre", "Négatif split", "Progressif", "Seuil", "Allure 400", "Allure 200", "Vitesse"] },
-  { key: "nage" as const, titre: "Nages", aide: "Support de nage", options: ["4 nages", "Spécialité", "Papillon", "Dos", "Brasse", "Crawl"] },
-];
+export { PALETTE, AXES };
 
 export function comboVide(): Combo {
   return {
@@ -161,7 +156,11 @@ export function SeanceContenuEditor({
           { titre: "Par variant", items: camembertsAxe("variant", value.combos) },
         ]
       : value.mode === "manuel"
-        ? [{ titre: "Par nage", items: volumeParNage(value.sections).map((v, i) => ({ nom: v.nage, m: v.m, color: PALETTE[i % PALETTE.length] })) }]
+        ? [
+            { titre: "Par nage", items: volumeParAxe(value.sections, "nage").map((v, i) => ({ nom: v.nom, m: v.m, color: PALETTE[i % PALETTE.length] })) },
+            { titre: "Par intensité", items: volumeParAxe(value.sections, "intensite").map((v, i) => ({ nom: v.nom, m: v.m, color: PALETTE[i % PALETTE.length] })) },
+            { titre: "Par variant", items: volumeParAxe(value.sections, "variant").map((v, i) => ({ nom: v.nom, m: v.m, color: PALETTE[i % PALETTE.length] })) },
+          ]
         : [];
 
   return (

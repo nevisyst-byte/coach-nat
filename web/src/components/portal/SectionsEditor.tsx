@@ -1,17 +1,25 @@
 "use client";
 
 import { OBJECTIFS, couleurObjectif } from "@/lib/objectifs";
-import { nouvelleSection, nouvelleSet, distanceSection, fmtDistance, type SectionManuelle } from "@/lib/seance-manual";
+import { nouvelleSection, nouvelleSet, distanceSection, fmtDistance, valeursAxe, type SectionManuelle } from "@/lib/seance-manual";
 import { BarreRepartition, repartirEgal } from "@/components/ui/BarreRepartition";
+import { AXES, AXE_ABBR } from "@/lib/axes";
 import type { ValeurPourcentage } from "@/lib/seance-generator";
 
-const NAGES = ["Papillon", "Dos", "Brasse", "Crawl"];
-const NAGE_ABBR: Record<string, string> = { Papillon: "Pap", Dos: "Dos", Brasse: "Bra", Crawl: "Cr" };
+// `SetLigne.nages` reste au pluriel (déjà stocké ainsi dans les séances et
+// plans existants) alors que AXES utilise la clé singulière "nage" (comme
+// pour un Combo) — cette correspondance évite de renommer le champ stocké.
+function champDe(axe: "variant" | "intensite" | "nage"): "variant" | "intensite" | "nages" {
+  return axe === "nage" ? "nages" : axe;
+}
 
 // Éditeur de sections/séries (reps × distance @ allure, repos) partagé par
 // le détail d'un plan d'entraînement et l'édition ponctuelle d'une séance —
 // mêmes distances 100% libres (jamais de liste déroulante), même format,
-// pour que le coach retrouve la même interface partout.
+// pour que le coach retrouve la même interface partout. Les 3 axes
+// (variant/intensité/nage) se cochent par set, comme un combo en mode
+// auto — plusieurs valeurs cochées se répartissent en % via la même barre
+// glissable.
 export function SectionsEditor({ sections, onChange }: { sections: SectionManuelle[]; onChange: (sections: SectionManuelle[]) => void }) {
   function ajouterSection() {
     onChange([...sections, nouvelleSection()]);
@@ -40,7 +48,8 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
       )
     );
   }
-  function toggleNageSet(sectionId: string, setId: string, nage: string) {
+  function toggleAxeValeurSet(sectionId: string, setId: string, axe: "variant" | "intensite" | "nage", valeur: string) {
+    const champ = champDe(axe);
     onChange(
       sections.map((s) =>
         s.id === sectionId
@@ -48,17 +57,19 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
               ...s,
               sets: s.sets.map((x) => {
                 if (x.id !== setId) return x;
-                const dejaCoche = x.nages.some((n) => n.valeur === nage);
-                const valeurs = dejaCoche ? x.nages.filter((n) => n.valeur !== nage).map((n) => n.valeur) : [...x.nages.map((n) => n.valeur), nage];
-                return { ...x, nages: repartirEgal(valeurs) };
+                const actuelles = valeursAxe(x, champ);
+                const dejaCoche = actuelles.some((n) => n.valeur === valeur);
+                const valeurs = dejaCoche ? actuelles.filter((n) => n.valeur !== valeur).map((n) => n.valeur) : [...actuelles.map((n) => n.valeur), valeur];
+                return { ...x, [champ]: repartirEgal(valeurs) };
               }),
             }
           : s
       )
     );
   }
-  function updateNagePourcentages(sectionId: string, setId: string, nages: ValeurPourcentage[]) {
-    onChange(sections.map((s) => (s.id === sectionId ? { ...s, sets: s.sets.map((x) => (x.id === setId ? { ...x, nages } : x)) } : s)));
+  function updateAxePourcentagesSet(sectionId: string, setId: string, axe: "variant" | "intensite" | "nage", valeurs: ValeurPourcentage[]) {
+    const champ = champDe(axe);
+    onChange(sections.map((s) => (s.id === sectionId ? { ...s, sets: s.sets.map((x) => (x.id === setId ? { ...x, [champ]: valeurs } : x)) } : s)));
   }
 
   return (
@@ -100,19 +111,18 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
             </button>
           </div>
 
-          <div className="grid gap-1.5 text-[11px] tracking-[0.08em] uppercase mb-1" style={{ gridTemplateColumns: "56px 64px 1fr 150px 64px 64px 20px", color: "var(--ink-tertiary)" }}>
+          <div className="grid gap-1.5 text-[11px] tracking-[0.08em] uppercase mb-1" style={{ gridTemplateColumns: "56px 64px 1fr 64px 64px 20px", color: "var(--ink-tertiary)" }}>
             <span>Rép.</span>
             <span>Dist.</span>
             <span>Contenu</span>
-            <span>Nages</span>
             <span>Départ</span>
             <span>Repos</span>
             <span />
           </div>
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             {section.sets.map((s) => (
-              <div key={s.id} className="flex flex-col gap-1">
-                <div className="grid gap-1.5 items-center" style={{ gridTemplateColumns: "56px 64px 1fr 150px 64px 64px 20px" }}>
+              <div key={s.id} className="flex flex-col gap-1.5 rounded-lg p-2" style={{ background: "rgba(255,255,255,0.02)" }}>
+                <div className="grid gap-1.5 items-center" style={{ gridTemplateColumns: "56px 64px 1fr 64px 64px 20px" }}>
                   <input
                     type="number"
                     value={s.reps}
@@ -130,26 +140,10 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
                   <input
                     value={s.label}
                     onChange={(e) => updateSet(section.id, s.id, "label", e.target.value)}
-                    placeholder="ex. Éducatif, jambes…"
+                    placeholder="ex. libre, remarque…"
                     className="rounded-md px-1.5 py-1.5 text-[13px] outline-none min-w-0"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-strong)", color: "var(--ink)" }}
                   />
-                  <div className="flex gap-1 flex-wrap" title="Une ou plusieurs nages pour cet exercice (ex. crawl + dos)">
-                    {NAGES.map((n) => {
-                      const on = s.nages.some((x) => x.valeur === n);
-                      return (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => toggleNageSet(section.id, s.id, n)}
-                          className="rounded-md px-1.5 py-1 text-[10px] font-bold cursor-pointer"
-                          style={{ border: `1px solid ${on ? "#1E7BFF" : "var(--border-strong)"}`, background: on ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)", color: on ? "#7FDCFF" : "var(--ink-secondary)" }}
-                        >
-                          {NAGE_ABBR[n]}
-                        </button>
-                      );
-                    })}
-                  </div>
                   <input
                     value={s.allure}
                     onChange={(e) => updateSet(section.id, s.id, "allure", e.target.value)}
@@ -170,7 +164,36 @@ export function SectionsEditor({ sections, onChange }: { sections: SectionManuel
                     ✕
                   </button>
                 </div>
-                {s.nages.length > 1 && <BarreRepartition valeurs={s.nages} onChange={(nages) => updateNagePourcentages(section.id, s.id, nages)} />}
+
+                <div className="flex flex-col gap-1">
+                  {AXES.map((ax) => {
+                    const valeurs = valeursAxe(s, champDe(ax.key));
+                    return (
+                      <div key={ax.key} className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[9px] tracking-[0.06em] uppercase shrink-0" style={{ color: "var(--ink-tertiary)", minWidth: 52 }}>
+                            {ax.titre}
+                          </span>
+                          {ax.options.map((o) => {
+                            const on = valeurs.some((v) => v.valeur === o);
+                            return (
+                              <button
+                                key={o}
+                                type="button"
+                                onClick={() => toggleAxeValeurSet(section.id, s.id, ax.key, o)}
+                                className="rounded-md px-1.5 py-1 text-[10px] font-bold cursor-pointer"
+                                style={{ border: `1px solid ${on ? "#1E7BFF" : "var(--border-strong)"}`, background: on ? "rgba(30,123,255,0.18)" : "rgba(255,255,255,0.04)", color: on ? "#7FDCFF" : "var(--ink-secondary)" }}
+                              >
+                                {AXE_ABBR[ax.key][o]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {valeurs.length > 1 && <BarreRepartition valeurs={valeurs} onChange={(next) => updateAxePourcentagesSet(section.id, s.id, ax.key, next)} />}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
